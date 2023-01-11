@@ -180,8 +180,10 @@ class Mesh { //clase Mesh
 		GLushort * faces;
 		GLushort * edges;
 		GLbyte * uv;
-		/*RArray<GLshort> vertex;
-		RArray<GLbyte> normals;
+		
+		//GLshort* vertextemp;
+		//RArray<GLshort> vertex;
+		/*RArray<GLbyte> normals;
 		RArray<GLushort> faces;
 		RArray<GLushort> edges;
 		RArray<GLbyte> uv;*/
@@ -265,7 +267,7 @@ void CBlenderLite::ConstructL( void ){
 	//debuger
 	//console = Console::NewL(_L("Consola"),TSize(KConsFullScreen, KConsFullScreen));
 	//Objetos = new Mesh[cantObjetos];
-	//CrearObjeto(cubo);
+	CrearObjeto(cubo);
 }
 
 
@@ -714,6 +716,7 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 			objVertexdataModel[3]-= 10;
 			objVertexdataModel[4]-= 10;		
 		}	*/
+	    redibujar = true;
 	}
 	if( iInputHandler->IsInputPressed( EJoystickRight ) ){
 		//rotX -= fixedMul( 1, aDeltaTimeSecs );
@@ -779,6 +782,7 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 			objVertexdataModel[3]+= 10;
 			objVertexdataModel[4]+= 10;		
 		}	*/	
+	    redibujar = true;
 	}
 	if( iInputHandler->IsInputPressed( EJoystickUp ) ){
 		if (estado == navegacion || estado == edicion){
@@ -814,6 +818,7 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 		else if (estado == movimientoProfundidad){
 			posY -= 0.5;			
 		}*/
+	    redibujar = true;
 	}
 	if( iInputHandler->IsInputPressed( EJoystickDown ) ){
 		if (estado == navegacion || estado == edicion){
@@ -843,19 +848,19 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 				Objetos[objSelect].posZ -= 30;					
 			}
 		}
+	    redibujar = true;
 	}
-	if( iInputHandler->IsInputPressed( EVolumenUp ) ){
+	//if( iInputHandler->IsInputPressed( EVolumenUp ) ){
 		//posY += 0.8;		
-	}
-	if( iInputHandler->IsInputPressed( EVolumenDown ) ){
+		//}
+	//if( iInputHandler->IsInputPressed( EVolumenDown ) ){
 		//posY -= 0.8;		
-	}
+	//}
 	//if( iInputHandler->IsInputPressed( EDelete ) ){view++;}
 	//if( iInputHandler->IsInputPressed( EKeyLeftShift ) ){view--;}
 	//if( iInputHandler->IsInputPressed( EKeyIncVolume ) ){view++;}
 	//if( iInputHandler->IsInputPressed( EKeyDecVolume ) ){view--;}
 	//if( iInputHandler->IsInputPressed( EKeyMenu ) ){view++;}
-    redibujar = true;
 }
 
 void CBlenderLite::SetRotacion(){
@@ -1209,22 +1214,6 @@ void CBlenderLite::Borrar(){
 
 void CBlenderLite::CrearObjeto( int modelo ){
 	Cancelar();
-	/*objSelect = Objetos.Count();
-	Mesh* temp;
-	temp = new Mesh[Objetos.Count()];
-	for(int a=0; a < Objetos.Count(); a++){
-		temp[a] = Objetos[a];			
-	}
-	Objetos.Count()++;
-	Objetos = new Mesh[Objetos.Count()];
-	for(TInt a=0; a < Objetos.Count(); a++){
-		Objetos[a] = temp[a];			
-	}
-	delete[] temp;*/
-	
-	//puntero temporal
-	//Mesh& obj = Objetos[objSelect];
-
 	Mesh obj;
 	obj.visible = true;
 	obj.posX = 0;
@@ -1238,7 +1227,6 @@ void CBlenderLite::CrearObjeto( int modelo ){
 	obj.emission[0] = obj.emission[1] = obj.emission[2] = obj.emission[3] = 0.0;
 	obj.smooth = true;
 	obj.textura = false;
-	//	static const GLfloat objSpecular[4] = new GLfloat[4]{ MATERIALCOLOR(1.0, 1.0, 1.0, 1.0) };
 	
     if (modelo == cubo){ 
     	obj.vertexSize = 24 * 3;
@@ -1257,6 +1245,13 @@ void CBlenderLite::CrearObjeto( int modelo ){
 		obj.edges = new GLushort[12 * 6];
 		obj.uv = new GLbyte[24 * 2];
 		obj.vertex = Primitivas.CuboVertices(1,1,1);
+		//GLshort *vertex =  new GLshort[24 * 3];
+		//obj.vertex.ReserveL(24 * 3);
+		//vertex = Primitivas.CuboVertices(1,1,1);
+		//for (int i = 0; i < 24*3; i++) {
+			//	obj.vertex.Append(vertex[i]);
+			//}
+		//delete[] vertex;
 		obj.normals = Primitivas.CuboNormals();
 		obj.faces = Primitivas.CuboFaces();
 		obj.uv = Primitivas.CuboUV();
@@ -1295,7 +1290,8 @@ void CBlenderLite::CrearObjeto( int modelo ){
 		obj.scaleZ = 45000;	
 		obj.rotZ = 180;
 		for(int a=0; a < SuzzaneVertexSize; a++){
-			obj.vertex[a] = SuzzaneVertex[a];			
+			obj.vertex[a] = SuzzaneVertex[a];	
+			//obj.vertex.Append(SuzzaneVertex[a]);		
 		}
 		obj.normals = new GLbyte[SuzzaneNormalSize];
 		for(int a=0; a < SuzzaneNormalSize; a++){
@@ -1323,7 +1319,8 @@ void CBlenderLite::CrearObjeto( int modelo ){
 		obj.scaleZ = 65000;
 		obj.vertex = new GLshort[objVertexdataModelSize];
 		for(int a=0; a < objVertexdataModelSize; a++){
-			obj.vertex[a] = objVertexdataModel[a];			
+			obj.vertex[a] = objVertexdataModel[a];	
+			//obj.vertex.Append(objVertexdataModel[a]);
 		}
 		obj.normals = new GLbyte[objNormaldataModelSize];
 		for(int a=0; a < objNormaldataModelSize; a++){
@@ -1449,6 +1446,11 @@ void CBlenderLite::CrearObjeto( int modelo ){
 			obj.edgesSize++;
 		}
 	};*/
+
+	/*obj.vertextemp = new GLshort[obj.vertexSize];
+	for(int a=0; a < obj.vertexSize; a++){
+		obj.vertextemp[a] = obj.vertex[a];
+	}*/
 	
 	delete[] TempEdgesVertex;
 	Objetos.Append(obj);
