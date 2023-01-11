@@ -1,0 +1,66 @@
+/*
+ * ==============================================================================
+ *  Name        : blenderlite.hrh
+ *  Part of     : OpenGLEx / BlenderLite
+ *
+ *  Copyright (c) 2004-2006 Nokia Corporation.
+ *  This material, including documentation and any related
+ *  computer programs, is protected by copyright controlled by
+ *  Nokia Corporation.
+ * ==============================================================================
+ */
+
+#ifndef BLENDERLITE_HRH
+#define BLENDERLITE_HRH
+
+// DATA TYPES
+enum TBlenderLiteMenuCommands
+{
+    EBlenderLiteLighting = 1,
+    EBlenderLiteCrearObjetos,
+    EBlenderLiteLights,
+    EBlenderLiteLamp,
+    EBlenderLiteSpot,
+    
+    EBlenderLiteCrearCubo,
+    EBlenderLiteCrearEsfera,
+    EBlenderLiteCrearCilindro,
+    EBlenderLiteCrearPlano,
+    EBlenderLiteCrearEmpty,
+    EBlenderLiteCrearCamara,
+    EBlenderLiteCrearCad,
+    EBlenderLiteCrearLuz,
+    EBlenderLiteCrearSuzanne,
+    EBlenderLiteCrearClaude,
+    EBlenderLiteCrearMarcus,
+    EBlenderLiteCrearVertice,
+    
+    EBlenderLitePerspectiva,
+    EBlenderLiteObjFocus,
+    EBlenderLiteCambiarObjeto,
+    EBlenderLiteNavegacion,
+    EBlenderLiteBorrar,
+    
+    EBlenderLiteEditarMaterial,
+    EBlenderLiteSetTexture,
+    EBlenderLiteSetSmooth,
+    EBlenderLiteSetTextura,
+    EBlenderLiteActivarTextura,
+    EBlenderLiteSetEmission,
+    EBlenderLiteSetSpecular,
+    EBlenderLiteSetDiffuse,
+    
+    EBlenderLiteEditarMesh,
+    EBlenderLiteEditarObjeto,
+    EBlenderLiteInfoObject,
+    EBlenderLiteSetEscala,
+    EBlenderLiteSetPosicion,
+    EBlenderLiteSetRotacion,
+    
+    EBlenderLiteVista3D,
+    EBlenderLiteViewSolid,
+    EBlenderLiteViewMaterial,
+    EBlenderLiteViewWireframe
+};
+
+#endif      // BLENDERLITE_HRH

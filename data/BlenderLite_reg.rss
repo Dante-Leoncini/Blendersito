@@ -1,0 +1,32 @@
+/*
+ * ==============================================================================
+ *  Name        : BlenderLite_reg.rss
+ *  Part of     : OpenGLEx / BlenderLite
+ *
+ *  Copyright (c) 2005-2006 Nokia Corporation.
+ *  This material, including documentation and any related
+ *  computer programs, is protected by copyright controlled by
+ *  Nokia Corporation.
+ * ==============================================================================
+ */
+
+#include <appinfo.rh>
+#include <blenderlite.rsg>
+
+UID2 KUidAppRegistrationResourceFile
+
+// Application UID
+UID3 0xA00D021D
+
+RESOURCE APP_REGISTRATION_INFO
+    {
+    app_file                  = "BlenderLite";
+    localisable_resource_file = "\\resource\\apps\\blenderlite";
+    localisable_resource_id   = R_BLENDERLITE_LOCALISABLE_APP_INFO;
+    embeddability             = KAppNotEmbeddable;
+    newfile                   = KAppDoesNotSupportNewFile;
+
+//    group_name                = "OpenGLEx";
+    }
+
+// End of File

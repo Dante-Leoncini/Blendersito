@@ -1,0 +1,70 @@
+/*
+ * ==============================================================================
+ *  Name        : blenderlite.rls
+ *  Part of     : OpenGLEx / BlenderLite
+ *
+ *  Copyright (c) 2004-2006 Nokia Corporation.
+ *  This material, including documentation and any related
+ *  computer programs, is protected by copyright controlled by
+ *  Nokia Corporation.
+ * ==============================================================================
+ */
+
+// LOCALISATION STRINGS
+
+rls_string STRING_r_app_caption_string       "BlenderLite"
+rls_string STRING_r_app_short_caption_string "BlenderLite"
+
+rls_string STRING_r_blenderlite_exit         "Salir"
+
+rls_string STRING_r_blenderlite_lighting     "Luces"
+rls_string STRING_r_blenderlite_lights_on    "Turn lights on"
+rls_string STRING_r_blenderlite_lights_off   "Turn lights off"
+rls_string STRING_r_blenderlite_lamp_on      "Turn lamp on"
+rls_string STRING_r_blenderlite_lamp_off     "Turn lamp off"
+rls_string STRING_r_blenderlite_spot_on      "Turn spot on"
+rls_string STRING_r_blenderlite_spot_off     "Turn spot off"
+
+rls_string STRING_r_blenderlite_crearObjetos   "Crear Objetos"
+rls_string STRING_r_blenderlite_crearCubo      "Crear Cubo"
+rls_string STRING_r_blenderlite_crearVertice   "Crear Vertice"
+rls_string STRING_r_blenderlite_crearClaude    "Crear Claude"
+rls_string STRING_r_blenderlite_crearMarcus    "Crear Marcus"
+rls_string STRING_r_blenderlite_crearSuzanne   "Crear Suzanne"
+rls_string STRING_r_blenderlite_crearLuz       "Crear Luz"
+rls_string STRING_r_blenderlite_crearCamara    "Crear Camara"
+rls_string STRING_r_blenderlite_crearEsfera    "Crear Esfera"
+rls_string STRING_r_blenderlite_crearCilindro  "Crear Cilindro"
+rls_string STRING_r_blenderlite_crearPlano     "Crear Plano"
+rls_string STRING_r_blenderlite_crearEmpty     "Crear Empty"
+rls_string STRING_r_blenderlite_crearCad       "Crear Cad"
+
+rls_string STRING_r_blenderlite_perspectiva    "Cambiar Perspectiva"
+rls_string STRING_r_blenderlite_ObjFocus       "Enfocar Objeto"
+rls_string STRING_r_blenderlite_CambiarObjeto  "Cambiar Objeto"
+rls_string STRING_r_blenderlite_SetNavegacion  "Cambiar Navegacion"
+rls_string STRING_r_blenderlite_Borrar         "Eliminar"
+
+rls_string STRING_r_blenderlite_editarMaterial "Editar Material"
+rls_string STRING_r_blenderlite_setTexture     "Elegir Textura"
+rls_string STRING_r_blenderlite_activarTextura "Activar Textura"
+rls_string STRING_r_blenderlite_setDiffuse     "Diffuso"
+rls_string STRING_r_blenderlite_setSpecular    "Specular"
+rls_string STRING_r_blenderlite_setEmission    "Emision"
+rls_string STRING_r_blenderlite_setSmooth      "Shader Smooth"
+
+rls_string STRING_r_blenderlite_EditarMesh     "Editar Mesh"
+
+rls_string STRING_r_blenderlite_EditarObjeto     "Editar Objeto"
+rls_string STRING_r_blenderlite_InfoObjeto       "Informacion Objeto"
+rls_string STRING_r_blenderlite_CambiarEscala    "Cambiar Escala"
+rls_string STRING_r_blenderlite_CambiarPosicion  "Cambiar Posicion"
+rls_string STRING_r_blenderlite_CambiarRotacion  "Cambiar Rotacion"
+
+rls_string STRING_r_blenderlite_Vista3D          "Vista 3D"
+rls_string STRING_r_blenderlite_ViewSolid        "View Solid"
+rls_string STRING_r_blenderlite_ViewMaterial     "View Material"
+rls_string STRING_r_blenderlite_ViewWireframe    "View Wireframe"
+
+
+// End of File

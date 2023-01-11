@@ -1,0 +1,62 @@
+/*
+ * ==============================================================================
+ *  Name        : BlenderLite.mmp
+ *  Part of     : OpenGLEx / BlenderLite
+ *
+ *  Copyright (c) 2005-2006 Nokia Corporation.
+ *  This material, including documentation and any related
+ *  computer programs, is protected by copyright controlled by
+ *  Nokia Corporation.
+ * ==============================================================================
+ */
+
+//New style application exe
+TARGET          blenderlite.exe
+TARGETTYPE      exe
+UID             0x100039CE 0xA00D021D
+
+EPOCSTACKSIZE   60000 //originalmente estaba en 30000 67108864
+
+VENDORID        0
+CAPABILITY      NONE
+
+SOURCEPATH      ..\Utils
+SOURCE          Mathutils.cpp
+SOURCE          Glutils.cpp
+SOURCE          Utils3d.cpp
+SOURCE          Textureutils.cpp
+
+SOURCEPATH      ..\src
+SOURCE          BlenderLite.cpp
+SOURCE          BlenderLiteapp.cpp
+SOURCE          BlenderLiteappui.cpp
+SOURCE          BlenderLitedocument.cpp
+SOURCE          BlenderLitecontainer.cpp BlenderLiteinput.cpp
+
+START RESOURCE  ..\data\blenderlite.rss
+HEADER
+TARGETPATH      \\resource\\apps
+LANG            SC
+END //RESOURCE
+
+USERINCLUDE     .
+USERINCLUDE     ..\inc
+USERINCLUDE     ..\Utils
+
+SYSTEMINCLUDE   .
+SYSTEMINCLUDE   \epoc32\include
+
+LIBRARY         euser.lib apparc.lib cone.lib eikcore.lib
+LIBRARY         eikcoctl.lib avkon.lib estlib.lib fbscli.lib
+LIBRARY         efsrv.lib
+LIBRARY         ImageConversion.lib
+LIBRARY         libgles_cm.lib
+LIBRARY         ws32.lib
+
+START RESOURCE ..\data\blenderlite_reg.rss
+#ifdef WINSCW
+TARGETPATH 	  \private\10003a3f\apps
+#else
+TARGETPATH 	  \private\10003a3f\import\apps
+#endif
+END

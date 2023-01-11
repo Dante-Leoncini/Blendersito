@@ -1,0 +1,31 @@
+;Languages
+&EN
+
+;Header
+#{"BlenderLite"}, (0xA00D021D), 1, 0, 0,TYPE=SA
+
+;Localised Vendor name
+%{"Vendor-EN"}
+
+;Unique Vendor name
+:"Vendor"
+
+;Supports Series 60 v 3.0
+[0x101F7961], 0, 0, 0, {"Series60ProductID"}
+
+;Files to install
+"..\..\..\..\epoc32\release\gcce\urel\BlenderLite.exe"                       -"!:\sys\bin\BlenderLite.exe"
+"..\..\..\..\epoc32\data\z\resource\apps\BlenderLite.RSC"                    -"!:\resource\apps\BlenderLite.RSC"
+"..\..\..\..\epoc32\data\Z\private\10003a3f\import\apps\blenderlite_reg.RSC" -"!:\private\10003a3f\import\apps\blenderlite_reg.RSC"
+"..\..\..\..\epoc32\data\z\resource\apps\blenderlite_icon.mif"  			        -"!:\resource\apps\blenderlite_icon.mif"
+
+"..\inc\texturas\marcus.jpg"        -"!:\private\A00D021D\marcus.jpg"
+"..\inc\texturas\claude.jpg"   -"!:\private\A00D021D\claude.jpg"
+"..\inc\texturas\origen.png"   -"!:\private\A00D021D\origen.png"
+"..\inc\texturas\color_grid.jpg"   -"!:\private\A00D021D\color_grid.jpg"
+
+
+
+;required for application to be covered by backup/restore facility 
+"backup_registration.xml"						                                    -"!:\private\A00D021D\backup_registration.xml"
+
