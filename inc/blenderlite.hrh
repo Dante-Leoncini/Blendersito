@@ -35,6 +35,9 @@ enum TBlenderLiteMenuCommands
     EBlenderLiteCrearMarcus,
     EBlenderLiteCrearVertice,
     
+    EBlenderLiteTopView,
+    EBlenderLiteFrontView,
+    EBlenderLiteRightView,
     EBlenderLitePerspectiva,
     EBlenderLiteObjFocus,
     EBlenderLiteCambiarObjeto,

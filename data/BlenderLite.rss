@@ -217,7 +217,19 @@ RESOURCE MENU_PANE r_blenderlite_vista3D_menu{
         MENU_ITEM {
             command = EBlenderLiteViewWireframe;
             txt = STRING_r_blenderlite_ViewWireframe;
-        }    ,
+        },
+        MENU_ITEM {
+            command = EBlenderLiteTopView;
+            txt = STRING_r_blenderlite_topView;
+        },
+        MENU_ITEM {
+            command = EBlenderLiteFrontView;
+            txt = STRING_r_blenderlite_frontView;
+        },
+        MENU_ITEM {
+            command = EBlenderLiteRightView;
+            txt = STRING_r_blenderlite_rightView;
+        },
         MENU_ITEM
         {
             command = EBlenderLitePerspectiva;
@@ -341,6 +353,9 @@ RESOURCE TBUF256 r_blenderlite_crearPlano{buf = STRING_r_blenderlite_crearPlano;
 RESOURCE TBUF256 r_blenderlite_crearEmpty{buf = STRING_r_blenderlite_crearEmpty;}
 RESOURCE TBUF256 r_blenderlite_crearCad{buf = STRING_r_blenderlite_crearCad;}
 
+RESOURCE TBUF256 r_blenderlite_topView{buf = STRING_r_blenderlite_topView;}
+RESOURCE TBUF256 r_blenderlite_frontView{buf = STRING_r_blenderlite_frontView;}
+RESOURCE TBUF256 r_blenderlite_rightView{buf = STRING_r_blenderlite_rightView;}
 RESOURCE TBUF256 r_blenderlite_perspectiva{buf = STRING_r_blenderlite_perspectiva;}
 RESOURCE TBUF256 r_blenderlite_ObjFocus{buf = STRING_r_blenderlite_ObjFocus;}
 RESOURCE TBUF256 r_blenderlite_CambiarObjeto{buf = STRING_r_blenderlite_CambiarObjeto;}

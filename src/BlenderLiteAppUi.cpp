@@ -213,6 +213,12 @@ enum{
     vertice
 };
 
+enum{
+	top,
+	front,
+	right
+};
+
 // ----------------------------------------------------
 // CBlenderLiteAppUi::HandleCommandL
 // Command handler
@@ -287,7 +293,16 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             break;  
         case EBlenderLitePerspectiva:
             iAppContainer->iBlenderLite->SetPerspectiva();
-            break;   
+            break;
+        case EBlenderLiteTopView:
+            iAppContainer->iBlenderLite->SetViewpoint(top);
+            break;
+        case EBlenderLiteFrontView:
+            iAppContainer->iBlenderLite->SetViewpoint(front);
+            break;
+        case EBlenderLiteRightView:
+            iAppContainer->iBlenderLite->SetViewpoint(right);
+            break;
         case EBlenderLiteObjFocus:
             iAppContainer->iBlenderLite->EnfocarObjeto();
             break; 

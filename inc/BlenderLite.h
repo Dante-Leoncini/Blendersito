@@ -120,6 +120,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void Borrar();
         void changeSelect();
         void InfoObject(TInt opciones);
+        void SetViewpoint(TInt opcion);
         void TecladoNumerico(TInt numero);
         void InsertarValor();
         void Mensaje(HBufC* noteBuf);
