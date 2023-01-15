@@ -2,11 +2,6 @@
  * ==============================================================================
  *  Name        : blenderlite.rls
  *  Part of     : OpenGLEx / BlenderLite
- *
- *  Copyright (c) 2004-2006 Nokia Corporation.
- *  This material, including documentation and any related
- *  computer programs, is protected by copyright controlled by
- *  Nokia Corporation.
  * ==============================================================================
  */
 
@@ -68,6 +63,11 @@ rls_string STRING_r_blenderlite_Vista3D          "Vista 3D"
 rls_string STRING_r_blenderlite_ViewSolid        "View Solid"
 rls_string STRING_r_blenderlite_ViewMaterial     "View Material"
 rls_string STRING_r_blenderlite_ViewWireframe    "View Wireframe"
+
+rls_string STRING_r_blenderlite_Modificadores     "Modificadores"
+rls_string STRING_r_blenderlite_ModificadorArray  "Array"
+rls_string STRING_r_blenderlite_ModificadorMirror "Mirror"
+rls_string STRING_r_blenderlite_ModificadorSrew   "Srew"
 
 
 // End of File

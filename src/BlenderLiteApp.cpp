@@ -2,11 +2,6 @@
  * ==============================================================================
  *  Name        : BlenderLiteApp.cpp
  *  Part of     : OpenGLEx / BlenderLite
- *
- *  Copyright (c) 2004-2006 Nokia Corporation.
- *  This material, including documentation and any related
- *  computer programs, is protected by copyright controlled by
- *  Nokia Corporation.
  * ==============================================================================
  */
 

@@ -2,11 +2,6 @@
  * ==============================================================================
  *  Name        : BlenderLite.rss
  *  Part of     : OpenGLEx / BlenderLite
- *
- *  Copyright (c) 2004-2006 Nokia Corporation.
- *  This material, including documentation and any related
- *  computer programs, is protected by copyright controlled by
- *  Nokia Corporation.
  * ==============================================================================
  */
 
@@ -103,7 +98,14 @@ RESOURCE MENU_PANE r_blenderlite_menu
                 command = EBlenderLiteCrearObjetos;
                 cascade = r_blenderlite_crearObjetos_menu;
                 txt = STRING_r_blenderlite_crearObjetos;
+            },		
+        	MENU_ITEM
+            {
+                command = EBlenderLiteModificadores;
+                cascade = r_blenderlite_modificadores_menu;
+                txt = STRING_r_blenderlite_Modificadores;
             }
+			
             //MENU_ITEM
             //{
             //    command = EBlenderLiteLighting;
@@ -113,6 +115,34 @@ RESOURCE MENU_PANE r_blenderlite_menu
         };
 }
 
+//----------------------------------------------------
+//
+//    r_blenderlite_menu
+//
+//----------------------------------------------------
+//
+
+RESOURCE MENU_PANE r_blenderlite_modificadores_menu
+{
+    items =
+        { 		
+			MENU_ITEM
+			{
+				command = EBlenderLiteModificadorArray;
+				txt = STRING_r_blenderlite_ModificadorArray;
+			},	
+			MENU_ITEM
+			{
+				command = EBlenderLiteModificadorMirror;
+				txt = STRING_r_blenderlite_ModificadorMirror;
+			},			
+	    	MENU_ITEM
+	        {
+	            command = EBlenderLiteModificadorScrew;
+	            txt = STRING_r_blenderlite_ModificadorSrew;
+	        }
+        };
+}
 //----------------------------------------------------
 //
 //    r_blenderlite_lighting_menu
@@ -383,6 +413,11 @@ RESOURCE TBUF256 r_blenderlite_Vista3D{buf = STRING_r_blenderlite_Vista3D;}
 RESOURCE TBUF256 r_blenderlite_ViewSolid{buf = STRING_r_blenderlite_ViewSolid;}
 RESOURCE TBUF256 r_blenderlite_ViewMaterial{buf = STRING_r_blenderlite_ViewMaterial;}
 RESOURCE TBUF256 r_blenderlite_ViewWireframe{buf = STRING_r_blenderlite_ViewWireframe;}
+
+RESOURCE TBUF256 r_blenderlite_Modificadores{buf = STRING_r_blenderlite_Modificadores;}
+RESOURCE TBUF256 r_blenderlite_ModificadorArray{buf = STRING_r_blenderlite_ModificadorArray;}
+RESOURCE TBUF256 r_blenderlite_ModificadorMirror{buf = STRING_r_blenderlite_ModificadorMirror;}
+RESOURCE TBUF256 r_blenderlite_ModificadorSrew{buf = STRING_r_blenderlite_ModificadorSrew;}
 
 RESOURCE TBUF256 r_lights_on
 {

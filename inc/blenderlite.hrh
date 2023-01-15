@@ -2,11 +2,6 @@
  * ==============================================================================
  *  Name        : blenderlite.hrh
  *  Part of     : OpenGLEx / BlenderLite
- *
- *  Copyright (c) 2004-2006 Nokia Corporation.
- *  This material, including documentation and any related
- *  computer programs, is protected by copyright controlled by
- *  Nokia Corporation.
  * ==============================================================================
  */
 
@@ -63,7 +58,12 @@ enum TBlenderLiteMenuCommands
     EBlenderLiteVista3D,
     EBlenderLiteViewSolid,
     EBlenderLiteViewMaterial,
-    EBlenderLiteViewWireframe
+    EBlenderLiteViewWireframe,
+    
+    EBlenderLiteModificadores,
+    EBlenderLiteModificadorArray,
+    EBlenderLiteModificadorMirror,
+    EBlenderLiteModificadorScrew
 };
 
 #endif      // BLENDERLITE_HRH

@@ -2,11 +2,6 @@
  * ==============================================================================
  *  Name        : BlenderLiteAppUi.cpp
  *  Part of     : OpenGLEx / BlenderLite
- *
- *  Copyright (c) 2004-2006 Nokia Corporation.
- *  This material, including documentation and any related
- *  computer programs, is protected by copyright controlled by
- *  Nokia Corporation.
  * ==============================================================================
  */
 
@@ -219,6 +214,12 @@ enum{
 	right
 };
 
+enum{
+	array,
+	mirror,
+	screw
+};
+
 // ----------------------------------------------------
 // CBlenderLiteAppUi::HandleCommandL
 // Command handler
@@ -318,6 +319,16 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
         case EBlenderLiteCambiarObjeto:
             iAppContainer->iBlenderLite->changeSelect();
             break; 
+        case EBlenderLiteModificadorArray:
+            iAppContainer->iBlenderLite->AddModificador(array);
+            break; 
+        case EBlenderLiteModificadorMirror:
+            iAppContainer->iBlenderLite->AddModificador(mirror);
+            break; 
+        case EBlenderLiteModificadorScrew:
+            iAppContainer->iBlenderLite->AddModificador(screw);
+            break; 
+            
             //case EBlenderLiteNavegacion:
             //iAppContainer->iBlenderLite->SetMode();
             //break;            

@@ -2,11 +2,6 @@
  * ==============================================================================
  *  Name        : BlenderLite.h
  *  Part of     : OpenGLEx / BlenderLite
- *
- *  Copyright (c) 2004-2006 Nokia Corporation.
- *  This material, including documentation and any related
- *  computer programs, is protected by copyright controlled by
- *  Nokia Corporation.
  * ==============================================================================
  */
 
@@ -121,6 +116,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void changeSelect();
         void InfoObject(TInt opciones);
         void SetViewpoint(TInt opcion);
+        void AddModificador(TInt opcion);
         void TecladoNumerico(TInt numero);
         void InsertarValor();
         void Mensaje(HBufC* noteBuf);

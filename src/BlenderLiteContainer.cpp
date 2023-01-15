@@ -2,11 +2,6 @@
  * ==============================================================================
  *  Name        : BlenderLiteContainer.cpp
  *  Part of     : OpenGLEx / BlenderLite
- *
- *  Copyright (c) 2004-2006 Nokia Corporation.
- *  This material, including documentation and any related
- *  computer programs, is protected by copyright controlled by
- *  Nokia Corporation.
  * ==============================================================================
  */
 
@@ -104,7 +99,7 @@ void CBlenderLiteContainer::ConstructL(const TRect& /*aRect*/){
         EGL_BUFFER_SIZE,  BufferSize,
         EGL_DEPTH_SIZE,   16,
 				EGL_SAMPLE_BUFFERS, 1,
-				EGL_SAMPLES,        4,
+				EGL_SAMPLES,        4,//antialiasing
         EGL_NONE
     };
 
