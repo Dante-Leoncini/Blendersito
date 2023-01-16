@@ -25,6 +25,7 @@
 #include <blenderlite.rsg>
 #include <aknmessagequerydialog.h>		// DialogAlertL
 #include <aknnotewrappers.h> 
+#include <akncommondialogs.h>
 
 typedef GLshort Edge[2][3];
 
@@ -916,8 +917,8 @@ void CBlenderLite::Cancelar(){
 	if (estado != navegacion && estado != edicion){
 		ReestablecerEstado(objSelect);
 		colorBordeSelect = 1;
-	};
-	if (estado == translacionVertex){
+	}
+	else if (estado == translacionVertex){
 		estado = edicion;		
 	}
 	else if (estado == translacion || estado == rotacion || estado == escala){
@@ -1215,29 +1216,34 @@ void CBlenderLite::Borrar(){
 		if (Objetos.Count()-1 < objSelect){
 			objSelect = Objetos.Count()-1;		
 		}
-		
-		/*Mesh* temp;
-		temp = new Mesh[Objetos.Count()-1];
-		bool encontrado = false;
-		for(int a=0; a < Objetos.Count()-1; a++){
-			if (a == objSelect){
-				encontrado = true;	
+	}
+	else if (estado == edicion){
+		if (Objetos[objSelect].vertexGroupSize < 1){return;}
+		//pregunta de confirmacion
+		HBufC* buf = HBufC::NewLC( 20 );
+		buf->Des().Copy(_L("Eliminar Vertice?"));
+		if (!DialogAlert(buf)){return;}	
+		Mesh& obj = Objetos[objSelect];
+		//busca las caras que contengan algun vertices del grupo de vertices
+		RArray<TInt> faces;
+		for(int f=0; f < obj.facesSize/3; f++){
+			for(int v=0; v < obj.vertexGroupIndiceSize[vertexSelect]; v++){
+				if (obj.vertexGroupIndice[vertexSelect][v] == obj.faces[f*3] ||
+					obj.vertexGroupIndice[vertexSelect][v] == obj.faces[f*3+1] ||
+					obj.vertexGroupIndice[vertexSelect][v] == obj.faces[f*3+2]){
+					faces.Append(f);
+					break;
+				}				
 			}
-			if (encontrado){
-				temp[a] = Objetos[a+1];
-			}	
-			else {temp[a] = Objetos[a];}
-		}
-		Objetos.Count()--;
-		Objetos = new Mesh[Objetos.Count()];
-		for(int a=0; a < Objetos.Count(); a++){
-			Objetos[a] = temp[a];			
-		}
-		delete[] temp;
-		if (Objetos.Count()-1 < objSelect){
-			objSelect = Objetos.Count()-1;		
-		}*/
-	};
+		};
+		HBufC* noteBuf = HBufC::NewLC(35);
+		_LIT(KFormatString, "Caras Borradas: %d");
+		noteBuf->Des().Format(KFormatString, faces.Count());
+		Mensaje(noteBuf);	
+		obj.vertexGroupSize--;
+		obj.vertexSize-=obj.vertexGroupIndiceSize[vertexSelect];
+		faces.Close();
+	}
     redibujar = true;	
 }
 
@@ -1965,5 +1971,77 @@ void CBlenderLite::SetScreenSize( TUint aWidth, TUint aHeight ){
     }
     glMatrixMode( GL_MODELVIEW );
 }
+
+void CBlenderLite::DisplayWarningL( const TDesC &aDescr, TInt aErr) const{
+    ASSERT( aErr != KErrNone );
+
+    _LIT(KFailed,"%S: %d");
+    CAknWarningNote* note = new (ELeave) CAknWarningNote(ETrue);
+    TBuf<128> text;
+    text.Format(KFailed, &aDescr, aErr);
+    note->ExecuteLD( text );
+}
+
+//import
+void CBlenderLite::NewTexture(){
+    // use dialog
+    _LIT(KTitle, "Selecciona la Textura");
+    TFileName file(KNullDesC);
+    if (AknCommonDialogs::RunSelectDlgLD(file, R_BLENDERLITE_SELECT_DIALOG, KTitle)){
+        TRect mainPaneRect;
+        AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
+        TRAPD(err, LoadFile( file, mainPaneRect.Size() ));
+        if (err){
+            _LIT(KFileLoadFailed,"Opening image file failed");
+            DisplayWarningL(KFileLoadFailed, err);
+        }
+        /*else{
+            // this is a blocking call
+            if (! ExecuteWaitNoteL()){
+                // cancelled
+                iHandler->Cancel();
+            }
+        }*/
+    }
+}
+
+void CBlenderLite::LoadFile(const TFileName& aFileName,
+                                      const TSize &aSize,
+                                      TInt aSelectedFrame){
+    /*__ASSERT_ALWAYS(!IsActive(),User::Invariant());
+    iSize = aSize;
+    iScaledBitmap->Reset();
+    iScaledBitmap->Create(aSize, EColor16M);
+    LoadFileL(aFileName, aSelectedFrame);*/
+
+	/*_LIT( KNewTexture, "color_grid.jpg" );
+	iTextureManager->RequestToLoad( KNewTexture, &iColorGridTextura, false );
+	
+	//Start to load the textures.
+	iTextureManager->DoLoadL();*/
+}
+
+//import
+void CBlenderLite::ImportOBJ(){
+    // use dialog
+    _LIT(KTitle, "Importar Modelo OBJ");
+    TFileName file(KNullDesC);
+    if (AknCommonDialogs::RunSelectDlgLD(file, R_BLENDERLITE_SELECT_DIALOG, KTitle)){
+        TRect mainPaneRect;
+        AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
+        TRAPD(err, LoadFile( file, mainPaneRect.Size() ));
+        if (err){
+            _LIT(KFileLoadFailed,"Opening image file failed");
+            DisplayWarningL(KFileLoadFailed, err);
+        }
+        /*else{
+            // this is a blocking call
+            if (! ExecuteWaitNoteL()){
+                // cancelled
+                iHandler->Cancel();
+            }
+        }*/
+    }	
+};
 
 //  End of File

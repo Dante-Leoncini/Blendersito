@@ -16,6 +16,7 @@ NAME    AWIZ // 4 letter ID
 #include <avkon.rh>
 #include <avkon.mbg>
 #include <appinfo.rh>
+#include <CommonDialogs.rh>
 
 //  RESOURCE DEFINITIONS
 RESOURCE RSS_SIGNATURE { }
@@ -86,6 +87,7 @@ RESOURCE MENU_PANE r_blenderlite_menu
 	            command = EBlenderLiteEditarMaterial;
 	            cascade = r_blenderlite_editarMaterial_menu;
 	            txt = STRING_r_blenderlite_editarMaterial;
+	            //flags = EEikMenuItemSeparatorAfter; //no da error pero no veo cambios
 	        },		
 			MENU_ITEM
 			{
@@ -104,6 +106,11 @@ RESOURCE MENU_PANE r_blenderlite_menu
                 command = EBlenderLiteModificadores;
                 cascade = r_blenderlite_modificadores_menu;
                 txt = STRING_r_blenderlite_Modificadores;
+            },		
+        	MENU_ITEM
+            {
+                command = EBlenderLiteImportOBJ;
+                txt = STRING_r_blenderlite_ImportOBJ;
             }
 			
             //MENU_ITEM
@@ -306,11 +313,14 @@ RESOURCE MENU_PANE r_blenderlite_editarMaterial_menu{
             command = EBlenderLiteActivarTextura;
             txt = STRING_r_blenderlite_activarTextura;
         },  
-        
         MENU_ITEM {
             command = EBlenderLiteSetSmooth;
             txt = STRING_r_blenderlite_setSmooth;
-        }        
+        },  
+        MENU_ITEM {
+            command = EBlenderLiteNewTexture;
+            txt = STRING_r_blenderlite_newTexture;
+        }                   
     };
 }
 
@@ -419,6 +429,9 @@ RESOURCE TBUF256 r_blenderlite_ModificadorArray{buf = STRING_r_blenderlite_Modif
 RESOURCE TBUF256 r_blenderlite_ModificadorMirror{buf = STRING_r_blenderlite_ModificadorMirror;}
 RESOURCE TBUF256 r_blenderlite_ModificadorSrew{buf = STRING_r_blenderlite_ModificadorSrew;}
 
+RESOURCE TBUF256 r_blenderlite_newTexture{buf = STRING_r_blenderlite_newTexture;}
+RESOURCE TBUF256 r_blenderlite_ImportOBJ{buf = STRING_r_blenderlite_ImportOBJ;}
+
 RESOURCE TBUF256 r_lights_on
 {
     buf = STRING_r_blenderlite_lights_on;
@@ -449,6 +462,14 @@ RESOURCE TBUF256 r_spot_on
 RESOURCE TBUF256 r_spot_off
 {
     buf = STRING_r_blenderlite_spot_off;
+}
+
+
+RESOURCE MEMORYSELECTIONDIALOG r_blenderlite_select_dialog{
+    locations = {
+        LOCATION { root_path = "C:\\Data\\"; },
+        LOCATION { root_path = "E:\\"; }
+    };
 }
 
 //test

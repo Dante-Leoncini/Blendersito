@@ -328,6 +328,12 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
         case EBlenderLiteModificadorScrew:
             iAppContainer->iBlenderLite->AddModificador(screw);
             break; 
+        case EBlenderLiteImportOBJ:
+            iAppContainer->iBlenderLite->ImportOBJ();
+            break; 
+        case EBlenderLiteNewTexture:
+            iAppContainer->iBlenderLite->NewTexture();
+            break; 
             
             //case EBlenderLiteNavegacion:
             //iAppContainer->iBlenderLite->SetMode();

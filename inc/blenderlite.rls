@@ -69,5 +69,8 @@ rls_string STRING_r_blenderlite_ModificadorArray  "Array"
 rls_string STRING_r_blenderlite_ModificadorMirror "Mirror"
 rls_string STRING_r_blenderlite_ModificadorSrew   "Srew"
 
+rls_string STRING_r_blenderlite_newTexture   "Nueva Textura"
+rls_string STRING_r_blenderlite_ImportOBJ   "Import Wavefront (.obj)"
+
 
 // End of File

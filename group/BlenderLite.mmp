@@ -2,11 +2,6 @@
  * ==============================================================================
  *  Name        : BlenderLite.mmp
  *  Part of     : OpenGLEx / BlenderLite
- *
- *  Copyright (c) 2005-2006 Nokia Corporation.
- *  This material, including documentation and any related
- *  computer programs, is protected by copyright controlled by
- *  Nokia Corporation.
  * ==============================================================================
  */
 
@@ -51,7 +46,7 @@ LIBRARY         eikcoctl.lib avkon.lib estlib.lib fbscli.lib
 LIBRARY         efsrv.lib
 LIBRARY         ImageConversion.lib
 LIBRARY         libgles_cm.lib
-LIBRARY         ws32.lib
+LIBRARY         ws32.lib commondialogs.lib
 
 START RESOURCE ..\data\blenderlite_reg.rss
 #ifdef WINSCW

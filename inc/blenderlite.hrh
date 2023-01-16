@@ -63,7 +63,10 @@ enum TBlenderLiteMenuCommands
     EBlenderLiteModificadores,
     EBlenderLiteModificadorArray,
     EBlenderLiteModificadorMirror,
-    EBlenderLiteModificadorScrew
+    EBlenderLiteModificadorScrew,
+    
+    EBlenderLiteImportOBJ,
+    EBlenderLiteNewTexture
 };
 
 #endif      // BLENDERLITE_HRH

@@ -2,11 +2,6 @@
 # ==============================================================================
 #  Name        : Icons_scalable_dc.mk
 #  Part of     : OpenGLEx / BlenderLite
-#
-#  Copyright (c) 2004-2006 Nokia Corporation.
-#  This material, including documentation and any related
-#  computer programs, is protected by copyright controlled by
-#  Nokia Corporation.
 # ==============================================================================
 #
 
@@ -35,7 +30,10 @@ LIB : do_nothing
 
 CLEANLIB : do_nothing
 
-RESOURCE :
+#RESOURCE :	
+#	mifconv $(ICONTARGETFILENAME) /h$(HEADERFILENAME) /FIcons.miflist
+	
+RESOURCE : #capaz rompi el icono
 	mifconv $(ICONTARGETFILENAME) \
 		/c32 $(ICONDIR)\qgn_menu_blenderlite.svg
 

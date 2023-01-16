@@ -119,6 +119,12 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void AddModificador(TInt opcion);
         void TecladoNumerico(TInt numero);
         void InsertarValor();
+        void ImportOBJ();
+        void NewTexture();
+        void LoadFile(const TFileName& aFileName,
+                                       const TSize &aSize,
+                                       TInt aSelectedFrame = 0);
+        void DisplayWarningL( const TDesC &aDescr, TInt aErr) const;
         void Mensaje(HBufC* noteBuf);
         TBool DialogAlert(HBufC* noteBuf);
         TInt DialogNumber( TInt valor, TInt min, TInt max, HBufC* noteBuf); //,TPtrC etiqueta
