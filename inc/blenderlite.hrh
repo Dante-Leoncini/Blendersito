@@ -47,6 +47,8 @@ enum TBlenderLiteMenuCommands
     EBlenderLiteSetEmission,
     EBlenderLiteSetSpecular,
     EBlenderLiteSetDiffuse,
+    EBlenderLiteSetInterpolacion,
+    EBlenderLiteSetTransparencia, 
     
     EBlenderLiteEditarMesh,
     EBlenderLiteEditarObjeto,

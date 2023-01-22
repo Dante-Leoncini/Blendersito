@@ -50,6 +50,8 @@ rls_string STRING_r_blenderlite_setDiffuse     "Diffuso"
 rls_string STRING_r_blenderlite_setSpecular    "Specular"
 rls_string STRING_r_blenderlite_setEmission    "Emision"
 rls_string STRING_r_blenderlite_setSmooth      "Shader Smooth"
+rls_string STRING_r_blenderlite_setInterpolacion      "Interpolacion Lineal"
+rls_string STRING_r_blenderlite_setTransparencia      "Activar Transparencia"
 
 rls_string STRING_r_blenderlite_EditarMesh     "Editar Mesh"
 

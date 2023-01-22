@@ -13,7 +13,6 @@ UID             0x100039CE 0xA00D021D
 EPOCSTACKSIZE   80000 //originalmente estaba en 30000 67108864
 
 VENDORID        0
-CAPABILITY      NONE
 
 SOURCEPATH      ..\Utils
 SOURCE          Mathutils.cpp
@@ -47,6 +46,7 @@ LIBRARY         efsrv.lib
 LIBRARY         ImageConversion.lib
 LIBRARY         libgles_cm.lib
 LIBRARY         ws32.lib commondialogs.lib
+LIBRARY         estor.lib 
 
 START RESOURCE ..\data\blenderlite_reg.rss
 #ifdef WINSCW
@@ -55,3 +55,4 @@ TARGETPATH 	  \private\10003a3f\apps
 TARGETPATH 	  \private\10003a3f\import\apps
 #endif
 END
+CAPABILITY ReadUserData WriteUserData

@@ -318,6 +318,14 @@ RESOURCE MENU_PANE r_blenderlite_editarMaterial_menu{
             txt = STRING_r_blenderlite_setSmooth;
         },  
         MENU_ITEM {
+            command = EBlenderLiteSetInterpolacion;
+            txt = STRING_r_blenderlite_setInterpolacion;
+        },  
+        MENU_ITEM {
+            command = EBlenderLiteSetTransparencia;
+            txt = STRING_r_blenderlite_setTransparencia;
+        },  
+        MENU_ITEM {
             command = EBlenderLiteNewTexture;
             txt = STRING_r_blenderlite_newTexture;
         }                   
@@ -409,7 +417,8 @@ RESOURCE TBUF256 r_blenderlite_setSmooth{buf = STRING_r_blenderlite_setSmooth;}
 RESOURCE TBUF256 r_blenderlite_setDiffuse{buf = STRING_r_blenderlite_setDiffuse;}
 RESOURCE TBUF256 r_blenderlite_setTexture{buf = STRING_r_blenderlite_setTexture;}
 RESOURCE TBUF256 r_blenderlite_activarTextura{buf = STRING_r_blenderlite_activarTextura;}
-
+RESOURCE TBUF256 r_blenderlite_setInterpolacion{buf = STRING_r_blenderlite_setInterpolacion;}
+RESOURCE TBUF256 r_blenderlite_setTransparencia{buf = STRING_r_blenderlite_setTransparencia;}
 
 RESOURCE TBUF256 r_blenderlite_EditarMesh{buf = STRING_r_blenderlite_EditarMesh;}
 
@@ -464,12 +473,32 @@ RESOURCE TBUF256 r_spot_off
     buf = STRING_r_blenderlite_spot_off;
 }
 
-
+//cuadro de dialogo para ver archivos
 RESOURCE MEMORYSELECTIONDIALOG r_blenderlite_select_dialog{
     locations = {
         LOCATION { root_path = "C:\\Data\\"; },
         LOCATION { root_path = "E:\\"; }
     };
+}
+
+//wait
+RESOURCE DIALOG r_blenderlite_wait_note {
+    flags = (((0x200  | 0x040  | 0x2000  )  | 0x002 ) ) ;
+    buttons = 0x8cc0010 ;
+    items =
+	{
+        DLG_LINE
+		{
+            type = EAknCtNote;
+            id = EGeneralNote;
+            control = AVKON_NOTE
+			{
+                layout = EWaitLayout;
+                singular_label = STRING_r_ce_wait_note;
+                animation = 0x8cc0140 ;
+			};
+		}
+	};
 }
 
 //test

@@ -9,10 +9,14 @@
 #include <e32std.h>
 #include <e32math.h>
 
+//para leer archivos
+#include <s32file.h>
+
 //debug
 //#include <e32cons.h>
 //LOCAL_D CConsoleBase* console;
 #include "BlenderLite.h"
+#include "Mesh.h"
 
 #include "claude.h" //modelo 3d
 #include "mono.h" //modelo 3d
@@ -110,7 +114,8 @@ GLfloat posZ = 0;
 //solo redibuja si este valor esta en true
 bool redibujar = true;
 
-
+//interpolacion
+enum {lineal, closest};
 enum{
 	Rendered,
 	Texture,
@@ -134,8 +139,6 @@ enum{
 
 CPrimitiva Primitivas;
 
-//tipos de objetos
-typedef enum { mesh, camera, light, empty, armature, curve } TiposObjetos;
 typedef enum { X, Y, Z, XYZ } Axis;
 
 int estado = navegacion;
@@ -156,44 +159,6 @@ class SaveState {
 };
 
 SaveState estadoObj;
-
-class Mesh { //clase Mesh
-	public:
-		TiposObjetos type;
-		TBool visible;
-		TBool textura;
-		GLfloat posX; GLfloat posY; GLfloat posZ;
-		GLfloat rotX; GLfloat rotY; GLfloat rotZ;
-		GLfixed scaleX; GLfixed scaleY; GLfixed scaleZ;
-		TInt vertexSize;
-		TInt normalsSize;
-		TInt facesSize;
-		TInt edgesSize;
-		TInt uvSize;
-		TBool smooth;
-		GLshort * vertex;
-		GLbyte * normals;
-		GLushort * faces;
-		GLushort * edges;
-		GLbyte * uv;
-		
-		//GLshort* vertextemp;
-		//RArray<GLshort> vertex;
-		/*RArray<GLbyte> normals;
-		RArray<GLushort> faces;
-		RArray<GLushort> edges;
-		RArray<GLbyte> uv;*/
-		
-		GLuint texturaID;
-		GLfloat diffuse[4];		
-		GLfloat specular[4];	
-		GLfloat emission[4];		
-
-		TInt vertexGroupSize;
-		GLushort* vertexGroup;
-		TInt* vertexGroupIndiceSize;
-		GLushort** vertexGroupIndice;
-};
 
 //Crea un array de objetos
 RArray<Mesh> Objetos;
@@ -379,10 +344,14 @@ void CBlenderLite::AppInit( void ){
 	//_LIT( KModelTexture, "marcus.jpg" );
 	_LIT( KModelTexture, "claude.jpg" );
 	_LIT( KOriginTexture, "origen.png" );
-	_LIT( KColorGridTexture, "color_grid.jpg" );	
+	_LIT( KColorGridTexture, "color_grid.jpg" );
+	_LIT( KMouseTexture, "cursor.png" );	
+	_LIT( KLampTexture, "lamp.png" );	
 	iTextureManager->RequestToLoad( KModelTexture, &iBaseColor, false );
 	iTextureManager->RequestToLoad( KOriginTexture, &iOrigenTextura, false );
 	iTextureManager->RequestToLoad( KColorGridTexture, &iColorGridTextura, false );
+	iTextureManager->RequestToLoad( KMouseTexture, &iMouseTextura, false );
+	iTextureManager->RequestToLoad( KLampTexture, &iLampTextura, false );
 	
 	//Start to load the textures.
 	iTextureManager->DoLoadL();
@@ -453,8 +422,7 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 		glRotatef(Objetos[o].rotY, 0, 0, 1); //angulo, X Y Z
 		glRotatef(Objetos[o].rotZ, 0, 1, 0); //angulo, X Y Z
 		glScalex( Objetos[o].scaleX, Objetos[o].scaleZ, Objetos[o].scaleY );	
-	
-		glDisable(GL_BLEND); //transparencia
+
 		glEnable( GL_LIGHTING );
 		glDisable( GL_TEXTURE_2D );
 		glDisable(GL_POLYGON_OFFSET_FILL);
@@ -462,11 +430,12 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 		glVertexPointer( 3, GL_SHORT, 0, Objetos[o].vertex );
 		glNormalPointer( GL_BYTE, 0, Objetos[o].normals );
 		//resetea las lienas a 1
-		glLineWidth(1);		
+		glLineWidth(1);	
 
 		if (Objetos[o].smooth){glShadeModel( GL_SMOOTH );}
 		else {glShadeModel( GL_FLAT );}
 		
+		//modelo con textura
 		if (view == 0){
 			glTexCoordPointer( 2, GL_BYTE, 0, Objetos[o].uv );
 			if (Objetos[o].textura){
@@ -474,8 +443,22 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 			};			 
 			glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE, Objetos[o].diffuse );        
 			glBindTexture(  GL_TEXTURE_2D, Objetos[o].texturaID ); //selecciona la textura	
-			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );  
+			//transparencia
+			if (Objetos[o].transparencia){glEnable(GL_BLEND);}
+			else {glDisable(GL_BLEND);}
+			//textura pixelada o suave
+			if (Objetos[o].interpolacion == lineal){
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			}
+			else if (Objetos[o].interpolacion == closest){
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			}
 			glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, Objetos[o].emission );
+			// Obtiene el puntero del arreglo
+			//const GLushort* myArrayPointer = &Objetos[o].NewFaces[0];
+			//glDrawElements( GL_TRIANGLES, Objetos[o].NewFaces.Count(), GL_UNSIGNED_SHORT, &Objetos[o].NewFaces[0] );	
 			glDrawElements( GL_TRIANGLES, Objetos[o].facesSize, GL_UNSIGNED_SHORT, Objetos[o].faces );		
 		}
 		//modelo sin textura
@@ -658,13 +641,13 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 		else if (estado == translacionVertex){		
 			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[vertexSelect]; g++){
 				if (axisSelect == X){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3] += 1;					
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3] += 30;					
 				}
 				else if (axisSelect == Y){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+2] -= 1;				
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+2] -= 30;				
 				}
 				else if (axisSelect == Z){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+1] -= 1;	
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+1] -= 30;	
 				}
 			}
 		}
@@ -723,13 +706,13 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 		else if (estado == translacionVertex){		
 			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[vertexSelect]; g++){
 				if (axisSelect == X){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3] -= 1;					
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3] -= 30;					
 				}
 				else if (axisSelect == Y){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+2] += 1;				
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+2] += 30;				
 				}
 				else if (axisSelect == Z){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+1] += 1;	
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+1] += 30;	
 				}
 			}
 		}
@@ -788,13 +771,13 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 		else if (estado == translacionVertex){		
 			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[vertexSelect]; g++){
 				if (axisSelect == X){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3] -= 1;					
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3] -= 30;					
 				}
 				else if (axisSelect == Y){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+2] += 1;				
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+2] += 30;				
 				}
 				else if (axisSelect == Z){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+1] += 1;	
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+1] += 30;	
 				}
 			}
 		}
@@ -824,13 +807,13 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 		else if (estado == translacionVertex){		
 			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[vertexSelect]; g++){
 				if (axisSelect == X){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3] += 1;					
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3] += 30;					
 				}
 				else if (axisSelect == Y){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+2] -= 1;				
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+2] -= 30;				
 				}
 				else if (axisSelect == Z){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+1] -= 1;	
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+1] -= 30;	
 				}
 			}
 		}
@@ -1157,6 +1140,7 @@ void CBlenderLite::InsertarValor(){
 		}	
 		Aceptar();
 	}	
+	//CleanupStack::PopAndDestroy(buf);
 	redibujar = true;	
 }
 
@@ -1216,6 +1200,7 @@ void CBlenderLite::Borrar(){
 		if (Objetos.Count()-1 < objSelect){
 			objSelect = Objetos.Count()-1;		
 		}
+		//CleanupStack::PopAndDestroy(buf);
 	}
 	else if (estado == edicion){
 		if (Objetos[objSelect].vertexGroupSize < 1){return;}
@@ -1225,7 +1210,7 @@ void CBlenderLite::Borrar(){
 		if (!DialogAlert(buf)){return;}	
 		Mesh& obj = Objetos[objSelect];
 		//busca las caras que contengan algun vertices del grupo de vertices
-		RArray<TInt> faces;
+		RArray<GLushort> faces;
 		for(int f=0; f < obj.facesSize/3; f++){
 			for(int v=0; v < obj.vertexGroupIndiceSize[vertexSelect]; v++){
 				if (obj.vertexGroupIndice[vertexSelect][v] == obj.faces[f*3] ||
@@ -1235,14 +1220,31 @@ void CBlenderLite::Borrar(){
 					break;
 				}				
 			}
+		};		
+		//busca los bordes
+		RArray<GLushort> edges;
+		for(int e=0; e < obj.edgesSize/2; e++){
+			for(int g=0; g < obj.vertexGroupIndiceSize[vertexSelect]; g++){
+				if (obj.vertexGroupIndice[vertexSelect][g] == obj.edges[e*2] ||
+					obj.vertexGroupIndice[vertexSelect][g] == obj.edges[e*2+1]){
+					edges.Append(e);
+					break;
+				}				
+			}
 		};
+		
 		HBufC* noteBuf = HBufC::NewLC(35);
-		_LIT(KFormatString, "Caras Borradas: %d");
-		noteBuf->Des().Format(KFormatString, faces.Count());
+		_LIT(KFormatString, "Bordes Borrados: %d");
+		noteBuf->Des().Format(KFormatString, edges.Count());
 		Mensaje(noteBuf);	
+		obj.RemoveFaces(faces);
+		obj.RemoveEdges(edges);
+		obj.RemoveVertex(vertexSelect);
 		obj.vertexGroupSize--;
 		obj.vertexSize-=obj.vertexGroupIndiceSize[vertexSelect];
 		faces.Close();
+		//CleanupStack::PopAndDestroy(noteBuf);
+		//CleanupStack::PopAndDestroy(buf);
 	}
     redibujar = true;	
 }
@@ -1262,6 +1264,8 @@ void CBlenderLite::CrearObjeto( int modelo ){
 	obj.emission[0] = obj.emission[1] = obj.emission[2] = obj.emission[3] = 0.0;
 	obj.smooth = true;
 	obj.textura = false;
+	obj.transparencia = false;
+	obj.interpolacion = lineal; //interpolacion lineal
 	
     if (modelo == cubo){ 
     	obj.vertexSize = 24 * 3;
@@ -1283,9 +1287,10 @@ void CBlenderLite::CrearObjeto( int modelo ){
 		//GLshort *vertex =  new GLshort[24 * 3];
 		//obj.vertex.ReserveL(24 * 3);
 		//vertex = Primitivas.CuboVertices(1,1,1);
-		//for (int i = 0; i < 24*3; i++) {
-			//	obj.vertex.Append(vertex[i]);
-			//}
+		obj.NewFaces.ReserveL(12*3);
+		for (int i = 0; i < 12*3; i++) {
+			obj.NewFaces.Append(obj.faces[i]);
+		}
 		//delete[] vertex;
 		obj.normals = Primitivas.CuboNormals();
 		obj.faces = Primitivas.CuboFaces();
@@ -1298,9 +1303,9 @@ void CBlenderLite::CrearObjeto( int modelo ){
 		obj.edgesSize = 0 * 6;
 		obj.uvSize = 1 * 2;
 		obj.texturaID = 1;
-		obj.scaleX = 650000;
-		obj.scaleY = 650000;
-		obj.scaleZ = 650000;		
+		obj.scaleX = 65000;
+		obj.scaleY = 65000;
+		obj.scaleZ = 65000;		
 
 		obj.vertex = new GLshort[1 * 3];
 		obj.normals = new GLbyte[1 * 3];
@@ -1597,10 +1602,46 @@ void CBlenderLite::ActivarTextura(){
 	buf->Des().Copy(_L("Activar Textura?"));
 	if (DialogAlert(buf)){	
 		Objetos[objSelect].textura = true;
+		
 	}
 	else {
-		Objetos[objSelect].textura = false;		
+		Objetos[objSelect].textura = false;	
 	}
+	//CleanupStack::PopAndDestroy(buf);	
+    redibujar = true;
+}
+
+void CBlenderLite::SetTransparencia(){
+	//si no hay objetos
+	if (Objetos.Count() < 1){return;}
+	Cancelar();
+	//activa o desactiva las Transparencias
+	HBufC* buf = HBufC::NewLC( 22 );
+	buf->Des().Copy(_L("Activar Transparencia?"));
+	if (DialogAlert(buf)){	
+		Objetos[objSelect].transparencia = true;
+	}
+	else {
+		Objetos[objSelect].transparencia = false;	
+	}
+	//CleanupStack::PopAndDestroy(buf);	
+    redibujar = true;
+}
+
+void CBlenderLite::SetInterpolation(){
+	//si no hay objetos
+	if (Objetos.Count() < 1){return;}
+	Cancelar();
+	//activa o desactiva las Transparencias
+	HBufC* buf = HBufC::NewLC( 21 );
+	buf->Des().Copy(_L("Interpolacion Lineal?"));
+	if (DialogAlert(buf)){	
+		Objetos[objSelect].interpolacion = lineal;
+	}
+	else {
+		Objetos[objSelect].interpolacion = closest;	
+	}
+	//CleanupStack::PopAndDestroy(buf);	
     redibujar = true;
 }
 
@@ -1609,15 +1650,17 @@ void CBlenderLite::SetTexture(){
 	if (Objetos.Count() < 1){return;}
 	Cancelar();
 	HBufC* buf = HBufC::NewLC( 30 );
-	buf->Des().Copy(_L("ID de Textura (0-1)"));	
+	buf->Des().Copy(_L("ID de Textura (0-4)"));	
 	TInt texturaID = DialogNumber(0, 0, 100, buf);
 	Objetos[objSelect].textura = true;
-	if ( texturaID == 0 ){
+	Objetos[objSelect].texturaID = texturaID;
+	/*if ( texturaID == 0 ){
 		Objetos[objSelect].texturaID = iBaseColor.iID;
 	}	
 	else if ( texturaID == 1 ){
 		Objetos[objSelect].texturaID = iColorGridTextura.iID;
-	}
+	}*/
+	//CleanupStack::PopAndDestroy(buf);
     redibujar = true;
 }
 
@@ -1655,6 +1698,7 @@ void CBlenderLite::EnfocarObjeto(){
 	HBufC* buf = HBufC::NewLC( 25 );
 	buf->Des().Copy(_L("Posicion X de Camara"));
 	posX = DialogNumber((TInt)posX, -100000, 100000, buf);
+	CleanupStack::PopAndDestroy(buf);
     redibujar = true;
 	//posX = Objetos[objSelect].posX;
 	//posY = Objetos[objSelect].posY;
@@ -1671,6 +1715,7 @@ void CBlenderLite::SetSpecular(){
 	Objetos[objSelect].specular[1] = resultado;
 	Objetos[objSelect].specular[2] = resultado;
 	Objetos[objSelect].specular[3] = resultado;
+	CleanupStack::PopAndDestroy(buf);
     redibujar = true;	
 }
 
@@ -1690,6 +1735,7 @@ void CBlenderLite::SetEmission(){
 	buf->Des().Copy(_L("Emission Verde (0 - 100)"));
     valor = DialogNumber((TInt)(Objetos[objSelect].emission[2]*100.f), 0, 100, buf);
     Objetos[objSelect].emission[2] = valor/100.0f;
+	CleanupStack::PopAndDestroy(buf);
 	redibujar = true;	
 }
 
@@ -1706,6 +1752,7 @@ void CBlenderLite::SetDiffuse(){
 	buf->Des().Copy(_L("Azul (0 - 100)"));
 	TInt valorB = DialogNumber((TInt)(Objetos[objSelect].diffuse[2]*100.f), 0, 100, buf);
 	Objetos[objSelect].diffuse[2] = (GLfloat)valorB/100.0f;
+	CleanupStack::PopAndDestroy(buf);
     redibujar = true;	
 }
 
@@ -1863,6 +1910,7 @@ void CBlenderLite::AddModificador(TInt opcion){
 		delete[] TempVertexGroup;
 		delete[] TempVertexGroupIndicesSize;
 		delete[] TempVertexGroupIndices;
+		CleanupStack::PopAndDestroy(noteBuf);
 	}
 	redibujar = true;
 }
@@ -1893,18 +1941,21 @@ void CBlenderLite::InfoObject(TInt opciones){
 				              //Objetos[objSelect].vertexGroupIndice[vertexSelect][1],
 				              //Objetos[objSelect].vertexGroupIndice[vertexSelect][2]);
 		Mensaje(noteBuf);	
+		CleanupStack::PopAndDestroy(noteBuf);
 	}
 	else if (opciones == 1){ //cantidad de vertices
 		HBufC* noteBuf = HBufC::NewLC(30); //TInt::Length(obj.vertexGroupSize)
 		_LIT(KFormatString, "obj: %d Vertices: %d");
 		noteBuf->Des().Format(KFormatString, objSelect+1, Objetos[objSelect].vertexSize/3);
-		Mensaje(noteBuf);		
+		Mensaje(noteBuf);	
+		CleanupStack::PopAndDestroy(noteBuf);	
 	}	
 	else if (opciones == 2){ //cantidad de vertices
 		HBufC* noteBuf = HBufC::NewLC(35); //TInt::Length(obj.vertexGroupSize)
 		_LIT(KFormatString, "VertexGroup: %d group: %d");
 		noteBuf->Des().Format(KFormatString, Objetos[objSelect].vertexGroupSize, Objetos[objSelect].vertexGroupIndiceSize[vertexSelect]);
-		Mensaje(noteBuf);		
+		Mensaje(noteBuf);	
+		CleanupStack::PopAndDestroy(noteBuf);	
 	}	
 }; 
 
@@ -1914,6 +1965,12 @@ void CBlenderLite::Mensaje(HBufC* noteBuf){
 	note->ExecuteLD(*noteBuf);
 	CleanupStack::PopAndDestroy(noteBuf);	
 };
+
+void CBlenderLite::MensajeError(HBufC* noteBuf){
+    CAknErrorNote* note = new (ELeave) CAknErrorNote();
+    note->ExecuteLD(*noteBuf);
+    CleanupStack::PopAndDestroy(noteBuf);
+}
 
 TBool CBlenderLite::DialogAlert(HBufC* noteBuf){	  
     TBool retVal( EFalse );
@@ -2021,27 +2078,66 @@ void CBlenderLite::LoadFile(const TFileName& aFileName,
 	iTextureManager->DoLoadL();*/
 }
 
-//import
 void CBlenderLite::ImportOBJ(){
-    // use dialog
     _LIT(KTitle, "Importar Modelo OBJ");
     TFileName file(KNullDesC);
-    if (AknCommonDialogs::RunSelectDlgLD(file, R_BLENDERLITE_SELECT_DIALOG, KTitle)){
-        TRect mainPaneRect;
-        AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
-        TRAPD(err, LoadFile( file, mainPaneRect.Size() ));
-        if (err){
-            _LIT(KFileLoadFailed,"Opening image file failed");
-            DisplayWarningL(KFileLoadFailed, err);
-        }
-        /*else{
-            // this is a blocking call
-            if (! ExecuteWaitNoteL()){
-                // cancelled
-                iHandler->Cancel();
-            }
-        }*/
+    if (AknCommonDialogs::RunSelectDlgLD(file, R_BLENDERLITE_SELECT_DIALOG, KTitle)){		
+    	RFs fsSession;	
+    	User::LeaveIfError(fsSession.Connect());
+    	CleanupClosePushL(fsSession);
+
+    	RFile rFile;
+    	TInt err;
+    	TRAP(err,rFile.Open(fsSession, file, EFileRead));
+		if (err != KErrNone){
+			_LIT(KFormatString, "Error al abrir: %S");
+			HBufC* noteBuf = HBufC::NewLC(file.Length()+16);
+			noteBuf->Des().Format(KFormatString, &file);
+			MensajeError(noteBuf);  
+			CleanupStack::PopAndDestroy(noteBuf);
+		}
+		else {	
+			RFileReadStream inputFileStream(rFile);
+			CleanupClosePushL(inputFileStream);
+			
+			_LIT(KFormatString, "Archivo: %S");
+			HBufC* noteBuf = HBufC::NewLC(file.Length()+20);
+			noteBuf->Des().Format(KFormatString, &file);
+			Mensaje(noteBuf);
+
+            // HBufC descriptor is created from the RFileStream object.
+            //HBufC* fileData = HBufC::NewLC(inputFileStream, 32);
+			//Mensaje(fileData);
+
+            // Pop loaded resources from the cleanup stack:
+            // filedata, inputFileStream, rFile, fsSession
+            //CleanupStack::PopAndDestroy(4, &fsSession);   
+		} 
     }	
+    else {
+    	_LIT(KFormatString, "Error al leer el Archivo");
+		HBufC* noteBuf = HBufC::NewLC(24);
+		noteBuf->Des().Format(KFormatString);
+		MensajeError(noteBuf);    	
+    }
 };
+void CBlenderLite::CloseWaitNoteL(){
+    // Close and delete the wait note dialog,
+    // if it has not been dismissed yet
+	if( iWaitDialog ){
+		iWaitDialog->ProcessFinishedL();
+	}
+}
+
+void CBlenderLite::OpenWaitNoteL( TFileName file ){
+    //CloseWaitNoteL();
+
+    // Create and view the wait note dialog
+	//iWaitDialog = new (ELeave) CAknWaitDialog(reinterpret_cast<CEikDialog**>( &iWaitDialog ), ETrue);
+	//iWaitDialog->SetTextL(_L("Cargando archivo: "));
+	//iWaitDialog->SetTextL(file.Name());
+	//iWaitDialog->RunLD();
+	//iWaitDialog->TryExitL(ETrue);
+}
 
 //  End of File

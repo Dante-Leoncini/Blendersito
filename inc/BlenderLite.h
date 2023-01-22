@@ -10,6 +10,7 @@
 
 // INCLUDES
 #include <e32base.h> // for CBase definition
+#include <aknwaitdialog.h> //dialogo de espera
 #include <GLES/gl.h> // OpenGL ES header file
 #include "Utils3d.h" // Utilities (texmanager, textures etc.)
 #include "Glutils.h" // Misc GLU and GLUT functions
@@ -104,6 +105,8 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void CrearObjeto( int modelo );
         void SetTexture(); //int texturaID 
         void ActivarTextura();
+        void SetInterpolation();
+        void SetTransparencia();
         void SetSpecular();
         void SetSmooth();
         void SetDiffuse();
@@ -120,12 +123,15 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void TecladoNumerico(TInt numero);
         void InsertarValor();
         void ImportOBJ();
-        void NewTexture();
+        void NewTexture();        
+        void CloseWaitNoteL();
+        void OpenWaitNoteL( TFileName file );
         void LoadFile(const TFileName& aFileName,
                                        const TSize &aSize,
                                        TInt aSelectedFrame = 0);
         void DisplayWarningL( const TDesC &aDescr, TInt aErr) const;
         void Mensaje(HBufC* noteBuf);
+        void MensajeError(HBufC* noteBuf);
         TBool DialogAlert(HBufC* noteBuf);
         TInt DialogNumber( TInt valor, TInt min, TInt max, HBufC* noteBuf); //,TPtrC etiqueta
         void Tab();
@@ -209,8 +215,13 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         	TTexture iBaseColor;  	
         	TTexture iOrigenTextura;
         	TTexture iColorGridTextura;
+        	TTexture iMouseTextura;
+        	TTexture iLampTextura;
             /** Particle coordinates */
             GLfixed *iParticleCoords;
+            // Wait note dialog for indicating refresh operation
+            // of the List Model (owned)
+    		CAknWaitDialog* iWaitDialog;
 
             /**
              * Input handler that maps keycodes to inputs and stores the current state

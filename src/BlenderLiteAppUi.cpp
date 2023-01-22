@@ -286,6 +286,12 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
         case EBlenderLiteActivarTextura:
             iAppContainer->iBlenderLite->ActivarTextura();
             break; 
+        case EBlenderLiteSetInterpolacion:
+            iAppContainer->iBlenderLite->SetInterpolation();
+            break; 
+        case EBlenderLiteSetTransparencia:
+            iAppContainer->iBlenderLite->SetTransparencia();
+            break; 
         case EBlenderLiteInfoObject:
             iAppContainer->iBlenderLite->InfoObject(1);
             break; 
