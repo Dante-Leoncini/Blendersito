@@ -1233,16 +1233,20 @@ void CBlenderLite::Borrar(){
 			}
 		};
 		
-		HBufC* noteBuf = HBufC::NewLC(35);
+		/*HBufC* noteBuf = HBufC::NewLC(35);
 		_LIT(KFormatString, "Bordes Borrados: %d");
 		noteBuf->Des().Format(KFormatString, edges.Count());
-		Mensaje(noteBuf);	
+		Mensaje(noteBuf);	*/
 		obj.RemoveFaces(faces);
 		obj.RemoveEdges(edges);
 		obj.RemoveVertex(vertexSelect);
-		obj.vertexGroupSize--;
-		obj.vertexSize-=obj.vertexGroupIndiceSize[vertexSelect];
+		//obj.vertexGroupSize--;
+		//obj.vertexSize-=obj.vertexGroupIndiceSize[vertexSelect];
 		faces.Close();
+		edges.Close();
+		if (obj.vertexGroupSize < vertexSelect+1){
+			vertexSelect = obj.vertexGroupSize;			
+		}
 		//CleanupStack::PopAndDestroy(noteBuf);
 		//CleanupStack::PopAndDestroy(buf);
 	}
@@ -2097,13 +2101,24 @@ void CBlenderLite::ImportOBJ(){
 			CleanupStack::PopAndDestroy(noteBuf);
 		}
 		else {	
-			RFileReadStream inputFileStream(rFile);
-			CleanupClosePushL(inputFileStream);
 			
-			_LIT(KFormatString, "Archivo: %S");
-			HBufC* noteBuf = HBufC::NewLC(file.Length()+20);
-			noteBuf->Des().Format(KFormatString, &file);
-			Mensaje(noteBuf);
+			//RFileReadStream inputFileStream(rFile);
+			//CleanupClosePushL(inputFileStream);
+			
+			//_LIT(KHelloString, "Hola");
+			HBufC8* lineBuf = HBufC8::NewLC(256);
+			TPtr8 line = lineBuf->Des();
+			rFile.Read(line);
+			rFile.Close();
+			
+			HBufC* buf = HBufC::NewL(lineBuf->Length());
+			buf->Des().Copy(*lineBuf);
+			
+			//_LIT(KFormatString, "linea: %S");
+			//HBufC* noteBuf = HBufC::NewLC(256);
+			//noteBuf->Des().Format(KFormatString, &line);
+			Mensaje(buf);
+			CleanupStack::PopAndDestroy(lineBuf);
 
             // HBufC descriptor is created from the RFileStream object.
             //HBufC* fileData = HBufC::NewLC(inputFileStream, 32);

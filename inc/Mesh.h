@@ -35,20 +35,63 @@ class Mesh { //clase Mesh
 		GLushort** vertexGroupIndice;
 		
 		void Mesh::RemoveVertex(TInt vertexToRemove){
-			GLushort* newVertexGroup = new GLushort[vertexGroupSize - 1];
+			vertexGroupSize--;
+			GLshort * newVertex = new GLshort[vertexSize];
+			GLushort* newVertexGroup = new GLushort[vertexGroupSize];
+			GLushort** newVertexGroupIndice = new GLushort*[vertexGroupSize];
+			TInt* newVertexGroupIndiceSize = new TInt[vertexGroupSize];
 			TInt newSize = 0;
-			for(TInt i = 0; i < vertexGroupSize; i++){
+			//solo guarda los vertices que no estan en el grupo
+			/*for(TInt i = 0; i < vertexSize/3; i++){
+				for(TInt e = 0; e < vertexGroupIndiceSize[vertexToRemove]; e++){
+					//si coincide el vertice con el indice del grupo a borrar, no lo copia
+					TBool encontrado = false;
+					if (vertexGroupIndice[vertexToRemove][e] == i){
+						encontrado = true;						
+					}
+					if (!encontrado){
+						newVertex[newSize*3] = vertex[i*3];
+						newVertex[newSize*3+1] = vertex[i*3+1];
+						newVertex[newSize*3+2] = vertex[i*3+2];
+						newSize++;								
+					}
+				}		
+			}*/
+			//borra 3 por cada vertice en el grupo
+			vertexSize -= vertexGroupIndiceSize[vertexToRemove]*3;
+			newSize = 0;	
+			for(TInt i = 0; i < vertexGroupSize+1; i++){
 				if (i != vertexToRemove) {
 					newVertexGroup[newSize] = vertexGroup[i];
+					newVertexGroupIndiceSize[newSize] = vertexGroupIndiceSize[i];
+					newVertexGroupIndice[newSize] = new GLushort[vertexGroupIndiceSize[i]];
+					for(TInt s = 0; s < vertexGroupIndiceSize[i]; s++){
+						newVertexGroupIndice[newSize][s] = vertexGroupIndice[i][s];
+						//if(newVertexGroupIndice[newSize][s] > vertexToRemove)
+						//	newVertexGroupIndice[newSize][s]--;
+					}
 					newSize++;
 				}				
-			}			
-			vertexGroupSize = newSize;
-			vertexGroup = new GLushort[newSize];
-			for(TInt i = 0; i < newSize; i++) {
+			}	
+			vertexGroup = new GLushort[vertexGroupSize - 1];
+			vertexGroupIndice = new GLushort*[vertexGroupSize - 1];
+			vertexGroupIndiceSize = new TInt[vertexGroupSize - 1];
+			//vertex = new GLshort[vertexSize];
+			for(TInt i = 0; i < vertexGroupSize; i++) {
+				//vertex[i*3] = newVertex[i*3];
+				//vertex[i*3+1] = newVertex[i*3+1];
+				//vertex[i*3+2] = newVertex[i*3+2];
 				vertexGroup[i] = newVertexGroup[i];
-			}
-			delete[] newVertexGroup;			
+				vertexGroupIndiceSize[i] = newVertexGroupIndiceSize[i];
+				vertexGroupIndice[i] = new GLushort[newVertexGroupIndiceSize[i]];
+				for(TInt s = 0; s < newVertexGroupIndiceSize[i]; s++){
+					vertexGroupIndice[i][s] = newVertexGroupIndice[i][s];						
+				}
+			}		
+			delete[] newVertexGroup;
+			delete[] newVertexGroupIndice;	
+			delete[] newVertexGroupIndiceSize;	
+			delete[] newVertex;
 		}
 		void Mesh::RemoveFaces(RArray<GLushort>& facesIndexToRemove) {
 			GLushort * newFaces = new GLushort[facesSize - facesIndexToRemove.Count()*3];
