@@ -73,8 +73,8 @@ class Mesh { //clase Mesh
 					newNormals[newSize*3] = normals[i*3];
 					newNormals[newSize*3+1] = normals[i*3+1];
 					newNormals[newSize*3+2] = normals[i*3+2];
-					newUv[newSize*3] = uv[i*3];
-					newUv[newSize*3+1] = uv[i*3+1];
+					newUv[newSize*2] = uv[i*2];
+					newUv[newSize*2+1] = uv[i*2+1];
 					newSize++;								
 				}	
 			}

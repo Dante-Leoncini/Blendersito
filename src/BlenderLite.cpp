@@ -1236,14 +1236,11 @@ void CBlenderLite::Borrar(){
 					break;
 				}				
 			}
-		};
-		
+		};		
 		
 		obj.RemoveFaces(faces, vertexSelect);
 		obj.RemoveEdges(edges, vertexSelect);
 		obj.RemoveVertex(vertexSelect);
-		//obj.vertexGroupSize--;
-		//obj.vertexSize-=obj.vertexGroupIndiceSize[vertexSelect];
 		faces.Close();
 		edges.Close();
 		if (obj.vertexGroupSize < vertexSelect+1){
