@@ -1249,10 +1249,10 @@ void CBlenderLite::Borrar(){
 		if (obj.vertexGroupSize < vertexSelect+1){
 			vertexSelect = obj.vertexGroupSize-1;			
 		}
-		HBufC* noteBuf = HBufC::NewLC(128);
+		/*HBufC* noteBuf = HBufC::NewLC(128);
 		_LIT(KFormatString, "Select %d Group %d Vertices %d");
 		noteBuf->Des().Format(KFormatString, vertexSelect, obj.vertexGroupSize,  obj.vertexSize/3);
-		Mensaje(noteBuf);
+		Mensaje(noteBuf);*/
 				
 		//CleanupStack::PopAndDestroy(noteBuf);
 		//CleanupStack::PopAndDestroy(buf);

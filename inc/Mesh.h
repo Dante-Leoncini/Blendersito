@@ -135,6 +135,7 @@ class Mesh { //clase Mesh
 			delete[] newVertexGroupIndiceSize;	
 			delete[] newVertex;
 			delete[] newNormals;
+			delete[] newUv;
 		}
 		void Mesh::RemoveFaces(RArray<GLushort>& facesIndexToRemove, TInt vertexToRemove) {
 			GLushort * newFaces = new GLushort[facesSize - facesIndexToRemove.Count()*3];
