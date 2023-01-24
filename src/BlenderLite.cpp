@@ -409,6 +409,9 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	
 	//bucle que dibuja cada objeto en orden
 	for(int o=0; o < Objetos.Count(); o++){
+		if (Objetos[o].vertexGroupSize <= 0){
+			continue;
+		}
 		glPushMatrix(); //guarda la matrix
 		// Set head front material
 		glMaterialfv(   GL_FRONT_AND_BACK, GL_AMBIENT,  objAmbient  );
@@ -494,11 +497,13 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 				glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[negro] );	
 				glPointSize(4);
 				glDrawElements( GL_POINTS, Objetos[o].vertexGroupSize, GL_UNSIGNED_SHORT, Objetos[o].vertexGroup);
-				//vertice seleccionado
-				glPolygonOffset(1.0, -10.0);
-				glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[blanco] );
-			    glDrawArrays( GL_POINTS, Objetos[o].vertexGroup[vertexSelect], 1 );
-				glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[gris] );
+				//vertice seleccionado. si hay mas de 1 vertice
+				if (Objetos[o].vertexGroupSize > 0){
+					glPolygonOffset(1.0, -10.0);
+					glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[blanco] );
+				    glDrawArrays( GL_POINTS, Objetos[o].vertexGroup[vertexSelect], 1 );
+					glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[gris] );					
+				}
 			}
 			else if (view != 2){
 				glPolygonOffset(1.0, 200.0);
@@ -1233,20 +1238,22 @@ void CBlenderLite::Borrar(){
 			}
 		};
 		
-		/*HBufC* noteBuf = HBufC::NewLC(35);
-		_LIT(KFormatString, "Bordes Borrados: %d");
-		noteBuf->Des().Format(KFormatString, edges.Count());
-		Mensaje(noteBuf);	*/
-		obj.RemoveFaces(faces);
-		obj.RemoveEdges(edges);
+		
+		obj.RemoveFaces(faces, vertexSelect);
+		obj.RemoveEdges(edges, vertexSelect);
 		obj.RemoveVertex(vertexSelect);
 		//obj.vertexGroupSize--;
 		//obj.vertexSize-=obj.vertexGroupIndiceSize[vertexSelect];
 		faces.Close();
 		edges.Close();
 		if (obj.vertexGroupSize < vertexSelect+1){
-			vertexSelect = obj.vertexGroupSize;			
+			vertexSelect = obj.vertexGroupSize-1;			
 		}
+		HBufC* noteBuf = HBufC::NewLC(128);
+		_LIT(KFormatString, "Select %d Group %d Vertices %d");
+		noteBuf->Des().Format(KFormatString, vertexSelect, obj.vertexGroupSize,  obj.vertexSize/3);
+		Mensaje(noteBuf);
+				
 		//CleanupStack::PopAndDestroy(noteBuf);
 		//CleanupStack::PopAndDestroy(buf);
 	}
@@ -1503,7 +1510,7 @@ void CBlenderLite::CrearObjeto( int modelo ){
 }
 
 void CBlenderLite::Extruir(){
-	if (estado == edicion){
+	if (estado == edicion && Objetos[objSelect].vertexGroupSize > 0){
 		Mesh& obj = Objetos[objSelect];
 		//primero crea los array temporales y les suma el espacio del nuevo vertice
 		GLshort* TempVertex = new GLshort[obj.vertexSize+3];

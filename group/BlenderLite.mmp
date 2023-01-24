@@ -10,7 +10,7 @@ TARGET          blenderlite.exe
 TARGETTYPE      exe
 UID             0x100039CE 0xA00D021D
 
-EPOCSTACKSIZE   80000 //originalmente estaba en 30000 67108864
+EPOCSTACKSIZE   30000 //originalmente estaba en 30000 67108864
 
 VENDORID        0
 
