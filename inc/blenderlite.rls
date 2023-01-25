@@ -71,6 +71,17 @@ rls_string STRING_r_blenderlite_ModificadorArray  "Array"
 rls_string STRING_r_blenderlite_ModificadorMirror "Mirror"
 rls_string STRING_r_blenderlite_ModificadorSrew   "Srew"
 
+rls_string STRING_r_blenderlite_Seleccionar   "Menu de Seleccion"
+rls_string STRING_r_blenderlite_SeleccionVertice   "Seleccionar Vertices"
+rls_string STRING_r_blenderlite_SeleccionBordes   "Seleccionar Bordes"
+rls_string STRING_r_blenderlite_SeleccionCaras   "Seleccionar Caras"
+rls_string STRING_r_blenderlite_SetOrigen   "Set Origen"
+rls_string STRING_r_blenderlite_OrigenToGeometry   "Origen a la Geometria"
+rls_string STRING_r_blenderlite_OrigenToSelect   "Origen a la Seleccion"
+rls_string STRING_r_blenderlite_OrigenToCursor   "Origen al cursor 3D"
+
+
+
 rls_string STRING_r_blenderlite_newTexture   "Nueva Textura"
 rls_string STRING_r_blenderlite_ImportOBJ   "Import Wavefront (.obj)"
 

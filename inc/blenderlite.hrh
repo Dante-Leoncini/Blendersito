@@ -57,6 +57,16 @@ enum TBlenderLiteMenuCommands
     EBlenderLiteSetPosicion,
     EBlenderLiteSetRotacion,
     
+    EBlenderLiteSeleccionar,
+    EBlenderLiteSetTipoVertex,
+    EBlenderLiteSetTipoEdge,
+    EBlenderLiteSetTipoFace,
+    
+    EBlenderLiteOrigenSetOrigen,
+    EBlenderLiteOrigenToGeometry,
+    EBlenderLiteOrigenToSelect,
+    EBlenderLiteOrigenToCursor,
+    
     EBlenderLiteVista3D,
     EBlenderLiteViewSolid,
     EBlenderLiteViewMaterial,

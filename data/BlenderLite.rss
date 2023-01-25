@@ -78,6 +78,12 @@ RESOURCE MENU_PANE r_blenderlite_menu
         { 		
 			MENU_ITEM
 			{
+				command = EBlenderLiteSeleccionar;
+				cascade = r_blenderlite_seleccionar_menu;
+				txt = STRING_r_blenderlite_Seleccionar;
+			},	
+			MENU_ITEM
+			{
 				command = EBlenderLiteEditarObjeto;
 				cascade = r_blenderlite_editarObjeto_menu;
 				txt = STRING_r_blenderlite_EditarObjeto;
@@ -89,6 +95,12 @@ RESOURCE MENU_PANE r_blenderlite_menu
 	            txt = STRING_r_blenderlite_editarMaterial;
 	            //flags = EEikMenuItemSeparatorAfter; //no da error pero no veo cambios
 	        },		
+			MENU_ITEM
+			{
+				command = EBlenderLiteOrigenSetOrigen; 
+				cascade = r_blenderlite_editarOrigen_menu; 
+				txt = STRING_r_blenderlite_SetOrigen;
+			},	
 			MENU_ITEM
 			{
 				command = EBlenderLiteVista3D;
@@ -148,30 +160,6 @@ RESOURCE MENU_PANE r_blenderlite_modificadores_menu
 	            command = EBlenderLiteModificadorScrew;
 	            txt = STRING_r_blenderlite_ModificadorSrew;
 	        }
-        };
-}
-//----------------------------------------------------
-//
-//    r_blenderlite_lighting_menu
-//
-//----------------------------------------------------
-//
-RESOURCE MENU_PANE r_blenderlite_lighting_menu
-{
-    items =
-        {
-            MENU_ITEM
-            {
-                command = EBlenderLiteLights;
-            },
-            MENU_ITEM
-            {
-                command = EBlenderLiteLamp;
-            },
-            MENU_ITEM
-            {
-                command = EBlenderLiteSpot;
-            }
         };
 }
 
@@ -376,11 +364,57 @@ RESOURCE MENU_PANE r_blenderlite_editarObjeto_menu{
     };
 }
 
+//----------------------------------------------------
+//
+//    r_blenderlite_seleccionar_menu
+//
+//----------------------------------------------------
+//
+RESOURCE MENU_PANE r_blenderlite_seleccionar_menu{
+	items = {
+		MENU_ITEM {
+			command = EBlenderLiteSetTipoVertex;
+			txt = STRING_r_blenderlite_SeleccionVertice;
+		},
+		MENU_ITEM {
+			command = EBlenderLiteSetTipoEdge;
+			txt = STRING_r_blenderlite_SeleccionBordes;
+		},
+        MENU_ITEM {
+            command = EBlenderLiteSetTipoFace;
+            txt = STRING_r_blenderlite_SeleccionCaras;
+        }	
+    };
+}
 
-rls_string STRING_r_blenderlite_EditarObjeto     "Editar Objeto"
-rls_string STRING_r_blenderlite_CambiarEscala    "Cambiar Escala"
-rls_string STRING_r_blenderlite_CambiarPosicion  "Cambiar Posicion"
-rls_string STRING_r_blenderlite_CambiarRotacion  "Cambiar Rotacion"
+//----------------------------------------------------
+//
+//    r_blenderlite_editarOrigen_menu
+//
+//----------------------------------------------------
+//
+RESOURCE MENU_PANE r_blenderlite_editarOrigen_menu{
+	items = {
+		MENU_ITEM {
+			command = EBlenderLiteOrigenToGeometry;
+			txt = STRING_r_blenderlite_OrigenToGeometry;
+		},
+		MENU_ITEM {
+			command = EBlenderLiteOrigenToSelect;
+			txt = STRING_r_blenderlite_OrigenToSelect;
+		},
+        MENU_ITEM {
+            command = EBlenderLiteOrigenToCursor;
+            txt = STRING_r_blenderlite_OrigenToCursor;
+        }	
+    };
+}
+
+
+//rls_string STRING_r_blenderlite_EditarObjeto     "Editar Objeto"
+//rls_string STRING_r_blenderlite_CambiarEscala    "Cambiar Escala"
+//rls_string STRING_r_blenderlite_CambiarPosicion  "Cambiar Posicion"
+//rls_string STRING_r_blenderlite_CambiarRotacion  "Cambiar Rotacion"
 //----------------------------------------------------
 //
 //    resources for the menu item texts
@@ -440,6 +474,15 @@ RESOURCE TBUF256 r_blenderlite_ModificadorSrew{buf = STRING_r_blenderlite_Modifi
 
 RESOURCE TBUF256 r_blenderlite_newTexture{buf = STRING_r_blenderlite_newTexture;}
 RESOURCE TBUF256 r_blenderlite_ImportOBJ{buf = STRING_r_blenderlite_ImportOBJ;}
+
+RESOURCE TBUF256 r_blenderlite_Seleccionar{buf = STRING_r_blenderlite_Seleccionar;}
+RESOURCE TBUF256 r_blenderlite_SeleccionVertice{buf = STRING_r_blenderlite_SeleccionVertice;}
+RESOURCE TBUF256 r_blenderlite_SeleccionBordes{buf = STRING_r_blenderlite_SeleccionBordes;}
+RESOURCE TBUF256 r_blenderlite_SeleccionCaras{buf = STRING_r_blenderlite_SeleccionCaras;}
+RESOURCE TBUF256 r_blenderlite_SetOrigen{buf = STRING_r_blenderlite_SetOrigen;}
+RESOURCE TBUF256 r_blenderlite_OrigenToGeometry{buf = STRING_r_blenderlite_OrigenToGeometry;}
+RESOURCE TBUF256 r_blenderlite_OrigenToSelect{buf = STRING_r_blenderlite_OrigenToSelect;}
+RESOURCE TBUF256 r_blenderlite_OrigenToCursor{buf = STRING_r_blenderlite_OrigenToCursor;}
 
 RESOURCE TBUF256 r_lights_on
 {

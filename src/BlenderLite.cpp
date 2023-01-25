@@ -63,17 +63,20 @@ static const GLfloat colorBorde[4]  = { MATERIALCOLOR(0.68, 0.45, 0.13, 1.0) };
 //color borde Select
 //GLfloat colorBordeSelect[4] = { MATERIALCOLOR(0.94, 0.59, 0.17, 1.0) };
 //array de colores
-static const GLfloat ListaColores[4][4] = {
+static const GLfloat ListaColores[5][4] = {
 		{ MATERIALCOLOR(1.0, 1.0, 1.0, 1.0) },   //blanco
 		{ MATERIALCOLOR(0.94, 0.59, 0.17, 1.0)}, //naranja 	
 		{ MATERIALCOLOR(0.0, 0.0, 0.0, 1.0) },    //negro
-		{ MATERIALCOLOR(0.12, 0.12, 0.12, 1.0) }    //gris
+		{ MATERIALCOLOR(0.12, 0.12, 0.12, 1.0) },   //gris
+		{ MATERIALCOLOR(0.94, 0.59, 0.17, 0.25f) }       //naranja transparente
+
 };
 enum{
 	blanco,
 	naranja,
 	negro,
-	gris
+	gris,
+	naranjaFace
 };
 int colorBordeSelect = 1;
 
@@ -128,8 +131,14 @@ enum{
 	rotacion,
 	escala,
 	translacion, 
-	translacionVertex, 
+	translacionVertex,
+	translacionEdge,
+	translacionFace,
 	edicion
+};
+
+enum{
+	vertexSelect, edgeSelect, faceSelect
 };
 
 enum{
@@ -163,12 +172,13 @@ SaveState estadoObj;
 //Crea un array de objetos
 RArray<Mesh> Objetos;
 TInt objSelect = 0;
-TInt vertexSelect = 0;
+TInt tipoSelect = vertexSelect;
+TInt EditSelect = 0;
 GLshort estadoVertex[3]={0, 0, 0};
 
 void CBlenderLite::changeSelect(){
 	if (estado == navegacion){
-		vertexSelect = 0;
+		EditSelect = 0;
 		if (objSelect+1 > Objetos.Count()-1){
 			objSelect = 0;
 		}
@@ -177,12 +187,25 @@ void CBlenderLite::changeSelect(){
 		}
 	}
 	else if (estado == edicion){
-		vertexSelect++;
-		if (vertexSelect >= Objetos[objSelect].vertexGroupSize){
-			vertexSelect = 0;			
-		}
+		EditSelect++;
+		if (tipoSelect == vertexSelect && EditSelect >= Objetos[objSelect].vertexGroupSize){
+			EditSelect = 0;			
+		}	
+		else if (tipoSelect == edgeSelect && EditSelect >= Objetos[objSelect].facesSize/2){
+			EditSelect = 0;			
+		}	
+		else if (tipoSelect == faceSelect && EditSelect >= Objetos[objSelect].facesSize/3){
+			EditSelect = 0;			
+		}	
 	};
     redibujar = true;	
+}
+
+void CBlenderLite::SetTipoSelect(TInt tipo){
+	if (estado != edicion){return;}
+	tipoSelect = tipo;
+	EditSelect = 0;	
+    redibujar = true;
 }
 
 // ============================= LOCAL FUNCTIONS ===============================
@@ -485,24 +508,54 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 			glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  ListaColores[negro] );
 			glMaterialfv(   GL_FRONT_AND_BACK, GL_AMBIENT,  ListaColores[negro] );
 			glMaterialfv(   GL_FRONT_AND_BACK, GL_SPECULAR, ListaColores[negro] );	
-
+			//si se esta editando
 			if (estado == edicion || estado == translacionVertex){
 				//bordes
 				glPolygonOffset(1.0, -1.0);
 				glLineWidth(1);	 
+				glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[negro] );
 				glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[gris] );	
-				glDrawElements( GL_LINES, Objetos[o].edgesSize, GL_UNSIGNED_SHORT, Objetos[o].edges ); 	
+				glDrawElements( GL_LINES, Objetos[o].edgesSize, GL_UNSIGNED_SHORT, Objetos[o].edges );
 				//vertices
-				glPolygonOffset(1.0, -4.0);
-				glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[negro] );	
-				glPointSize(4);
-				glDrawElements( GL_POINTS, Objetos[o].vertexGroupSize, GL_UNSIGNED_SHORT, Objetos[o].vertexGroup);
-				//vertice seleccionado. si hay mas de 1 vertice
-				if (Objetos[o].vertexGroupSize > 0){
-					glPolygonOffset(1.0, -10.0);
-					glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[blanco] );
-				    glDrawArrays( GL_POINTS, Objetos[o].vertexGroup[vertexSelect], 1 );
-					glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[gris] );					
+				if (tipoSelect == vertexSelect){
+					glPolygonOffset(1.0, -4.0);
+					glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[negro] );	
+					glPointSize(4);
+					glDrawElements( GL_POINTS, Objetos[o].vertexGroupSize, GL_UNSIGNED_SHORT, Objetos[o].vertexGroup);
+					//vertice seleccionado
+					if (Objetos[o].vertexGroupSize > 0){
+						glPolygonOffset(1.0, -10.0);
+						glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[blanco] );
+					    glDrawArrays( GL_POINTS, Objetos[o].vertexGroup[EditSelect], 1 );
+						//glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[gris] );					
+					}					
+				}
+				//borde seleccionado
+				else if (tipoSelect == edgeSelect){		
+					//vertice seleccionado
+					if (Objetos[o].edgesSize > 0){		
+						glPolygonOffset(1.0, -10.0);
+						glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[blanco] );	
+						glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, &Objetos[o].edges[EditSelect*2]);
+					}			
+				}
+				//cara seleccionado
+				else if (tipoSelect == faceSelect){	
+					//vertice seleccionado
+					if (Objetos[o].facesSize > 0){	
+						glEnable(GL_BLEND);
+						glDisable(GL_LIGHTING);
+						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+						glPolygonOffset(1.0, -10.0);
+						glEnable(GL_COLOR_MATERIAL);
+						//glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 0.0);
+						glColor4f(ListaColores[naranjaFace][0],
+								  ListaColores[naranjaFace][1],
+								  ListaColores[naranjaFace][2],
+								  ListaColores[naranjaFace][3]);
+						glDrawElements( GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, &Objetos[o].faces[EditSelect*3]);
+						glDisable(GL_COLOR_MATERIAL);
+					}				
 				}
 			}
 			else if (view != 2){
@@ -543,9 +596,9 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 			glRotatef(Objetos[objSelect].rotZ, 0, 1, 0); //angulo, X Y Z			
 		}
 		if (estado == translacionVertex){
-			glTranslatef(Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[vertexSelect]*3]  *Objetos[objSelect].scaleX/65000, 
-					     Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[vertexSelect]*3+1]*Objetos[objSelect].scaleY/65000, 
-						 Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[vertexSelect]*3+2]*Objetos[objSelect].scaleZ/65000
+			glTranslatef(Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[EditSelect]*3]  *Objetos[objSelect].scaleX/65000, 
+					     Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[EditSelect]*3+1]*Objetos[objSelect].scaleY/65000, 
+						 Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[EditSelect]*3+2]*Objetos[objSelect].scaleZ/65000
 			);		
 		}
 	    glDisable( GL_DEPTH_TEST );
@@ -644,15 +697,15 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 			rotX-= 0.5;			
 		}
 		else if (estado == translacionVertex){		
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[vertexSelect]; g++){
+			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
 				if (axisSelect == X){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3] += 30;					
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3] += 30;					
 				}
 				else if (axisSelect == Y){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+2] -= 30;				
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+2] -= 30;				
 				}
 				else if (axisSelect == Z){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+1] -= 30;	
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+1] -= 30;	
 				}
 			}
 		}
@@ -709,15 +762,15 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 			rotX+= 0.5;			
 		}
 		else if (estado == translacionVertex){		
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[vertexSelect]; g++){
+			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
 				if (axisSelect == X){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3] -= 30;					
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3] -= 30;					
 				}
 				else if (axisSelect == Y){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+2] += 30;				
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+2] += 30;				
 				}
 				else if (axisSelect == Z){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+1] += 30;	
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+1] += 30;	
 				}
 			}
 		}
@@ -774,15 +827,15 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 			rotY-= 0.5;			
 		}
 		else if (estado == translacionVertex){		
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[vertexSelect]; g++){
+			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
 				if (axisSelect == X){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3] -= 30;					
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3] -= 30;					
 				}
 				else if (axisSelect == Y){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+2] += 30;				
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+2] += 30;				
 				}
 				else if (axisSelect == Z){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+1] += 30;	
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+1] += 30;	
 				}
 			}
 		}
@@ -810,15 +863,15 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 			rotY+= 0.5;			
 		}
 		else if (estado == translacionVertex){		
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[vertexSelect]; g++){
+			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
 				if (axisSelect == X){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3] += 30;					
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3] += 30;					
 				}
 				else if (axisSelect == Y){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+2] -= 30;				
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+2] -= 30;				
 				}
 				else if (axisSelect == Z){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+1] -= 30;	
+					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+1] -= 30;	
 				}
 			}
 		}
@@ -882,12 +935,20 @@ void CBlenderLite::SetPosicion(){
 		guardarEstado(objSelect);
 		estado = translacion;
 		colorBordeSelect = 0;
-		axisSelect = X;
 	}
 	else if (estado == edicion){
-		estado = translacionVertex;
-		guardarEstado(objSelect);
-		axisSelect = X;
+		if (tipoSelect == vertexSelect){
+			estado = translacionVertex;
+			guardarEstado(objSelect);	
+		}
+		else if (tipoSelect == edgeSelect){
+			estado = translacionEdge;
+			guardarEstado(objSelect);				
+		}
+		else if (tipoSelect == faceSelect){
+			estado = translacionFace;
+			guardarEstado(objSelect);				
+		}
 	}	
 	else if (axisSelect+1 > 2){axisSelect = X;}
 	else {axisSelect++;}
@@ -950,10 +1011,10 @@ void CBlenderLite::Tab(){
 
 void CBlenderLite::ReestablecerEstado(int indice){
 	if (estado == translacionVertex){
-		 for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[vertexSelect]; g++){
-			Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3] = estadoVertex[0];
-			Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+2] = estadoVertex[1];	
-			Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+1] = estadoVertex[2];	
+		 for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
+			Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3] = estadoVertex[0];
+			Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+2] = estadoVertex[1];	
+			Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+1] = estadoVertex[2];	
 		}
 	}
 	else {
@@ -971,9 +1032,9 @@ void CBlenderLite::ReestablecerEstado(int indice){
 
 void CBlenderLite::guardarEstado(int indice){
 	if (estado == translacionVertex){
-		estadoVertex[0] = Objetos[objSelect].vertex[Objetos[indice].vertexGroupIndice[vertexSelect][0]*3];
-		estadoVertex[1] = Objetos[objSelect].vertex[Objetos[indice].vertexGroupIndice[vertexSelect][0]*3+2];	
-		estadoVertex[2] = Objetos[objSelect].vertex[Objetos[indice].vertexGroupIndice[vertexSelect][0]*3+1];	
+		estadoVertex[0] = Objetos[objSelect].vertex[Objetos[indice].vertexGroupIndice[EditSelect][0]*3];
+		estadoVertex[1] = Objetos[objSelect].vertex[Objetos[indice].vertexGroupIndice[EditSelect][0]*3+2];	
+		estadoVertex[2] = Objetos[objSelect].vertex[Objetos[indice].vertexGroupIndice[EditSelect][0]*3+1];	
 	}
 	else {
 		estadoObj.posX = Objetos[indice].posX;
@@ -1101,46 +1162,46 @@ void CBlenderLite::InsertarValor(){
 	else if (estado == edicion){
 		if (axisSelect == X){
 			buf->Des().Copy(_L("Posicion en X"));
-			TInt valorX = DialogNumber((TInt)Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][0]*3], -1000000, 1000000,buf);
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[vertexSelect]; g++){
-				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3] = valorX;
+			TInt valorX = DialogNumber((TInt)Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][0]*3], -1000000, 1000000,buf);
+			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
+				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3] = valorX;
 			}
 		}
 		else if (axisSelect == Y){
 			buf->Des().Copy(_L("Posicion en Y"));
-			TInt valorY = DialogNumber((TInt)Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][0]*3+2], -1000000, 1000000,buf);
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[vertexSelect]; g++){
-				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+2] = valorY;
+			TInt valorY = DialogNumber((TInt)Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][0]*3+2], -1000000, 1000000,buf);
+			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
+				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+2] = valorY;
 			}
 		}
 		else if (axisSelect == Z){
 			buf->Des().Copy(_L("Posicion en Z"));
-			TInt valorZ = DialogNumber((TInt)Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][0]*3+1], -1000000, 1000000,buf);
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[vertexSelect]; g++){
-				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+1] = valorZ;
+			TInt valorZ = DialogNumber((TInt)Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][0]*3+1], -1000000, 1000000,buf);
+			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
+				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+1] = valorZ;
 			}
 		}	
 	}
 	else if (estado == translacionVertex){
 		if (axisSelect == X){
-			buf->Des().Copy(_L("Posicion en X")); //(Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][0]*3]-
-			TInt valorX = DialogNumber((TInt)(Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][0]*3]-estadoVertex[0]), -1000000, 1000000,buf);
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[vertexSelect]; g++){
-				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3] = valorX+estadoVertex[0]; //)*1;
+			buf->Des().Copy(_L("Posicion en X")); //(Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][0]*3]-
+			TInt valorX = DialogNumber((TInt)(Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][0]*3]-estadoVertex[0]), -1000000, 1000000,buf);
+			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
+				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3] = valorX+estadoVertex[0]; //)*1;
 			}
 		}
 		else if (axisSelect == Y){
 			buf->Des().Copy(_L("Posicion en Y"));
-			TInt valorY = DialogNumber((TInt)(Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][0]*3+2]-estadoVertex[1]), -1000000, 1000000,buf);
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[vertexSelect]; g++){
-				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+2] = valorY+estadoVertex[1];
+			TInt valorY = DialogNumber((TInt)(Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][0]*3+2]-estadoVertex[1]), -1000000, 1000000,buf);
+			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
+				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+2] = valorY+estadoVertex[1];
 			}
 		}
 		else if (axisSelect == Z){
 			buf->Des().Copy(_L("Posicion en Z"));
-			TInt valorZ = DialogNumber((TInt)(Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][0]*3+1]-estadoVertex[2]), -1000000, 1000000,buf);
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[vertexSelect]; g++){
-				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[vertexSelect][g]*3+1] = valorZ+estadoVertex[2];
+			TInt valorZ = DialogNumber((TInt)(Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][0]*3+1]-estadoVertex[2]), -1000000, 1000000,buf);
+			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
+				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+1] = valorZ+estadoVertex[2];
 			}
 		}	
 		Aceptar();
@@ -1217,10 +1278,10 @@ void CBlenderLite::Borrar(){
 		//busca las caras que contengan algun vertices del grupo de vertices
 		RArray<GLushort> faces;
 		for(int f=0; f < obj.facesSize/3; f++){
-			for(int v=0; v < obj.vertexGroupIndiceSize[vertexSelect]; v++){
-				if (obj.vertexGroupIndice[vertexSelect][v] == obj.faces[f*3] ||
-					obj.vertexGroupIndice[vertexSelect][v] == obj.faces[f*3+1] ||
-					obj.vertexGroupIndice[vertexSelect][v] == obj.faces[f*3+2]){
+			for(int v=0; v < obj.vertexGroupIndiceSize[EditSelect]; v++){
+				if (obj.vertexGroupIndice[EditSelect][v] == obj.faces[f*3] ||
+					obj.vertexGroupIndice[EditSelect][v] == obj.faces[f*3+1] ||
+					obj.vertexGroupIndice[EditSelect][v] == obj.faces[f*3+2]){
 					faces.Append(f);
 					break;
 				}				
@@ -1229,26 +1290,26 @@ void CBlenderLite::Borrar(){
 		//busca los bordes
 		RArray<GLushort> edges;
 		for(int e=0; e < obj.edgesSize/2; e++){
-			for(int g=0; g < obj.vertexGroupIndiceSize[vertexSelect]; g++){
-				if (obj.vertexGroupIndice[vertexSelect][g] == obj.edges[e*2] ||
-					obj.vertexGroupIndice[vertexSelect][g] == obj.edges[e*2+1]){
+			for(int g=0; g < obj.vertexGroupIndiceSize[EditSelect]; g++){
+				if (obj.vertexGroupIndice[EditSelect][g] == obj.edges[e*2] ||
+					obj.vertexGroupIndice[EditSelect][g] == obj.edges[e*2+1]){
 					edges.Append(e);
 					break;
 				}				
 			}
 		};		
 		
-		obj.RemoveFaces(faces, vertexSelect);
-		obj.RemoveEdges(edges, vertexSelect);
-		obj.RemoveVertex(vertexSelect);
+		obj.RemoveFaces(faces, EditSelect);
+		obj.RemoveEdges(edges, EditSelect);
+		obj.RemoveVertex(EditSelect);
 		faces.Close();
 		edges.Close();
-		if (obj.vertexGroupSize < vertexSelect+1){
-			vertexSelect = obj.vertexGroupSize-1;			
+		if (obj.vertexGroupSize < EditSelect+1){
+			EditSelect = obj.vertexGroupSize-1;			
 		}
 		/*HBufC* noteBuf = HBufC::NewLC(128);
 		_LIT(KFormatString, "Select %d Group %d Vertices %d");
-		noteBuf->Des().Format(KFormatString, vertexSelect, obj.vertexGroupSize,  obj.vertexSize/3);
+		noteBuf->Des().Format(KFormatString, EditSelect, obj.vertexGroupSize,  obj.vertexSize/3);
 		Mensaje(noteBuf);*/
 				
 		//CleanupStack::PopAndDestroy(noteBuf);
@@ -1538,15 +1599,15 @@ void CBlenderLite::Extruir(){
 		}
 
 		//copia el vertice seleccionado al nuevo vertice
-		TempVertex[obj.vertexSize] = obj.vertex[obj.vertexGroup[vertexSelect]*3];
-		TempVertex[obj.vertexSize+1] = obj.vertex[obj.vertexGroup[vertexSelect]*3+1];
-		TempVertex[obj.vertexSize+2] = obj.vertex[obj.vertexGroup[vertexSelect]*3+2];
-	    TempNormals[obj.vertexSize] = obj.normals[obj.vertexGroup[vertexSelect]*3];
-	    TempNormals[obj.vertexSize+1] = obj.normals[obj.vertexGroup[vertexSelect]*3+1];
-	    TempNormals[obj.vertexSize+2] = obj.normals[obj.vertexGroup[vertexSelect]*3+2];
-	    TempUv[obj.uvSize] = obj.uv[obj.vertexGroup[vertexSelect]*2];
-	    TempUv[obj.uvSize+1] = obj.uv[obj.vertexGroup[vertexSelect]*2+1];	    
-	    TempEdges[obj.edgesSize] =   obj.vertexGroup[vertexSelect];
+		TempVertex[obj.vertexSize] = obj.vertex[obj.vertexGroup[EditSelect]*3];
+		TempVertex[obj.vertexSize+1] = obj.vertex[obj.vertexGroup[EditSelect]*3+1];
+		TempVertex[obj.vertexSize+2] = obj.vertex[obj.vertexGroup[EditSelect]*3+2];
+	    TempNormals[obj.vertexSize] = obj.normals[obj.vertexGroup[EditSelect]*3];
+	    TempNormals[obj.vertexSize+1] = obj.normals[obj.vertexGroup[EditSelect]*3+1];
+	    TempNormals[obj.vertexSize+2] = obj.normals[obj.vertexGroup[EditSelect]*3+2];
+	    TempUv[obj.uvSize] = obj.uv[obj.vertexGroup[EditSelect]*2];
+	    TempUv[obj.uvSize+1] = obj.uv[obj.vertexGroup[EditSelect]*2+1];	    
+	    TempEdges[obj.edgesSize] =   obj.vertexGroup[EditSelect];
 	    TempEdges[obj.edgesSize+1] = obj.vertexSize/3;
 	    TempVertexGroup[obj.vertexGroupSize] = obj.vertexSize/3; //ultimo indice creado
 	    TempVertexGroupIndices[obj.vertexGroupSize] = new GLushort[1]; //le agrega a la memoria
@@ -1586,7 +1647,7 @@ void CBlenderLite::Extruir(){
 			}
 		}
 		
-		vertexSelect = obj.vertexGroupSize-1;
+		EditSelect = obj.vertexGroupSize-1;
 		estado = translacionVertex;
 		guardarEstado(objSelect);
 		//libera memoria
@@ -1678,7 +1739,7 @@ void CBlenderLite::SetEditMode(){
 	if (Objetos.Count() < 1){return;}
 	Cancelar();
 	if ( estado != edicion ){
-		vertexSelect = 0;
+		EditSelect = 0;
 		estado = edicion;
 	}	
     else {
@@ -1943,11 +2004,11 @@ void CBlenderLite::InfoObject(TInt opciones){
 	if (opciones == 1){
 		HBufC* noteBuf = HBufC::NewLC(30); //TInt::Length(obj.vertexGroupSize)
 		_LIT(KFormatString, "size %d Indices %d");
-		noteBuf->Des().Format(KFormatString,  Objetos[objSelect].vertexGroupIndiceSize[vertexSelect],
-				              Objetos[objSelect].vertexGroupIndice[vertexSelect][0]);
+		noteBuf->Des().Format(KFormatString,  Objetos[objSelect].vertexGroupIndiceSize[EditSelect],
+				              Objetos[objSelect].vertexGroupIndice[EditSelect][0]);
 				                                                                 //,
-				              //Objetos[objSelect].vertexGroupIndice[vertexSelect][1],
-				              //Objetos[objSelect].vertexGroupIndice[vertexSelect][2]);
+				              //Objetos[objSelect].vertexGroupIndice[EditSelect][1],
+				              //Objetos[objSelect].vertexGroupIndice[EditSelect][2]);
 		Mensaje(noteBuf);	
 		CleanupStack::PopAndDestroy(noteBuf);
 	}
@@ -1961,7 +2022,7 @@ void CBlenderLite::InfoObject(TInt opciones){
 	else if (opciones == 2){ //cantidad de vertices
 		HBufC* noteBuf = HBufC::NewLC(35); //TInt::Length(obj.vertexGroupSize)
 		_LIT(KFormatString, "VertexGroup: %d group: %d");
-		noteBuf->Des().Format(KFormatString, Objetos[objSelect].vertexGroupSize, Objetos[objSelect].vertexGroupIndiceSize[vertexSelect]);
+		noteBuf->Des().Format(KFormatString, Objetos[objSelect].vertexGroupSize, Objetos[objSelect].vertexGroupIndiceSize[EditSelect]);
 		Mensaje(noteBuf);	
 		CleanupStack::PopAndDestroy(noteBuf);	
 	}	

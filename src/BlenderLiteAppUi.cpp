@@ -47,7 +47,7 @@ CBlenderLiteAppUi::~CBlenderLiteAppUi(){
 //
 void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPane ){
     // Item texts for the lighting menu.
-    if ( aResourceId == R_BLENDERLITE_LIGHTING_MENU )
+    /*if ( aResourceId == R_BLENDERLITE_LIGHTING_MENU )
         {
         // Text for switching the lights on/off.
         if ( iAppContainer->iBlenderLite->iLightingEnabled )
@@ -77,7 +77,7 @@ void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
         else {
             aMenuPane->SetItemTextL( EBlenderLiteSpot, R_SPOT_ON );
 		}
-	}
+	}*/
 }
 
 // ----------------------------------------------------
@@ -220,6 +220,10 @@ enum{
 	screw
 };
 
+enum{
+	vertexSelect, edgeSelect, faceSelect
+};
+
 // ----------------------------------------------------
 // CBlenderLiteAppUi::HandleCommandL
 // Command handler
@@ -321,6 +325,15 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             break; 
         case EBlenderLiteViewWireframe:
             iAppContainer->iBlenderLite->SetShader(2);
+            break; 
+        case EBlenderLiteSetTipoVertex:
+            iAppContainer->iBlenderLite->SetTipoSelect(vertexSelect);
+            break; 
+        case EBlenderLiteSetTipoEdge:
+            iAppContainer->iBlenderLite->SetTipoSelect(edgeSelect);
+            break; 
+        case EBlenderLiteSetTipoFace:
+            iAppContainer->iBlenderLite->SetTipoSelect(faceSelect);
             break; 
         case EBlenderLiteCambiarObjeto:
             iAppContainer->iBlenderLite->changeSelect();
