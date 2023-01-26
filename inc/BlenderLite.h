@@ -204,6 +204,8 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
 
         /** Whether or not the spotlight is enabled. Used when building the menu for the application. */
         TBool iSpotEnabled;
+        
+        TInt estado;
 
     private:  // Data
 

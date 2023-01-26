@@ -150,9 +150,8 @@ enum{
 
 typedef enum { X, Y, Z, XYZ } Axis;
 
-int estado = navegacion;
-int view = Rendered;
-int axisSelect = X;
+TInt view = Rendered;
+TInt axisSelect = X;
 
 class SaveState {
 	public:
@@ -248,6 +247,7 @@ CBlenderLite::CBlenderLite( TUint aWidth, TUint aHeight, CBlenderLiteInput* aInp
 //
 //TFixedArray<GLshort, 30> myArray;	
 void CBlenderLite::ConstructL( void ){
+	estado = navegacion;
 	   
 	//debuger
 	//console = Console::NewL(_L("Consola"),TSize(KConsFullScreen, KConsFullScreen));
@@ -2237,6 +2237,25 @@ void CBlenderLite::SetOrigen( TInt opcion ){
 	//a la geometria
 	else if (opcion == 0){
 		if (tipoSelect == vertexSelect){
+			//guarda el centro de la geometria
+			GLshort NuevoOrigen[3] = {0,0,0};
+			for(TInt i = 0; i < Objetos[objSelect].vertexGroupSize; i++) {
+			    NuevoOrigen[0] += Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[i]*3];
+			    NuevoOrigen[1] += Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[i]*3+1];
+			    NuevoOrigen[2] += Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[i]*3+2];
+			}
+			NuevoOrigen[0] /= Objetos[objSelect].vertexGroupSize;
+			NuevoOrigen[1] /= Objetos[objSelect].vertexGroupSize;
+			NuevoOrigen[2] /= Objetos[objSelect].vertexGroupSize;
+
+			for(TInt i = 0; i < Objetos[objSelect].vertexSize/3; i++) {
+				Objetos[objSelect].vertex[i*3] -= NuevoOrigen[0];
+				Objetos[objSelect].vertex[i*3+1] -= NuevoOrigen[1];
+				Objetos[objSelect].vertex[i*3+2] -= NuevoOrigen[2];
+			}			
+			Objetos[objSelect].posX += NuevoOrigen[0]*Objetos[objSelect].scaleX/65000;
+			Objetos[objSelect].posY += NuevoOrigen[2]*Objetos[objSelect].scaleY/65000;
+			Objetos[objSelect].posZ += NuevoOrigen[1]*Objetos[objSelect].scaleZ/65000;
 		}	
 	}	
 	//al vertice seleccionado

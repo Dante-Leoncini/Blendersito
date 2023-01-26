@@ -45,7 +45,35 @@ CBlenderLiteAppUi::~CBlenderLiteAppUi(){
 //  to the state of application data.
 // ------------------------------------------------------------------------------
 //
+enum{
+	navegacion,
+	rotacion,
+	escala,
+	translacion, 
+	translacionVertex,
+	translacionEdge,
+	translacionFace,
+	edicion
+};
+
 void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPane ){
+	//oculta el SetOrigen si no esta en modo edicion
+    if (aResourceId == R_BLENDERLITE_MENU ) {
+        if (iAppContainer->iBlenderLite->estado == edicion) {
+            aMenuPane->SetItemDimmed(EBlenderLiteOrigenSetOrigen, EFalse);
+            aMenuPane->SetItemDimmed(EBlenderLiteSeleccionar, EFalse);
+            aMenuPane->SetItemDimmed(EBlenderLiteEditarObjeto, ETrue);
+            aMenuPane->SetItemDimmed(EBlenderLiteCrearObjetos, ETrue);
+            aMenuPane->SetItemDimmed(EBlenderLiteImportOBJ, ETrue);
+            
+        } else {
+            aMenuPane->SetItemDimmed(EBlenderLiteOrigenSetOrigen, ETrue);
+            aMenuPane->SetItemDimmed(EBlenderLiteSeleccionar, ETrue);
+            aMenuPane->SetItemDimmed(EBlenderLiteEditarObjeto, EFalse);
+            aMenuPane->SetItemDimmed(EBlenderLiteCrearObjetos, EFalse);
+            aMenuPane->SetItemDimmed(EBlenderLiteImportOBJ, EFalse);
+        }
+    }
     // Item texts for the lighting menu.
     /*if ( aResourceId == R_BLENDERLITE_LIGHTING_MENU )
         {
