@@ -335,6 +335,15 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
         case EBlenderLiteSetTipoFace:
             iAppContainer->iBlenderLite->SetTipoSelect(faceSelect);
             break; 
+        case EBlenderLiteOrigenToGeometry:
+            iAppContainer->iBlenderLite->SetOrigen(0);
+            break; 
+        case EBlenderLiteOrigenToSelect:
+            iAppContainer->iBlenderLite->SetOrigen(1);
+            break; 
+        case EBlenderLiteOrigenToCursor:
+            iAppContainer->iBlenderLite->SetOrigen(2);
+            break; 
         case EBlenderLiteCambiarObjeto:
             iAppContainer->iBlenderLite->changeSelect();
             break; 

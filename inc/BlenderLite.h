@@ -126,6 +126,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void NewTexture();        
         void CloseWaitNoteL();
         void SetTipoSelect(TInt tipo);
+        void SetOrigen( TInt opcion );
         void OpenWaitNoteL( TFileName file );
         void LoadFile(const TFileName& aFileName,
                                        const TSize &aSize,

@@ -146,7 +146,7 @@ enum{
     cad, luz, suzanne, claude, marcus, vertice
 };
 
-CPrimitiva Primitivas;
+//CPrimitiva Primitivas;
 
 typedef enum { X, Y, Z, XYZ } Axis;
 
@@ -436,6 +436,8 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 		}
 		glPushMatrix(); //guarda la matrix
 		// Set head front material
+		glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
+		glDisable(GL_COLOR_MATERIAL);
 		glMaterialfv(   GL_FRONT_AND_BACK, GL_AMBIENT,  objAmbient  );
 		glMaterialfv(   GL_FRONT_AND_BACK, GL_SPECULAR, Objetos[o].specular );
 		glMaterialx( GL_FRONT_AND_BACK, GL_SHININESS,   12 << 16     );
@@ -663,7 +665,6 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	    glDrawArrays( GL_POINTS, 0, 1 );
 	    glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_FALSE);
 	}
-	glDisable(GL_COLOR_MATERIAL);
 
     //termino de dibujar
     redibujar = false;
@@ -1350,18 +1351,29 @@ void CBlenderLite::CrearObjeto( int modelo ){
 		obj.faces = new GLushort[12 * 3];
 		obj.edges = new GLushort[12 * 6];
 		obj.uv = new GLbyte[24 * 2];
-		obj.vertex = Primitivas.CuboVertices(1,1,1);
+		//obj.vertex = Primitivas.CuboVertices(1,1,1);
 		//GLshort *vertex =  new GLshort[24 * 3];
 		//obj.vertex.ReserveL(24 * 3);
 		//vertex = Primitivas.CuboVertices(1,1,1);
-		obj.NewFaces.ReserveL(12*3);
+		/*obj.NewFaces.ReserveL(12*3);
 		for (int i = 0; i < 12*3; i++) {
 			obj.NewFaces.Append(obj.faces[i]);
+		}*/
+		for (int i = 0; i < 24*3; i++) {
+			obj.vertex[i] = CuboVertices[i];
+			obj.normals[i] = CuboNormals[i];
 		}
+		for (int i = 0; i < 24*2; i++) {
+			obj.uv[i] = CuboNormals[i];
+		}
+		for (int i = 0; i < 12*3; i++) {
+			obj.faces[i] = CuboTriangles[i];
+		}
+		//CuboVertices
 		//delete[] vertex;
-		obj.normals = Primitivas.CuboNormals();
+		/*obj.normals = Primitivas.CuboNormals();
 		obj.faces = Primitivas.CuboFaces();
-		obj.uv = Primitivas.CuboUV();
+		obj.uv = Primitivas.CuboUV();*/
 	}	
     else if (modelo == vertice){
     	obj.vertexSize = 1 * 3;
@@ -1961,14 +1973,14 @@ void CBlenderLite::AddModificador(TInt opcion){
 		TempVertexGroupIndices[1][0] = 22;
 		TempVertexGroupIndices[2][0] = 33;
 		TempVertexGroupIndices[3][0] = 44;
-		HBufC* noteBuf = HBufC::NewLC(30); //TInt::Length(obj.vertexGroupSize)
+		/*HBufC* noteBuf = HBufC::NewLC(30); //TInt::Length(obj.vertexGroupSize)
 		_LIT(KFormatString, "indices %d %d %d %d");
 		noteBuf->Des().Format(KFormatString,  
 				TempVertexGroupIndices[0][0],
 				TempVertexGroupIndices[1][0],
 				TempVertexGroupIndices[2][0],
 				TempVertexGroupIndices[3][0]);
-		Mensaje(noteBuf);
+		Mensaje(noteBuf);*/
 		//libera memoria
 		delete[] TempVertex;
 		delete[] TempNormals;
@@ -1977,7 +1989,7 @@ void CBlenderLite::AddModificador(TInt opcion){
 		delete[] TempVertexGroup;
 		delete[] TempVertexGroupIndicesSize;
 		delete[] TempVertexGroupIndices;
-		CleanupStack::PopAndDestroy(noteBuf);
+		//CleanupStack::PopAndDestroy(noteBuf);
 	}
 	redibujar = true;
 }
@@ -2217,5 +2229,37 @@ void CBlenderLite::OpenWaitNoteL( TFileName file ){
 	//iWaitDialog->RunLD();
 	//iWaitDialog->TryExitL(ETrue);
 }
+
+void CBlenderLite::SetOrigen( TInt opcion ){
+	if (estado != edicion){
+		return;
+	}
+	//a la geometria
+	else if (opcion == 0){
+		if (tipoSelect == vertexSelect){
+		}	
+	}	
+	//al vertice seleccionado
+	else if (opcion == 1){
+		if (tipoSelect == vertexSelect){
+			//guarda el valor del vertice seleccionado
+			GLshort NuevoOrigen[3] = {
+				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[EditSelect]*3],
+				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[EditSelect]*3+1],
+				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[EditSelect]*3+2]
+			};
+			for(TInt i = 0; i < Objetos[objSelect].vertexSize/3; i++) {
+				Objetos[objSelect].vertex[i*3] -= NuevoOrigen[0];
+				Objetos[objSelect].vertex[i*3+1] -= NuevoOrigen[1];
+				Objetos[objSelect].vertex[i*3+2] -= NuevoOrigen[2];
+			}
+			Objetos[objSelect].posX += NuevoOrigen[0]*Objetos[objSelect].scaleX/65000;
+			Objetos[objSelect].posY += NuevoOrigen[2]*Objetos[objSelect].scaleY/65000;
+			Objetos[objSelect].posZ += NuevoOrigen[1]*Objetos[objSelect].scaleZ/65000;
+		}//, edgeSelect, faceSelect  EditSelect		
+	}	
+    redibujar = true;
+}
+
 
 //  End of File
