@@ -427,8 +427,7 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	glRotatef(rotY, 1, 0, 0); //angulo, X Y Z
 	glRotatef(rotX, 0, 1, 0); //angulo, X Y Z
 	// Use some magic numbers to scale the head model to fit the screen.
-	glScalex( 1 << 10, 1 << 10, 1 << 10 );
-	
+	glScalex( 1 << 10, 1 << 10, 1 << 10 );	
 	
 	//bucle que dibuja cada objeto en orden
 	for(int o=0; o < Objetos.Count(); o++){
@@ -489,43 +488,46 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 		}
 		//modelo sin textura
 		else if (view == 1){
-			//modelo simple	
 			glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  Objetos[o].diffuse   ); 
 			glDrawElements( GL_TRIANGLES, Objetos[o].facesSize, GL_UNSIGNED_SHORT, Objetos[o].faces );
 		}
+		//wireframe view
 		else if(objSelect != o){    
-			glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  ListaColores[negro]  );
-			glMaterialfv(   GL_FRONT_AND_BACK, GL_AMBIENT,  ListaColores[negro]  );
-			glMaterialfv(   GL_FRONT_AND_BACK, GL_SPECULAR, ListaColores[negro] );
-			glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[gris]);	
+		    glDisable( GL_LIGHTING );
+			glEnable(GL_COLOR_MATERIAL);
+			glColor4f(ListaColores[gris][0],ListaColores[gris][1],ListaColores[gris][2],ListaColores[gris][3]);
 			glDrawElements( GL_LINES, Objetos[o].edgesSize, GL_UNSIGNED_SHORT, Objetos[o].edges );	
 		}  
 		
 		//dibuja el borde seleccionado
 		if(objSelect == o){
+		    glDisable( GL_LIGHTING );
+			glEnable(GL_COLOR_MATERIAL);
 			glDisable( GL_TEXTURE_2D );  
 			glEnable(GL_POLYGON_OFFSET_FILL);
-			glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  ListaColores[negro] );
-			glMaterialfv(   GL_FRONT_AND_BACK, GL_AMBIENT,  ListaColores[negro] );
-			glMaterialfv(   GL_FRONT_AND_BACK, GL_SPECULAR, ListaColores[negro] );	
 			//si se esta editando
 			if (estado == edicion || estado == translacionVertex){
 				//bordes
 				glPolygonOffset(1.0, -1.0);
 				glLineWidth(1);	 
-				glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[negro] );
-				glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[gris] );	
+				glColor4f(ListaColores[gris][0],
+						  ListaColores[gris][1],
+						  ListaColores[gris][2],
+						  ListaColores[gris][3]);
 				glDrawElements( GL_LINES, Objetos[o].edgesSize, GL_UNSIGNED_SHORT, Objetos[o].edges );
 				//vertices
 				if (tipoSelect == vertexSelect){
 					glPolygonOffset(1.0, -4.0);
-					glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[negro] );	
+					glColor4f(ListaColores[negro][0],
+							  ListaColores[negro][1],
+							  ListaColores[negro][2],
+							  ListaColores[negro][3]);
 					glPointSize(4);
 					glDrawElements( GL_POINTS, Objetos[o].vertexGroupSize, GL_UNSIGNED_SHORT, Objetos[o].vertexGroup);
 					//vertice seleccionado
 					if (Objetos[o].vertexGroupSize > 0){
 						glPolygonOffset(1.0, -10.0);
-						glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[blanco] );
+						glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
 					    glDrawArrays( GL_POINTS, Objetos[o].vertexGroup[EditSelect], 1 );
 						//glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[gris] );					
 					}					
@@ -535,7 +537,7 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 					//vertice seleccionado
 					if (Objetos[o].edgesSize > 0){		
 						glPolygonOffset(1.0, -10.0);
-						glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[blanco] );	
+						glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
 						glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, &Objetos[o].edges[EditSelect*2]);
 					}			
 				}
@@ -547,27 +549,22 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 						glDisable(GL_LIGHTING);
 						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 						glPolygonOffset(1.0, -10.0);
-						glEnable(GL_COLOR_MATERIAL);
-						//glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 0.0);
-						glColor4f(ListaColores[naranjaFace][0],
-								  ListaColores[naranjaFace][1],
-								  ListaColores[naranjaFace][2],
-								  ListaColores[naranjaFace][3]);
+						glColor4f(ListaColores[naranjaFace][0],ListaColores[naranjaFace][1],ListaColores[naranjaFace][2],ListaColores[naranjaFace][3]);
 						glDrawElements( GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, &Objetos[o].faces[EditSelect*3]);
-						glDisable(GL_COLOR_MATERIAL);
+						glDisable(GL_BLEND);
 					}				
 				}
 			}
 			else if (view != 2){
 				glPolygonOffset(1.0, 200.0);
 				glLineWidth(3);	 
-				glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[colorBordeSelect] );
+				glColor4f(ListaColores[colorBordeSelect][0],ListaColores[colorBordeSelect][1],ListaColores[colorBordeSelect][2],ListaColores[colorBordeSelect][3]);
 				glDrawElements( GL_LINES, Objetos[o].edgesSize, GL_UNSIGNED_SHORT, Objetos[o].edges );	
 			}	
 			else { //bordes seleccionados en wireframe
 				glDisable(GL_POLYGON_OFFSET_FILL);
 				glLineWidth(1);		
-				glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[colorBordeSelect] );
+				glColor4f(ListaColores[colorBordeSelect][0],ListaColores[colorBordeSelect][1],ListaColores[colorBordeSelect][2],ListaColores[colorBordeSelect][3]);
 				glDrawElements( GL_LINES, Objetos[o].edgesSize, GL_UNSIGNED_SHORT, Objetos[o].edges );	
 			}
 		};	
@@ -579,13 +576,31 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	glLineWidth(1);	
 	glDisable(GL_POLYGON_OFFSET_FILL);
     glDisable( GL_TEXTURE_2D );
-	glEnable( GL_LIGHTING );
+    glDisable( GL_LIGHTING );
+	glEnable(GL_COLOR_MATERIAL);
 	glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  ListaColores[negro]  );
 	glMaterialfv(   GL_FRONT_AND_BACK, GL_AMBIENT,  ListaColores[negro]  );
 	glMaterialfv(   GL_FRONT_AND_BACK, GL_SPECULAR, ListaColores[negro] );
     glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
 	glNormalPointer( GL_BYTE, 0, objNormaldataFloor );
+	
+
+	//dibuja el piso
+	glPushMatrix(); //guarda la matrix
+	glTranslatef( 0, -5000, 0);
+	glColor4f(LineaPiso[0],LineaPiso[1],LineaPiso[2],LineaPiso[3]);
+	glDrawElements( GL_LINES, objFacesFloor, GL_UNSIGNED_SHORT, objFacedataFloor );	 
+	//linea Verde
+	glLineWidth(2);
+	glColor4f(LineaPisoRoja[0],LineaPisoRoja[1],LineaPisoRoja[2],LineaPisoRoja[3]);
+	glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeRojo );	
+	//linea Roja
+	glColor4f(LineaPisoVerde[0],LineaPisoVerde[1],LineaPisoVerde[2],LineaPisoVerde[3]);
+	glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeVerde ); 
+    glPopMatrix(); //reinicia la matrix a donde se guardo	
+	
     //dibuja los ejes de transformacion    
+	glDisable( GL_DEPTH_TEST );
 	if (estado != navegacion && estado != edicion){		
 		glPushMatrix(); //guarda la matrix
 		//posicion, rotacion y escala del objeto seleccionado
@@ -601,43 +616,28 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 						 Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[EditSelect]*3+2]*Objetos[objSelect].scaleZ/65000
 			);		
 		}
-	    glDisable( GL_DEPTH_TEST );
 		if (axisSelect == X){
-			glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ColorTransformX ); 
+			glColor4f(ColorTransformX[0],ColorTransformX[1],ColorTransformX[2],ColorTransformX[3]);
 			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeRojo );				
 		}
 		else if (axisSelect == Y){
-			glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ColorTransformY );
+			glColor4f(ColorTransformY[0],ColorTransformY[1],ColorTransformY[2],ColorTransformY[3]);
 			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeVerde ); 				
 		}
 		else if (axisSelect == Z){
-			glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ColorTransformZ );
+			glColor4f(ColorTransformZ[0],ColorTransformZ[1],ColorTransformZ[2],ColorTransformZ[3]);
 			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeAzul ); 				
 		}	
 		else if (axisSelect == XYZ){
-			glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ColorTransformX ); 
+			glColor4f(ColorTransformX[0],ColorTransformX[1],ColorTransformX[2],ColorTransformX[3]);
 			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeRojo );	
-			glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ColorTransformY );
+			glColor4f(ColorTransformY[0],ColorTransformY[1],ColorTransformY[2],ColorTransformY[3]);
 			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeVerde ); 
-			glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ColorTransformZ );
+			glColor4f(ColorTransformZ[0],ColorTransformZ[1],ColorTransformZ[2],ColorTransformZ[3]);
 			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeAzul ); 				
 		}	
-	    glEnable( GL_DEPTH_TEST );	
 	    glPopMatrix(); //reinicia la matrix a donde se guardo	
 	}
-	//dibuja el piso
-	glShadeModel( GL_SMOOTH );
-	glPushMatrix(); //guarda la matrix
-	glTranslatef( 0, -5000, 0);
-	glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, LineaPiso );  
-	glDrawElements( GL_LINES, objFacesFloor, GL_UNSIGNED_SHORT, objFacedataFloor );	 
-	//linea Verde
-	glLineWidth(2);
-	glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, LineaPisoRoja ); 
-	glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeRojo );	
-	//linea Roja
-	glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, LineaPisoVerde );
-	glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeVerde ); 
 	
 	//dibuja el origen del objeto
 	if (Objetos.Count() > 0){
@@ -647,15 +647,12 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 		// Enable point sprites.
 		glEnable( GL_TEXTURE_2D );
 		glEnable( GL_POINT_SPRITE_OES );
-		// We don't need a depth buffer in this example
-		glDisable( GL_DEPTH_TEST );
 		// Enable blending for transparency.
 		glEnable( GL_BLEND );
 		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 		// Make the points bigger.
 		glPointSize( 8 );
-		// Disable lighting
-		glDisable( GL_LIGHTING );
+		glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
 		GLshort posicionPunto[3]={0, 0, 0};
 	    glVertexPointer( 3, GL_SHORT, 0, posicionPunto );
 	    glBindTexture( GL_TEXTURE_2D, iOrigenTextura.iID ); //selecciona la textura
@@ -666,6 +663,7 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	    glDrawArrays( GL_POINTS, 0, 1 );
 	    glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_FALSE);
 	}
+	glDisable(GL_COLOR_MATERIAL);
 
     //termino de dibujar
     redibujar = false;
