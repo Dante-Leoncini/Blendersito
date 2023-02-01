@@ -1,6 +1,6 @@
 # Blendersito
 Una version de Blender creada desde cero para Symbian s60v3 (puede llegar a andar en s60v5 o Symbian belle. pero no esta testeado ni programado para pantallas tactiles)
-En video se ve mas bonito:  ![https://youtu.be/dMe-Vit5OT0]
+En video se ve mas bonito: [Primera Demo en Video](https://youtu.be/dMe-Vit5OT0)
 
 Actualmente permite:
 1) Crear y Eliminar multiples objetos: Suzanne, Cube, Claude y Vertice
@@ -8,7 +8,7 @@ Actualmente permite:
 ![photo Example](https://github.com/Dante-Leoncini/Blendersito/blob/main/capturas/Screenshot0007.jpg?raw=true)
 ![photo Example](https://github.com/Dante-Leoncini/Blendersito/blob/main/capturas/Screenshot0034.jpg?raw=true)
 
-2) Edicion basica de mallas 3d: mover vertices
+2) Edicion basica de mallas 3d: Mover vertices, Extruir Vertices, Eliminar Vertices, Seleccionar vertices, Bordes y Caras (se esta trabajando en mas opciones)
 
 ![photo Example](https://github.com/Dante-Leoncini/Blendersito/blob/main/capturas/Screenshot0027.jpg?raw=true)
 
