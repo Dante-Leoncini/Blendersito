@@ -16,7 +16,7 @@ Actualmente permite:
 
 ![photo Example](https://github.com/Dante-Leoncini/Blendersito/blob/main/capturas/Screenshot0026.jpg?raw=true)
 
-4) poder editar el material, Su color (diffuse), Emission, Specular, Shader Smooth, Cambiar Textura
+4) poder editar el material, Su color (diffuse), Emission, Specular, Shader Smooth, Cambiar Textura, Cambiar la interpolacion de textura entre Closest y Lineal, Activar/desactivar transparencias
 
 ![photo Example](https://github.com/Dante-Leoncini/Blendersito/blob/main/capturas/Screenshot0014.jpg)
 ![photo Example](https://github.com/Dante-Leoncini/Blendersito/blob/main/capturas/Screenshot0016.jpg?raw=true)
@@ -25,7 +25,7 @@ Actualmente permite:
 ![photo Example](https://github.com/Dante-Leoncini/Blendersito/blob/main/capturas/Screenshot0025.jpg)
 
 5) Poder entrar en Modo Objeto y Modo Edicion
-6) proyeccion en perspectiva/orthographic
+6) proyeccion en perspectiva/orthographic, poder mover la camara a una vista superior, de perfil o frente (trabajando en mas funciones)
 
 ![photo Example](https://github.com/Dante-Leoncini/Blendersito/blob/main/capturas/mejores%20(1).jpg?raw=true)
 
@@ -34,5 +34,7 @@ Actualmente permite:
 ![photo Example](https://github.com/Dante-Leoncini/Blendersito/blob/main/capturas/Screenshot0034.jpg)
 ![photo Example](https://github.com/Dante-Leoncini/Blendersito/blob/main/capturas/Screenshot0036.jpg)
 ![photo Example](https://github.com/Dante-Leoncini/Blendersito/blob/main/capturas/Screenshot0038.jpg)
+
+8) trabajando en una opcion para importar/exportar modelos .OBJ
 
 Tengo pensado agregar mas funciones. Cualquier aporte que quiera realizar al codigo es Bienvenida
