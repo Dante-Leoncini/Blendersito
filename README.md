@@ -1,6 +1,6 @@
 # Blendersito
 Una version de Blender creada desde cero para Symbian s60v3 (puede llegar a andar en s60v5 o Symbian belle. pero no esta testeado ni programado para pantallas tactiles)
-En video se ve mas bonito:  ![](https://youtu.be/dMe-Vit5OT0)
+En video se ve mas bonito:  ![https://youtu.be/dMe-Vit5OT0]
 
 Actualmente permite:
 1) Crear y Eliminar multiples objetos: Suzanne, Cube, Claude y Vertice
