@@ -31,8 +31,6 @@
 #include <aknnotewrappers.h> 
 #include <akncommondialogs.h>
 
-typedef GLshort Edge[2][3];
-
 // MACROS
 #define MATERIAL_MAX 1
 #define LIGHT_MAX    1
@@ -1265,14 +1263,13 @@ void CBlenderLite::Borrar(){
 		if (Objetos.Count()-1 < objSelect){
 			objSelect = Objetos.Count()-1;		
 		}
-		//CleanupStack::PopAndDestroy(buf);
 	}
 	else if (estado == edicion){
 		if (Objetos[objSelect].vertexGroupSize < 1){return;}
 		//pregunta de confirmacion
 		HBufC* buf = HBufC::NewLC( 20 );
 		buf->Des().Copy(_L("Eliminar Vertice?"));
-		if (!DialogAlert(buf)){return;}	
+		if (!DialogAlert(buf)){return;}
 		Mesh& obj = Objetos[objSelect];
 		//busca las caras que contengan algun vertices del grupo de vertices
 		RArray<GLushort> faces;
@@ -1306,13 +1303,6 @@ void CBlenderLite::Borrar(){
 		if (obj.vertexGroupSize < EditSelect+1){
 			EditSelect = obj.vertexGroupSize-1;			
 		}
-		/*HBufC* noteBuf = HBufC::NewLC(128);
-		_LIT(KFormatString, "Select %d Group %d Vertices %d");
-		noteBuf->Des().Format(KFormatString, EditSelect, obj.vertexGroupSize,  obj.vertexSize/3);
-		Mensaje(noteBuf);*/
-				
-		//CleanupStack::PopAndDestroy(noteBuf);
-		//CleanupStack::PopAndDestroy(buf);
 	}
     redibujar = true;	
 }
@@ -1454,126 +1444,12 @@ void CBlenderLite::CrearObjeto( int modelo ){
 		for(int a=0; a < objTexdataModelSize; a++){
 			obj.uv[a] = objTexdataModel[a];			
 		}	
-    }
+    }    
     
-    //agrupar vertices
-    GLshort* TempVertexPos = new GLshort[obj.vertexSize];
-    GLushort* TempVertexIndice = new GLushort[obj.vertexSize];
-    TInt* TempVertexIndiceGroupSize = new TInt[obj.vertexSize];
-    GLushort** TempVertexIndiceGroup = new GLushort*[obj.vertexSize];
-	for(TInt a=0; a < obj.vertexSize; a++){
-		TempVertexPos[a] = 0;//obj.vertex[a];
-		//TempVertexIndiceGroup[a] = new GLushort[obj.vertexSize/3];
-		TempVertexIndiceGroup[a] = new GLushort[5]; //lo ideal seria el maximo posible. pero problemas de memoria
-	}	
-    obj.vertexGroupSize = 0;
-    bool iguales = false;
-	for(TInt a=0; a < obj.vertexSize/3; a++){
-		iguales = false;
-		//busca copias
-		for(TInt s=0; s < obj.vertexGroupSize; s++){
-			if (TempVertexPos[s*3] == obj.vertex[a*3] &&
-				TempVertexPos[s*3+1] == obj.vertex[a*3+1] &&
-				TempVertexPos[s*3+2] == obj.vertex[a*3+2]){
-				iguales = true;
-				//aumenta el tama�o del array y le agrega el indice que coincide
-				//GLushort* temp = new GLushort[TempVertexIndiceGroupSize[s]+1];
-				//for(int t=0; t < TempVertexIndiceGroupSize[s]; t++){
-				//	temp[t] = TempVertexIndiceGroup[s][t];			
-				//}	
-				//temp[TempVertexIndiceGroupSize[s]] = a;	
-				//TempVertexIndiceGroupSize[s]++;
-				//TempVertexIndiceGroup[s] = new GLushort[TempVertexIndiceGroupSize[s]]; //agrega el primer indice
-				//for(int t=0; t < TempVertexIndiceGroupSize[s]; t++){
-				//	TempVertexIndiceGroup[s][t] = temp[t];			
-				//}
-				//delete[] temp;
-				TempVertexIndiceGroup[s][TempVertexIndiceGroupSize[s]] = a;
-				TempVertexIndiceGroupSize[s]++;
-				break;
-			}			
-		};
-		//si no se encontro el vertice. lo guarda y aumenta el size
-		if (!iguales){
-			TempVertexPos[obj.vertexGroupSize*3] = obj.vertex[a*3];
-			TempVertexPos[obj.vertexGroupSize*3+1] = obj.vertex[a*3+1];
-			TempVertexPos[obj.vertexGroupSize*3+2] = obj.vertex[a*3+2];
-			TempVertexIndice[obj.vertexGroupSize] = a;	
-			
-			//TempVertexIndiceGroup[obj.vertexGroupSize] = new GLushort[1]; //agrega el primer indice
-			TempVertexIndiceGroupSize[obj.vertexGroupSize] = 1; //arranca en uno
-			TempVertexIndiceGroup[obj.vertexGroupSize][0] = a;
-			obj.vertexGroupSize++;
-		}
-	}
-	//copia los indices de los vertices a dibujar
-	obj.vertexGroup = new GLushort[obj.vertexGroupSize];
-	for(int a=0; a < obj.vertexGroupSize; a++){
-		obj.vertexGroup[a] = TempVertexIndice[a];
-	}	
-	obj.vertexGroupIndice = new GLushort*[obj.vertexGroupSize];
-	obj.vertexGroupIndiceSize = new TInt[obj.vertexGroupSize];
-	for(int a=0; a < obj.vertexGroupSize; a++){
-		obj.vertexGroupIndiceSize[a] = TempVertexIndiceGroupSize[a];
-		obj.vertexGroupIndice[a] = new GLushort[obj.vertexGroupIndiceSize[a]];
-		for(int i=0; i < obj.vertexGroupIndiceSize[a]; i++){
-			obj.vertexGroupIndice[a][i] = TempVertexIndiceGroup[a][i];	
-		}
-	}	
-	delete[] TempVertexPos;
-	delete[] TempVertexIndice;
-	delete[] TempVertexIndiceGroup;
-	delete[] TempVertexIndiceGroupSize;
-	
-    //crear bordes
-	Edge* TempEdgesVertex = new Edge[obj.edgesSize];
-	for(int a=0; a < obj.facesSize/3; a++){
-		obj.edges[a*6]   = obj.faces[a*3];	
-		obj.edges[a*6+1] = obj.faces[a*3+1];		
-		obj.edges[a*6+2] = obj.faces[a*3+1];	
-		obj.edges[a*6+3] = obj.faces[a*3+2];	
-		obj.edges[a*6+4] = obj.faces[a*3+2];	
-		obj.edges[a*6+5] = obj.faces[a*3];
-		
-		/*TempEdgesVertex[a][0][0] = obj.vertex[obj.faces[a*3]];
-		TempEdgesVertex[a][0][1] = obj.vertex[obj.faces[a*3+2]];
-		TempEdgesVertex[a][0][2] = obj.vertex[obj.faces[a*3+4]];
-		TempEdgesVertex[a][1][0] = obj.vertex[obj.faces[a*3+1]];
-		TempEdgesVertex[a][1][1] = obj.vertex[obj.faces[a*3+3]];
-		TempEdgesVertex[a][1][2] = obj.vertex[obj.faces[a*3]];*/
-	};
-	/*obj.edgesSize = 0;
-	for(int a=0; a < obj.facesSize/3; a++){
-		iguales = false;
-		//busca copias
-		for(int s=0; s < obj.vertexGroupSize; s++){
-			if (TempVertexPos[s*3] == obj.vertex[a*3] &&
-				TempVertexPos[s*3+1] == obj.vertex[a*3+1] &&
-				TempVertexPos[s*3+2] == obj.vertex[a*3+2]){
-				iguales = true;
-				break;
-			}			
-		};
-		//si no se encontro el borde. lo guarda y aumenta el size
-		if (!iguales){
-			TempEdgesIndice[a*6]   = obj.faces[a*3];	
-			TempEdgesIndice[a*6+1] = obj.faces[a*3+1];		
-			TempEdgesIndice[a*6+2] = obj.faces[a*3+1];	
-			TempEdgesIndice[a*6+3] = obj.faces[a*3+2];	
-			TempEdgesIndice[a*6+4] = obj.faces[a*3+2];	
-			TempEdgesIndice[a*6+5] = obj.faces[a*3];	
-			obj.edgesSize++;
-		}
-	};*/
-
-	/*obj.vertextemp = new GLshort[obj.vertexSize];
-	for(int a=0; a < obj.vertexSize; a++){
-		obj.vertextemp[a] = obj.vertex[a];
-	}*/
-	
-	delete[] TempEdgesVertex;
 	Objetos.Append(obj);
 	objSelect = Objetos.Count()-1;
+	Objetos[objSelect].AgruparVertices();
+	Objetos[objSelect].RecalcularBordes();
     redibujar = true;
 }
 
@@ -1623,13 +1499,13 @@ void CBlenderLite::Extruir(){
 	    TempVertexGroupIndices[obj.vertexGroupSize] = new GLushort[1]; //le agrega a la memoria
 	    TempVertexGroupIndices[obj.vertexGroupSize][0] = obj.vertexSize/3; //ultimo indice creado
 	    TempVertexGroupIndicesSize[obj.vertexGroupSize] = 1; //ultimo indice creado
-		//suma el nuevo tama�o
+		//suma el nuevo tama�o
 		obj.vertexSize += 3;
 		obj.normalsSize += 3;
 		obj.edgesSize += 2;
 		obj.uvSize += 2;
 		obj.vertexGroupSize++;
-		//asigna el nuevo tama�o
+		//asigna el nuevo tama�o
 		obj.vertex =  new GLshort[obj.vertexSize];
 		obj.normals = new GLbyte[obj.normalsSize];
 		obj.edges =   new GLushort[obj.edgesSize];
@@ -1935,13 +1811,13 @@ void CBlenderLite::AddModificador(TInt opcion){
 		TempVertexGroupIndices[1][0] = 22;
 		TempVertexGroupIndices[2][0] = 33;
 		TempVertexGroupIndices[3][0] = 44;
-		//suma el nuevo tama�o
+		//suma el nuevo tama�o
 		obj.vertexSize = obj.vertexSize*copias;
 		obj.normalsSize = obj.normalsSize*copias;
 		obj.edgesSize = obj.edgesSize*copias;
 		obj.uvSize = obj.uvSize*copias;
 		obj.vertexGroupSize = obj.vertexGroupSize*copias;
-		//asigna el nuevo tama�o
+		//asigna el nuevo tama�o
 		obj.vertex =  new GLshort[obj.vertexSize];
 		obj.normals = new GLbyte[obj.normalsSize];
 		obj.edges =   new GLushort[obj.edgesSize];
@@ -2176,41 +2052,53 @@ void CBlenderLite::ImportOBJ(){
 			CleanupStack::PopAndDestroy(noteBuf);
 		}
 		else {	
-			
-			//RFileReadStream inputFileStream(rFile);
-			//CleanupClosePushL(inputFileStream);
-			
-			//_LIT(KHelloString, "Hola");
+			// Crear un buffer para la línea
 			HBufC8* lineBuf = HBufC8::NewLC(256);
-			TPtr8 line = lineBuf->Des();
-			rFile.Read(line);
-			rFile.Close();
-			
-			HBufC* buf = HBufC::NewL(lineBuf->Length());
-			buf->Des().Copy(*lineBuf);
-			
-			//_LIT(KFormatString, "linea: %S");
-			//HBufC* noteBuf = HBufC::NewLC(256);
-			//noteBuf->Des().Format(KFormatString, &line);
-			Mensaje(buf);
-			CleanupStack::PopAndDestroy(lineBuf);
+			TPtr8 linePtr = lineBuf->Des();
 
-            // HBufC descriptor is created from the RFileStream object.
-            //HBufC* fileData = HBufC::NewLC(inputFileStream, 32);
-			//Mensaje(fileData);
+			// Leer la primera línea del archivo
+			TInt err = rFile.Read(linePtr);
+			if (err == KErrNone) {
+				// Encuentra la posición del primer salto de línea o retorno de carro
+				TInt pos = linePtr.Locate('\n');
+				if (pos == KErrNotFound) {
+					pos = linePtr.Locate('\r');
+				}
 
-            // Pop loaded resources from the cleanup stack:
-            // filedata, inputFileStream, rFile, fsSession
-            //CleanupStack::PopAndDestroy(4, &fsSession);   
-		} 
+				// Si se encontró un salto de línea, corta la línea hasta ese punto
+				if (pos != KErrNotFound) {
+					linePtr.SetLength(pos);
+				}
+
+				// Crear un descriptor de 16 bits y copiar la línea leída
+				HBufC* buf = HBufC::NewL(linePtr.Length());
+				buf->Des().Copy(linePtr);
+
+				// Mostrar la primera línea
+				Mensaje(buf);
+
+				// Limpiar la memoria del buffer de línea
+				CleanupStack::PopAndDestroy(lineBuf);
+			} else {
+				// Ocurrió un error al leer el archivo
+				// Realizar el manejo correspondiente
+				_LIT(KFormatString, "Error al leer el Archivo");
+				HBufC* noteBuf = HBufC::NewLC(24);
+				noteBuf->Des().Format(KFormatString);
+				MensajeError(noteBuf);   
+				CleanupStack::PopAndDestroy(noteBuf);
+			}
+		}
     }	
     else {
     	_LIT(KFormatString, "Error al leer el Archivo");
 		HBufC* noteBuf = HBufC::NewLC(24);
 		noteBuf->Des().Format(KFormatString);
-		MensajeError(noteBuf);    	
+		MensajeError(noteBuf);  
+		CleanupStack::PopAndDestroy(noteBuf);  	
     }
 };
+
 void CBlenderLite::CloseWaitNoteL(){
     // Close and delete the wait note dialog,
     // if it has not been dismissed yet

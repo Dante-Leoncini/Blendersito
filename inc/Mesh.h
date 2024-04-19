@@ -1,5 +1,6 @@
 //tipos de objetos
 typedef enum { mesh, camera, light, empty, armature, curve } TiposObjetos;
+typedef GLshort Edge[2];
 
 class Mesh { //clase Mesh
 	public:
@@ -153,6 +154,7 @@ class Mesh { //clase Mesh
 				}
 			}
 			facesSize = newSize;
+			delete[] faces;
 			faces = new GLushort[newSize];
 			for(TInt i = 0; i < newSize; i++) {
 				faces[i] = newFaces[i];
@@ -195,5 +197,123 @@ class Mesh { //clase Mesh
 				edges[i] -= Restar;
 			}
 		    delete[] newEdges;
+		}
+		void Mesh::AgruparVertices() {
+			//agrupar vertices
+		    GLshort* TempVertexPos = new GLshort[vertexSize];
+		    GLushort* TempVertexIndice = new GLushort[vertexSize];
+		    TInt* TempVertexIndiceGroupSize = new TInt[vertexSize];
+		    GLushort** TempVertexIndiceGroup = new GLushort*[vertexSize];
+			for(TInt a=0; a < vertexSize; a++){
+				TempVertexPos[a] = 0;//obj.vertex[a];
+				//TempVertexIndiceGroup[a] = new GLushort[obj.vertexSize/3];
+				TempVertexIndiceGroup[a] = new GLushort[5]; //lo ideal seria el maximo posible. pero problemas de memoria
+			}	
+		    vertexGroupSize = 0;
+		    bool iguales = false;
+			for(TInt a=0; a < vertexSize/3; a++){
+				iguales = false;
+				//busca copias
+				for(TInt s=0; s < vertexGroupSize; s++){
+					if (TempVertexPos[s*3] == vertex[a*3] &&
+						TempVertexPos[s*3+1] == vertex[a*3+1] &&
+						TempVertexPos[s*3+2] == vertex[a*3+2]){
+						iguales = true;
+						//aumenta el tama�o del array y le agrega el indice que coincide
+						//GLushort* temp = new GLushort[TempVertexIndiceGroupSize[s]+1];
+						//for(int t=0; t < TempVertexIndiceGroupSize[s]; t++){
+						//	temp[t] = TempVertexIndiceGroup[s][t];			
+						//}	
+						//temp[TempVertexIndiceGroupSize[s]] = a;	
+						//TempVertexIndiceGroupSize[s]++;
+						//TempVertexIndiceGroup[s] = new GLushort[TempVertexIndiceGroupSize[s]]; //agrega el primer indice
+						//for(int t=0; t < TempVertexIndiceGroupSize[s]; t++){
+						//	TempVertexIndiceGroup[s][t] = temp[t];			
+						//}
+						//delete[] temp;
+						TempVertexIndiceGroup[s][TempVertexIndiceGroupSize[s]] = a;
+						TempVertexIndiceGroupSize[s]++;
+						break;
+					}			
+				};
+				//si no se encontro el vertice. lo guarda y aumenta el size
+				if (!iguales){
+					TempVertexPos[vertexGroupSize*3] = vertex[a*3];
+					TempVertexPos[vertexGroupSize*3+1] = vertex[a*3+1];
+					TempVertexPos[vertexGroupSize*3+2] = vertex[a*3+2];
+					TempVertexIndice[vertexGroupSize] = a;	
+					
+					//TempVertexIndiceGroup[obj.vertexGroupSize] = new GLushort[1]; //agrega el primer indice
+					TempVertexIndiceGroupSize[vertexGroupSize] = 1; //arranca en uno
+					TempVertexIndiceGroup[vertexGroupSize][0] = a;
+					vertexGroupSize++;
+				}
+			}
+			//copia los indices de los vertices a dibujar
+			vertexGroup = new GLushort[vertexGroupSize];
+			for(TInt a=0; a < vertexGroupSize; a++){
+				vertexGroup[a] = TempVertexIndice[a];
+			}	
+			vertexGroupIndice = new GLushort*[vertexGroupSize];
+			vertexGroupIndiceSize = new TInt[vertexGroupSize];
+			for(TInt a=0; a < vertexGroupSize; a++){
+				vertexGroupIndiceSize[a] = TempVertexIndiceGroupSize[a];
+				vertexGroupIndice[a] = new GLushort[vertexGroupIndiceSize[a]];
+				for(TInt i=0; i < vertexGroupIndiceSize[a]; i++){
+					vertexGroupIndice[a][i] = TempVertexIndiceGroup[a][i];	
+				}
+			}	
+			delete[] TempVertexPos;
+			delete[] TempVertexIndice;
+			delete[] TempVertexIndiceGroup;
+			delete[] TempVertexIndiceGroupSize;
+		}
+		
+		TBool Mesh::isDuplicateEdge(Edge* edges, TInt edgesSize, GLushort v1, GLushort v2) {
+		    for (TInt i = 0; i < edgesSize; i++) {
+		        if ((edges[i][0] == v1 && edges[i][1] == v2) || (edges[i][0] == v2 && edges[i][1] == v1)) {
+		            return true;
+		        }
+		    }
+		    return false;
+		}
+
+		void Mesh::RecalcularBordes() {
+			for (int i = 0; i < facesSize/3; i += 3) {
+				edges[i*6+0] = faces[i];   edges[i*6+1] = faces[i+1];
+				edges[i*6+2] = faces[i+1]; edges[i*6+3] = faces[i+2];
+				edges[i*6+4] = faces[i+2]; edges[i*6+5] = faces[i];
+			}
+			Edge* TempEdgesVertex = new Edge[edgesSize];
+			TInt uniqueEdgeCount = 0;
+			/*Edge edge1 = { 0, 0 };
+			Edge edge2 = { 0, 0 };
+			Edge edge3 = { 0, 0 };
+			for (int i = 0; i < facesSize/3; i += 3) {
+			    edge1[0] = faces[i];   edge1[1] = faces[i+1];
+			    edge2[0] = faces[i+1]; edge2[1] = faces[i+2];
+			    edge3[0] = faces[i+2]; edge3[1] = faces[i];
+			    if (!isDuplicateEdge(TempEdgesVertex, uniqueEdgeCount, edge1[0], edge1[1])) {
+					TempEdgesVertex[uniqueEdgeCount++][0] = edge1[0];
+					TempEdgesVertex[uniqueEdgeCount][1] = edge1[1];
+				}
+			    if (!isDuplicateEdge(TempEdgesVertex, uniqueEdgeCount, edge2[0], edge2[1])) {
+					TempEdgesVertex[uniqueEdgeCount++][0] = edge2[0];
+					TempEdgesVertex[uniqueEdgeCount][1] = edge2[1];
+				}
+			    if (!isDuplicateEdge(TempEdgesVertex, uniqueEdgeCount, edge3[0], edge3[1])) {
+					TempEdgesVertex[uniqueEdgeCount++][0] = edge3[0];
+					TempEdgesVertex[uniqueEdgeCount][1] = edge3[1];
+				}
+			}
+			edgesSize = uniqueEdgeCount*2;
+			for (int i = 0; i < edgesSize/2; i += 3) {
+				edges[i*2] = TempEdgesVertex[i][0];
+				edges[i*2+1] = TempEdgesVertex[i][1];
+			}
+			delete edge1;
+			delete edge2;
+			delete edge3;*/
+			delete[] TempEdgesVertex;	
 		}
 };
