@@ -1918,23 +1918,32 @@ void CBlenderLite::InfoObject(TInt opciones){
 void CBlenderLite::Mensaje(HBufC* noteBuf){	        	
 	CAknInformationNote* note = new (ELeave) CAknInformationNote();
 	note->ExecuteLD(*noteBuf);
-	CleanupStack::PopAndDestroy(noteBuf);	
+	//CleanupStack::PopAndDestroy(noteBuf);
+
+	// Liberar explícitamente el objeto CAknInformationNote después de usarlo
+	//delete note;	
 };
 
 void CBlenderLite::MensajeError(HBufC* noteBuf){
     CAknErrorNote* note = new (ELeave) CAknErrorNote();
     note->ExecuteLD(*noteBuf);
-    CleanupStack::PopAndDestroy(noteBuf);
+
+	// Liberar explícitamente el objeto CAknInformationNote después de usarlo
+	//delete note;
+    //CleanupStack::PopAndDestroy(noteBuf);
 }
 
 TBool CBlenderLite::DialogAlert(HBufC* noteBuf){	  
     TBool retVal( EFalse );
     CAknQueryDialog* query = CAknQueryDialog::NewL();
-    if( query->ExecuteLD( R_ACCEPT_INVITATION_DLG, *noteBuf )){
+    if( query->ExecuteLD( R_ACCEPT_INVITATION_DLG, *noteBuf )) {
         retVal = ETrue;
     }
 
-    CleanupStack::PopAndDestroy( noteBuf );
+    //CleanupStack::PopAndDestroy( noteBuf );
+    // Liberar explícitamente el objeto CAknQueryDialog después de usarlo
+    //delete query;
+
     return retVal;
 }
 
@@ -2049,45 +2058,71 @@ void CBlenderLite::ImportOBJ(){
 			HBufC* noteBuf = HBufC::NewLC(file.Length()+16);
 			noteBuf->Des().Format(KFormatString, &file);
 			MensajeError(noteBuf);  
-			CleanupStack::PopAndDestroy(noteBuf);
 		}
 		else {	
-			// Crear un buffer para la línea
-			HBufC8* lineBuf = HBufC8::NewLC(256);
-			TPtr8 linePtr = lineBuf->Des();
+			TInt vertices = 0;
+			TInt caras = 0;
+			TInt normales = 0;
+			TInt pos = 0;
+			TBool continuarLeyendo = ETrue; // Variable para controlar la lectura del archivo
+			TBuf8<256> lineBuf;
+			TBuf8<256> tempBuf; // Búfer temporal para almacenar parte de una línea si es necesario
 
-			// Leer la primera línea del archivo
-			TInt err = rFile.Read(linePtr);
-			if (err == KErrNone) {
-				// Encuentra la posición del primer salto de línea o retorno de carro
-				TInt pos = linePtr.Locate('\n');
-				if (pos == KErrNotFound) {
-					pos = linePtr.Locate('\r');
+			// Leer línea por línea
+			//while (rFile.Read(lineBuf) == KErrNone) {
+			while (continuarLeyendo) {
+				// Leer una línea del archivo
+				err = rFile.Read(lineBuf);
+				if (err != KErrNone) {
+					// Error al leer o final del archivo, salir del bucle
+					break;
 				}
 
-				// Si se encontró un salto de línea, corta la línea hasta ese punto
-				if (pos != KErrNotFound) {
-					linePtr.SetLength(pos);
-				}
+				// Concatenar el contenido actual de lineBuf con el contenido anterior de tempBuf
+				tempBuf.Append(lineBuf);
+				lineBuf.Copy(tempBuf); // Copiar la combinación al búfer de línea para su procesamiento
 
-				// Crear un descriptor de 16 bits y copiar la línea leída
-				HBufC* buf = HBufC::NewL(linePtr.Length());
-				buf->Des().Copy(linePtr);
+    			// Procesar la línea hasta que no haya más saltos de línea o se llegue al final del archivo
+    			while ((pos = lineBuf.Locate('\n')) != KErrNotFound || (pos = lineBuf.Locate('\r')) != KErrNotFound) {
+					//lineas++;
+					// Obtener la línea hasta el salto de línea
+					TPtrC8 line = lineBuf.Left(pos);
 
-				// Mostrar la primera línea
-				Mensaje(buf);
+					// Convertir a descriptor de 16 bits si es necesario
+					HBufC* line16 = HBufC::NewLC(line.Length());
+					line16->Des().Copy(line);
 
-				// Limpiar la memoria del buffer de línea
-				CleanupStack::PopAndDestroy(lineBuf);
-			} else {
-				// Ocurrió un error al leer el archivo
-				// Realizar el manejo correspondiente
-				_LIT(KFormatString, "Error al leer el Archivo");
-				HBufC* noteBuf = HBufC::NewLC(24);
-				noteBuf->Des().Format(KFormatString);
-				MensajeError(noteBuf);   
-				CleanupStack::PopAndDestroy(noteBuf);
+					//es para revisar linea por linea
+					//DialogAlert(line16);
+
+					// Revisar si empieza con "v " vertices, caras y normales
+					if (line16->Left(2) == _L("v ")){vertices++;}
+					if (line16->Left(3) == _L("vn ")){normales++;}
+					if (line16->Left(2) == _L("f ")){caras++;}
+
+					// Eliminar la parte de la línea ya procesada y el carácter de salto de línea
+					lineBuf.Delete(0, pos + 1);
+
+					// Eliminar también los espacios en blanco iniciales
+					lineBuf.TrimLeft();
+				}					
+
+				// Almacenar el contenido restante de lineBuf en tempBuf para la próxima iteración
+				tempBuf.Copy(lineBuf);
+
+				// Verificar si quedan más caracteres en la línea actual
+				continuarLeyendo = (lineBuf.Length() > 0);   
 			}
+
+			// cuantos vertices tiene
+			HBufC* noteBuf = HBufC::NewLC(45); //TInt::Length(obj.vertexGroupSize)
+			_LIT(KFormatString, "Vertices: %d Caras: %d Normales %d");
+			noteBuf->Des().Format(KFormatString, vertices, caras, normales);
+			Mensaje(noteBuf);
+
+			//liberar memoria			
+			//CleanupStack::PopAndDestroy(&rFile);
+			//CleanupStack::PopAndDestroy(&fsSession);
 		}
     }	
     else {
@@ -2095,7 +2130,6 @@ void CBlenderLite::ImportOBJ(){
 		HBufC* noteBuf = HBufC::NewLC(24);
 		noteBuf->Des().Format(KFormatString);
 		MensajeError(noteBuf);  
-		CleanupStack::PopAndDestroy(noteBuf);  	
     }
 };
 
