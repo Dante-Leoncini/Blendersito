@@ -2063,10 +2063,11 @@ void CBlenderLite::ImportOBJ(){
 			TInt vertices = 0;
 			TInt caras = 0;
 			TInt normales = 0;
+			TInt textura = 0;			
 			TInt pos = 0;
 			TBool continuarLeyendo = ETrue; // Variable para controlar la lectura del archivo
-			TBuf8<256> lineBuf;
-			TBuf8<256> tempBuf; // Búfer temporal para almacenar parte de una línea si es necesario
+			TBuf8<512> lineBuf;
+			TBuf8<512> tempBuf; // Búfer temporal para almacenar parte de una línea si es necesario
 
 			// Leer línea por línea
 			//while (rFile.Read(lineBuf) == KErrNone) {
@@ -2096,9 +2097,48 @@ void CBlenderLite::ImportOBJ(){
 					//DialogAlert(line16);
 
 					// Revisar si empieza con "v " vertices, caras y normales
-					if (line16->Left(2) == _L("v ")){vertices++;}
-					if (line16->Left(3) == _L("vn ")){normales++;}
-					if (line16->Left(2) == _L("f ")){caras++;}
+					if (line16->Left(2) == _L("v ")) {
+						vertices++;   
+						TLex lex(line16->Des().Mid(2));  // Inicializa TLex con la subcadena a partir del tercer carácter
+
+						// Contador para almacenar la cantidad de "strings" separados por espacios
+						TInt contador = 0;
+
+						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
+						while (!lex.Eos() && contador < 8) {
+							// Mostrar el mensaje con el valor actual del "string" y el contador
+							TPtrC currentString = lex.NextToken();
+							/*HBufC* noteBuf = HBufC::NewLC(100);
+							_LIT(KFormatString, "Contador: %d Valor: %S");
+							noteBuf->Des().Format(KFormatString, contador, &currentString);
+							DialogAlert(noteBuf);*/
+
+							// Avanzar al siguiente "string" que no sea espacio en blanco
+							lex.SkipSpace();
+
+							// Incrementar el contador para llevar la cuenta de los strings procesados
+							contador++;
+						}
+
+						/*// Utiliza el método Val de TLex8 para extraer y convertir los números
+						if (lex.Val(valor1) == KErrNone && lex.Val(valor2) == KErrNone && lex.Val(valor3) == KErrNone) {
+							// Aquí tendrías las coordenadas como TInt, asegúrate de convertirlas a GLshort si es necesario
+							// Puedes hacer lo que necesites con estas coordenadas
+							HBufC* noteBuf = HBufC::NewLC(45);
+							_LIT(KFormatString, "V1: %d V2: %d V3 %d");
+							noteBuf->Des().Format(KFormatString, valor1, valor2, valor3);
+							DialogAlert(noteBuf);
+						}
+						else {
+							HBufC* noteBuf = HBufC::NewLC(45);
+							_LIT(KFormatString, "Error al leer coordenadas");
+							noteBuf->Des().Format(KFormatString);
+							DialogAlert(noteBuf);
+						}*/
+					}
+					else if (line16->Left(3) == _L("vn ")){normales++;}
+					else if (line16->Left(3) == _L("vt ")){textura++;}
+					else if (line16->Left(2) == _L("f ")){caras++;}
 
 					// Eliminar la parte de la línea ya procesada y el carácter de salto de línea
 					lineBuf.Delete(0, pos + 1);
@@ -2121,8 +2161,56 @@ void CBlenderLite::ImportOBJ(){
 			Mensaje(noteBuf);
 
 			//liberar memoria			
-			//CleanupStack::PopAndDestroy(&rFile);
-			//CleanupStack::PopAndDestroy(&fsSession);
+			CleanupStack::PopAndDestroy(&rFile);
+			CleanupStack::PopAndDestroy(&fsSession);
+			
+			//crea el objeto
+			Cancelar();
+			Mesh obj;
+			obj.visible = true;
+			obj.posX = obj.posY = obj.posZ = 0;
+			obj.rotX = obj.rotY = obj.rotZ = 0;
+			obj.specular[0] = obj.specular[1] = obj.specular[2] = obj.specular[3] = 0.3;
+			obj.diffuse[0] = obj.diffuse[1] = obj.diffuse[2] = obj.diffuse[3] = 1.0;
+			obj.emission[0] = obj.emission[1] = obj.emission[2] = obj.emission[3] = 0.0;
+			obj.smooth = true;
+			obj.textura = false;
+			obj.transparencia = false;
+			obj.interpolacion = lineal; //interpolacion lineal
+			
+			obj.vertexSize = vertices*3;
+			obj.normalsSize = vertices*3;
+			obj.facesSize = caras*3;
+			obj.edgesSize = caras*6;
+			obj.uvSize = vertices*2; //UV  	
+			obj.texturaID = 1; //defecto
+			obj.scaleX = 65000;
+			obj.scaleY = 65000;
+			obj.scaleZ = 65000;
+			obj.vertex = new GLshort[vertices*3];
+			/*for(int a=0; a < objVertexdataModelSize; a++){
+				obj.vertex[a] = objVertexdataModel[a];	
+				//obj.vertex.Append(objVertexdataModel[a]);
+			}
+			obj.normals = new GLbyte[vertices*3];
+			for(int a=0; a < objNormaldataModelSize; a++){
+				obj.normals[a] = objNormaldataModel[a];			
+			}
+			obj.faces = new GLushort[caras*3];
+			for(int a=0; a < objFacedataModelSize; a++){
+				obj.faces[a] = objFacedataModel[a];			
+			}
+			obj.edges = new GLushort[caras*6];
+			obj.uv = new GLbyte[vertices*3];
+			for(int a=0; a < objTexdataModelSize; a++){
+				obj.uv[a] = objTexdataModel[a];			
+			}
+			
+			Objetos.Append(obj);
+			objSelect = Objetos.Count()-1;
+			Objetos[objSelect].AgruparVertices();
+			//Objetos[objSelect].RecalcularBordes();*/
+			redibujar = true;
 		}
     }	
     else {
@@ -2132,7 +2220,6 @@ void CBlenderLite::ImportOBJ(){
 		MensajeError(noteBuf);  
     }
 };
-
 void CBlenderLite::CloseWaitNoteL(){
     // Close and delete the wait note dialog,
     // if it has not been dismissed yet
