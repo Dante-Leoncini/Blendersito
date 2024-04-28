@@ -8,6 +8,7 @@
 // INCLUDES
 #include <e32std.h>
 #include <e32math.h>
+#include <e32base.h>
 
 //para leer archivos
 #include <s32file.h>
@@ -1334,7 +1335,7 @@ void CBlenderLite::CrearObjeto( int modelo ){
 		obj.texturaID = 1;
 		obj.scaleX = 45000;
 		obj.scaleY = 45000;
-		obj.scaleZ = 45000;			
+		obj.scaleZ = 45000;		
 
 		obj.vertex = new GLshort[24 * 3];
 		obj.normals = new GLbyte[24 * 3];
@@ -2042,7 +2043,7 @@ void CBlenderLite::LoadFile(const TFileName& aFileName,
 	iTextureManager->DoLoadL();*/
 }
 
-void CBlenderLite::ImportOBJ(){
+void CBlenderLite::ImportOBJ(){		
     _LIT(KTitle, "Importar Modelo OBJ");
     TFileName file(KNullDesC);
     if (AknCommonDialogs::RunSelectDlgLD(file, R_BLENDERLITE_SELECT_DIALOG, KTitle)){		
@@ -2059,7 +2060,21 @@ void CBlenderLite::ImportOBJ(){
 			noteBuf->Des().Format(KFormatString, &file);
 			MensajeError(noteBuf);  
 		}
-		else {	
+		else {			
+			//crea el objeto
+			Cancelar();
+			Mesh obj;
+			obj.visible = true;
+			obj.posX = obj.posY = obj.posZ = 0;
+			obj.rotX = obj.rotY = obj.rotZ = 0;
+			obj.specular[0] = obj.specular[1] = obj.specular[2] = obj.specular[3] = 0.3;
+			obj.diffuse[0] = obj.diffuse[1] = obj.diffuse[2] = obj.diffuse[3] = 1.0;
+			obj.emission[0] = obj.emission[1] = obj.emission[2] = obj.emission[3] = 0.0;
+			obj.smooth = true;
+			obj.textura = false;
+			obj.transparencia = false;
+			obj.interpolacion = lineal; //interpolacion lineal
+
 			TInt vertices = 0;
 			TInt caras = 0;
 			TInt normales = 0;
@@ -2097,21 +2112,44 @@ void CBlenderLite::ImportOBJ(){
 					//DialogAlert(line16);
 
 					// Revisar si empieza con "v " vertices, caras y normales
+
+					// Contador para almacenar la cantidad de "strings" separados por espacios
+					TInt contador = 0;
 					if (line16->Left(2) == _L("v ")) {
+						contador = 0;
+						//copia los vertices temporalmente
+						GLshort temVertices[vertices*3];
+						for(int a=0; a < vertices*3; a++){
+							temVertices[a] = obj.vertex[a];
+						}
+
 						vertices++;   
 						TLex lex(line16->Des().Mid(2));  // Inicializa TLex con la subcadena a partir del tercer carácter
-
-						// Contador para almacenar la cantidad de "strings" separados por espacios
-						TInt contador = 0;
+						GLshort verticeLeido[3] = {0,0,0};
 
 						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
 						while (!lex.Eos() && contador < 8) {
 							// Mostrar el mensaje con el valor actual del "string" y el contador
 							TPtrC currentString = lex.NextToken();
-							/*HBufC* noteBuf = HBufC::NewLC(100);
-							_LIT(KFormatString, "Contador: %d Valor: %S");
-							noteBuf->Des().Format(KFormatString, contador, &currentString);
-							DialogAlert(noteBuf);*/
+
+							// Crear un nuevo objeto TLex para la prueba
+   							TLex testLex(currentString);
+							
+							// Convertir el string en un número TInt
+							TReal number = 0.0;
+							GLshort glNumber = 0;
+							//TInt err = lex.Val(number, '.');
+							TInt err = testLex.Val(number, '.');
+							if (err == KErrNone && contador < 3) {
+								number = number*1000;
+								glNumber = static_cast<GLshort>(number); // Conversión a GLshort
+								verticeLeido[contador] = glNumber;
+
+								/*HBufC* noteBuf = HBufC::NewLC(100);
+								_LIT(KFormatString, "vertice: %d Valor: %d");
+								noteBuf->Des().Format(KFormatString, (contador+1), verticeLeido[contador]);
+								DialogAlert(noteBuf);*/
+							}
 
 							// Avanzar al siguiente "string" que no sea espacio en blanco
 							lex.SkipSpace();
@@ -2120,23 +2158,34 @@ void CBlenderLite::ImportOBJ(){
 							contador++;
 						}
 
-						/*// Utiliza el método Val de TLex8 para extraer y convertir los números
-						if (lex.Val(valor1) == KErrNone && lex.Val(valor2) == KErrNone && lex.Val(valor3) == KErrNone) {
-							// Aquí tendrías las coordenadas como TInt, asegúrate de convertirlas a GLshort si es necesario
-							// Puedes hacer lo que necesites con estas coordenadas
-							HBufC* noteBuf = HBufC::NewLC(45);
-							_LIT(KFormatString, "V1: %d V2: %d V3 %d");
-							noteBuf->Des().Format(KFormatString, valor1, valor2, valor3);
-							DialogAlert(noteBuf);
+						//guarda el vertice temporal en el nuevo GLshort
+						obj.vertex = new GLshort[vertices*3];		
+						for(int a=0; a < vertices*3; a++){
+							obj.vertex[a] = temVertices[a];
 						}
-						else {
-							HBufC* noteBuf = HBufC::NewLC(45);
-							_LIT(KFormatString, "Error al leer coordenadas");
-							noteBuf->Des().Format(KFormatString);
-							DialogAlert(noteBuf);
-						}*/
+						//guarda los vertices que faltaron
+						obj.vertex[vertices*3-3] = verticeLeido[0];
+						obj.vertex[vertices*3-2] = verticeLeido[1];
+						obj.vertex[vertices*3-1] = verticeLeido[2];
 					}
-					else if (line16->Left(3) == _L("vn ")){normales++;}
+					else if (line16->Left(3) == _L("vn ")){
+						contador = 0;
+						//copia los vertices temporalmente
+						/*GLshort temNormales[normales*3];
+						for(int a=0; a < normales*3; a++){
+							temNormales[a] = obj.normals[a];
+						}*/
+						normales++;
+						
+						/*obj.normals = new GLbyte[normales*3];
+						for(int a=0; a < normales*3; a++){
+							obj.normals[a] = temNormales[a];			
+						}
+						//guarda los vertices que faltaron
+						obj.vertex[vertices*3-3] = verticeLeido[0];
+						obj.vertex[vertices*3-2] = verticeLeido[1];
+						obj.vertex[vertices*3-1] = verticeLeido[2];*/
+					}
 					else if (line16->Left(3) == _L("vt ")){textura++;}
 					else if (line16->Left(2) == _L("f ")){caras++;}
 
@@ -2155,48 +2204,38 @@ void CBlenderLite::ImportOBJ(){
 			}
 
 			// cuantos vertices tiene
-			HBufC* noteBuf = HBufC::NewLC(45); //TInt::Length(obj.vertexGroupSize)
+			/*HBufC* noteBuf = HBufC::NewLC(45); //TInt::Length(obj.vertexGroupSize)
 			_LIT(KFormatString, "Vertices: %d Caras: %d Normales %d");
 			noteBuf->Des().Format(KFormatString, vertices, caras, normales);
-			Mensaje(noteBuf);
+			Mensaje(noteBuf);*/
 
 			//liberar memoria			
 			CleanupStack::PopAndDestroy(&rFile);
 			CleanupStack::PopAndDestroy(&fsSession);
-			
-			//crea el objeto
-			Cancelar();
-			Mesh obj;
-			obj.visible = true;
-			obj.posX = obj.posY = obj.posZ = 0;
-			obj.rotX = obj.rotY = obj.rotZ = 0;
-			obj.specular[0] = obj.specular[1] = obj.specular[2] = obj.specular[3] = 0.3;
-			obj.diffuse[0] = obj.diffuse[1] = obj.diffuse[2] = obj.diffuse[3] = 1.0;
-			obj.emission[0] = obj.emission[1] = obj.emission[2] = obj.emission[3] = 0.0;
-			obj.smooth = true;
-			obj.textura = false;
-			obj.transparencia = false;
-			obj.interpolacion = lineal; //interpolacion lineal
-			
+
 			obj.vertexSize = vertices*3;
 			obj.normalsSize = vertices*3;
-			obj.facesSize = caras*3;
-			obj.edgesSize = caras*6;
+			obj.facesSize = 1*3;//caras*3;
+			obj.edgesSize = 1*6;//caras*6;
 			obj.uvSize = vertices*2; //UV  	
 			obj.texturaID = 1; //defecto
 			obj.scaleX = 65000;
 			obj.scaleY = 65000;
 			obj.scaleZ = 65000;
-			obj.vertex = new GLshort[vertices*3];
-			/*for(int a=0; a < objVertexdataModelSize; a++){
-				obj.vertex[a] = objVertexdataModel[a];	
-				//obj.vertex.Append(objVertexdataModel[a]);
-			}
+
+			//esto esta harcodeado!!!
 			obj.normals = new GLbyte[vertices*3];
-			for(int a=0; a < objNormaldataModelSize; a++){
-				obj.normals[a] = objNormaldataModel[a];			
+			for(int a=0; a < vertices; a++){
+				obj.normals[3*a] = 0;	
+				obj.normals[3*a+1] = 0;	
+				obj.normals[3*a+2] = 1;			
 			}
-			obj.faces = new GLushort[caras*3];
+			obj.faces = new GLushort[obj.facesSize];
+			obj.faces[0] = 0; obj.faces[1] = 3; obj.faces[2] = 1;
+			obj.edges = new GLushort[obj.edgesSize];
+			obj.uv = new GLbyte[obj.uvSize];
+			for(int a=0; a < obj.uvSize; a++){obj.uv[a] = 0;}
+			/*obj.faces = new GLushort[caras*3];
 			for(int a=0; a < objFacedataModelSize; a++){
 				obj.faces[a] = objFacedataModel[a];			
 			}
@@ -2204,12 +2243,13 @@ void CBlenderLite::ImportOBJ(){
 			obj.uv = new GLbyte[vertices*3];
 			for(int a=0; a < objTexdataModelSize; a++){
 				obj.uv[a] = objTexdataModel[a];			
-			}
+			}*/
 			
 			Objetos.Append(obj);
 			objSelect = Objetos.Count()-1;
 			Objetos[objSelect].AgruparVertices();
-			//Objetos[objSelect].RecalcularBordes();*/
+			Objetos[objSelect].RecalcularBordes();
+
 			redibujar = true;
 		}
     }	
