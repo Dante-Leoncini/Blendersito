@@ -10,21 +10,37 @@
 
 // INCLUDES
 #include <coecntrl.h>
+#include <aknnotedialog.h>
+#include <AknNotifyStd.h>
+#include <apadef.h>
+#include <aknprogressdialog.h>
 #include <GLES/egl.h>
 #include <akndef.h>
+
 #include "BlenderLite.h"
 #include "BlenderLiteinput.h"
 
 // CLASS DECLARATION
 
+// FORWARD DECLARATIONS
+class CEikLabel;
+class CAknExNoteView;
+
 /**
  * Container control class that handles the OpenGL ES initialization and deinitializations.
  * Also uses the CBlenderLite class to do the actual OpenGL ES rendering.
  */
-class CBlenderLiteContainer : public CCoeControl, MCoeControlObserver
-    {
-    public: // Constructors and destructor
 
+class CBlenderLiteContainer : public CCoeControl, MCoeControlObserver , public MProgressDialogCallback
+    {       
+	private: // Enumerations
+	
+		enum TAknExNoteComponentControls
+			{
+			EAknExNoteComponentLabel,
+			EAknExNoteComponentListbox
+			}; 
+    public: // Constructors and destructor
         /**
          * EPOC default constructor. Initializes the OpenGL ES and creates the rendering context.
          * @param aRect Screen rectangle for container.
@@ -39,11 +55,98 @@ class CBlenderLiteContainer : public CCoeControl, MCoeControlObserver
     public: // New functions
 
         /**
+        * ShowGeneralNoteL
+        * Indicates general note
+        * @param aResourceId
+        * @param aTimeout
+        * @param aTone
+        */
+        void ShowGeneralNoteL( TInt aResourceId, 
+                               const CAknNoteDialog::TTimeout aTimeout,
+                               const CAknNoteDialog::TTone aTone );
+
+        /**
+        * ShowGeneralNoteL
+        * Indicates general note.
+        * @param aResourceId
+        * @param aControlId
+        * @param aTimeout
+        * @param aTone
+        * @param aPlural
+        */
+        void ShowGeneralNoteL( TInt aResourceId,
+                               TInt aControlId,
+                               const CAknNoteDialog::TTimeout aTimeout,
+                               const CAknNoteDialog::TTone aTone,
+                               TBool aPlural );
+
+        /**
+        * ShowDynamicNumberNoteL
+        * Indicates note
+        */
+        void ShowDynamicNumberNoteL();
+
+        /**
+        * ShowWaitNoteL
+        * Indicates wait note.
+        * @param aResourceId
+        * @param aControlId
+        */
+        void ShowWaitNoteL( TInt aResourceId, TInt aControlId );
+
+        /**
+        * ShowProgressNoteUnderSingleProcessL
+        * Indicates ProgressNote.
+        * @param aResourceId
+        * @param aControlId
+        */
+        void ShowProgressNoteUnderSingleProcessL( TInt aResourceId,   
+                                                  TInt aControlId );
+
+        /**
+        * ShowShowNoteL
+        * Show Note
+        * @param aType 
+        * @param aResourceId
+        */
+        void ShowShowNoteL( TAknGlobalNoteType aType, 
+                            TInt aResourceId );
+
+        /**
+        * CallbackIncrementProgressNoteL
+        * Callback function to increment progress note
+        * @param aThis
+        * @return TInt Return 0 when work is done, otherwise return 1.
+        */
+        static TInt CallbackIncrementProgressNoteL( TAny* aThis );
+        
+        /**
+        * UpdateProgressNote
+        * The entity of ProgressCallBackL() function
+        * @return TInt 0 when work is done, otherwise return 1.
+        */
+        TInt UpdateProgressNote();
+
+        /**
          * Callback function for the CPeriodic. Calculates the current frame, keeps the background
          * light from turning off and orders the CBlenderLite to do the rendering for each frame.
          *@param aInstance Pointer to this instance of CBlenderLiteContainer.
          */
         static int DrawCallBack( TAny* aInstance );
+
+    public: // From MProgressDialogCallback
+        
+        /**
+         * Para cambiar al modo Widescreen
+         */
+        void SetWidescreen();
+        
+        /**
+        * DialogDismissedL
+        * Called when/if the dialog has been dismissed.
+        * @param aButtonId
+        */
+        void DialogDismissedL( TInt aButtonId );    
 
     private: // Functions from base classes
 
@@ -55,6 +158,21 @@ class CBlenderLiteContainer : public CCoeControl, MCoeControlObserver
         void SizeChanged();
 
         /**
+        * CountComponentControls.
+        * Returns number of component.
+        * @return Number of controls
+        */
+        TInt CountComponentControls() const;
+
+        /**
+        * ComponentControl.
+        * Returns pointer to particular component.
+        * @param aIndex Index of the control
+        * @return Pointer to Control's component control, identified by index
+        */
+        CCoeControl* ComponentControl( TInt aIndex ) const;
+
+        /**
          * Handles a change to the control's resources. This method
          * reacts to the KEikDynamicLayoutVariantSwitch event (that notifies of
          * screen size change) by calling the SetExtentToWholeScreen() again so that
@@ -63,16 +181,6 @@ class CBlenderLiteContainer : public CCoeControl, MCoeControlObserver
          * @param aType Message UID value, only KEikDynamicLayoutVariantSwitch is handled by this method.
          */
         void HandleResourceChange(TInt aType);
-
-        /**
-         * Method from CoeControl. Does nothing in this implementation.
-         */
-        TInt CountComponentControls() const;
-
-        /**
-         * Method from CCoeControl. Does nothing in this implementation.
-         */
-        CCoeControl* ComponentControl(TInt aIndex) const;
 
         /**
          * Method from CCoeControl. Does nothing in this implementation.
@@ -96,7 +204,41 @@ class CBlenderLiteContainer : public CCoeControl, MCoeControlObserver
          */
         void HandleControlEventL(CCoeControl* aControl,TCoeEvent aEventType);
 
-    private: //data
+    private: //data 
+        /**
+        * iLabel
+        * owned by CAknExNoteContainer object.
+        */
+        CEikLabel*                      iLabel;
+
+        /**
+        * iIdle
+        * owned by CAknExNoteContainer object.
+        */
+        CIdle*                          iIdle;
+
+        /**
+        * iProgressDialog
+        * Not owned by CAknExNoteContainer object.
+        */
+        CAknProgressDialog*             iProgressDialog;
+
+        /**
+        * iProgressInfo
+        * Not owned by CAknExNoteContainer object.
+        */
+        CEikProgressInfo*               iProgressInfo;
+
+        /**
+        * iView
+        * Not owned by CAknExNoteContainer object.
+        */
+        CAknExNoteView*                 iView;
+
+        /** Private Integers for Notes behaviours **/
+        TInt                            iGlobalNoteId;
+        TInt                            iPermanentNoteId;
+        TRequestStatus                  iStatus;
 
         /** Display where the OpenGL ES window surface resides. */
         EGLDisplay  iEglDisplay;

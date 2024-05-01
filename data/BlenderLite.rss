@@ -109,9 +109,9 @@ RESOURCE MENU_PANE r_blenderlite_menu
 			},		
         	MENU_ITEM
             {
-                command = EBlenderLiteCrearObjetos;
-                cascade = r_blenderlite_crearObjetos_menu;
-                txt = STRING_r_blenderlite_crearObjetos;
+                command = EBlenderLiteAdd;
+                cascade = r_blenderlite_add_menu;
+                txt = STRING_r_blenderlite_add;
             },		
         	MENU_ITEM
             {
@@ -123,6 +123,11 @@ RESOURCE MENU_PANE r_blenderlite_menu
             {
                 command = EBlenderLiteImportOBJ;
                 txt = STRING_r_blenderlite_ImportOBJ;
+            },
+        	MENU_ITEM
+            {
+                command = EBlenderLiteWidescreen;
+                txt = STRING_r_blenderlite_widescreen_on;
             }
 			
             //MENU_ITEM
@@ -165,11 +170,11 @@ RESOURCE MENU_PANE r_blenderlite_modificadores_menu
 
 //----------------------------------------------------
 //
-//    r_blenderlite_crearObjetos_menu
+//    r_blenderlite_add_menu
 //
 //----------------------------------------------------
 //
-RESOURCE MENU_PANE r_blenderlite_crearObjetos_menu{
+RESOURCE MENU_PANE r_blenderlite_add_menu{
 	items = {
         MENU_ITEM {
             command = EBlenderLiteCrearCubo;
@@ -211,14 +216,6 @@ RESOURCE MENU_PANE r_blenderlite_crearObjetos_menu{
         MENU_ITEM {
             command = EBlenderLiteCrearSuzanne;
             txt = STRING_r_blenderlite_crearSuzanne;
-        },
-        MENU_ITEM {
-            command = EBlenderLiteCrearClaude;
-            txt = STRING_r_blenderlite_crearClaude;
-        },
-        MENU_ITEM {
-            command = EBlenderLiteCrearMarcus;
-            txt = STRING_r_blenderlite_crearMarcus;
         }
     };
 }
@@ -421,7 +418,7 @@ RESOURCE MENU_PANE r_blenderlite_editarOrigen_menu{
 //
 //----------------------------------------------------
 //
-RESOURCE TBUF256 r_blenderlite_crearObjetos{buf = STRING_r_blenderlite_crearObjetos;}
+RESOURCE TBUF256 r_blenderlite_add{buf = STRING_r_blenderlite_add;}
 RESOURCE TBUF256 r_blenderlite_crearCube{buf = STRING_r_blenderlite_crearCubo;}
 RESOURCE TBUF256 r_blenderlite_crearVertice{buf = STRING_r_blenderlite_crearVertice;}
 RESOURCE TBUF256 r_blenderlite_crearClaude{buf = STRING_r_blenderlite_crearClaude;}
@@ -484,6 +481,16 @@ RESOURCE TBUF256 r_blenderlite_OrigenToGeometry{buf = STRING_r_blenderlite_Orige
 RESOURCE TBUF256 r_blenderlite_OrigenToSelect{buf = STRING_r_blenderlite_OrigenToSelect;}
 RESOURCE TBUF256 r_blenderlite_OrigenToCursor{buf = STRING_r_blenderlite_OrigenToCursor;}
 
+RESOURCE TBUF256 r_widescreen_on
+{
+    buf = STRING_r_blenderlite_widescreen_on;
+}
+
+RESOURCE TBUF256 r_widescreen_off
+{
+    buf = STRING_r_blenderlite_widescreen_off;
+}
+
 RESOURCE TBUF256 r_lights_on
 {
     buf = STRING_r_blenderlite_lights_on;
@@ -516,8 +523,54 @@ RESOURCE TBUF256 r_spot_off
     buf = STRING_r_blenderlite_spot_off;
 }
 
+//-----------------------------------------------------------------------------
+//
+//    r_blenderlite_progress_note
+//    For progress note.
+//
+//-----------------------------------------------------------------------------
+//
+RESOURCE DIALOG r_blenderlite_progress_note {
+    flags = EAknProgressNoteFlags;
+    buttons = r_blenderlite_softkeys_cancel;
+    items = {
+        DLG_LINE {
+            type = EAknCtNote;
+            //id = EAknExNoteCtrlIdProgressNote;
+            id = EBlenderLiteProgressNote;            
+            control = AVKON_NOTE {
+                layout = EProgressLayout;
+                singular_label = STRING_r_exnt_progress_singular;
+                plural_label = STRING_r_exnt_progress_plural;
+                imagefile = AVKON_BMPFILE_NAME;
+                imageid = EMbmAvkonQgn_note_progress;
+                imagemask = EMbmAvkonQgn_note_progress_mask;
+            };
+        }
+    };
+}
+
+//-----------------------------------------------------------------------------
+//
+//    r_blenderlite_softkeys_cancel
+//    For Softkey of wait note.
+//
+//-----------------------------------------------------------------------------
+//
+RESOURCE CBA r_blenderlite_softkeys_cancel {
+    buttons = {
+        CBA_BUTTON {
+            txt = STRING_r_exnt_softkey_empty;
+        },
+        CBA_BUTTON {
+            id = EAknSoftkeyCancel;
+            txt = STRING_r_exnt_softkey_cancel;
+        }
+    };
+}
+
 //cuadro de dialogo para ver archivos
-RESOURCE MEMORYSELECTIONDIALOG r_blenderlite_select_dialog{
+RESOURCE MEMORYSELECTIONDIALOG r_blenderlite_select_dialog {
     locations = {
         LOCATION { root_path = "C:\\Data\\"; },
         LOCATION { root_path = "E:\\"; }
@@ -578,5 +631,35 @@ RESOURCE LOCALISABLE_APP_INFO r_blenderlite_localisable_app_info{
         icon_file       = "\\resource\\apps\\blenderlite_icon.mif";
         };
 }
+
+//Dialogos
+//-----------------------------------------------------------------------------
+//
+//    r_aknexnote_error_note
+//    For error note.
+//
+//-----------------------------------------------------------------------------
+//
+RESOURCE DIALOG r_aknexnote_error_note
+    {
+    flags = EAknErrorNoteFlags;
+    items =
+        {
+        DLG_LINE
+            {
+            type = EAknCtNote;
+            id = EAknExNoteCtrlIdErrorNote;
+            control = AVKON_NOTE
+                {
+                layout = EGeneralLayout;
+                singular_label = STRING_r_exnt_error_singular;
+                plural_label = STRING_r_exnt_error_plural;
+                imagefile = AVKON_BMPFILE_NAME;
+                imageid = EMbmAvkonQgn_note_error;
+                imagemask = EMbmAvkonQgn_note_error_mask;
+                };
+            }
+        };
+    }
 
 // End of File

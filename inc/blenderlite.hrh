@@ -7,12 +7,12 @@
 
 #ifndef BLENDERLITE_HRH
 #define BLENDERLITE_HRH
-
+	
 // DATA TYPES
 enum TBlenderLiteMenuCommands
-{
+{    		
     EBlenderLiteLighting = 1,
-    EBlenderLiteCrearObjetos,
+    EBlenderLiteAdd,
     EBlenderLiteLights,
     EBlenderLiteLamp,
     EBlenderLiteSpot,
@@ -26,8 +26,6 @@ enum TBlenderLiteMenuCommands
     EBlenderLiteCrearCad,
     EBlenderLiteCrearLuz,
     EBlenderLiteCrearSuzanne,
-    EBlenderLiteCrearClaude,
-    EBlenderLiteCrearMarcus,
     EBlenderLiteCrearVertice,
     
     EBlenderLiteTopView,
@@ -76,9 +74,26 @@ enum TBlenderLiteMenuCommands
     EBlenderLiteModificadorArray,
     EBlenderLiteModificadorMirror,
     EBlenderLiteModificadorScrew,
-    
+
+    EBlenderLiteWidescreen,
     EBlenderLiteImportOBJ,
-    EBlenderLiteNewTexture
+    EBlenderLiteNewTexture,
+
+    EBlenderLiteProgressNote,
+    EBlenderLiteWaitNote
 };
+
+enum TAknExNoteNoteControlIds
+    {
+    EAknExNoteCtrlIdErrorNote = 0x100,
+    EAknExNoteCtrlIdProgressNote,
+    EAknExNoteCtrlIdWaitNote,
+    EAknExNoteCtrlIdDynamicText
+    };
+
+//enum TBlenderLiteNoteControlIds {
+//    EBlenderLiteProgressNote,
+//    EBlenderLiteWaitNote
+//};
 
 #endif      // BLENDERLITE_HRH

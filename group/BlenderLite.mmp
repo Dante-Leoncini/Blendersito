@@ -40,13 +40,13 @@ USERINCLUDE     ..\Utils
 SYSTEMINCLUDE   .
 SYSTEMINCLUDE   \epoc32\include
 
-LIBRARY         euser.lib apparc.lib cone.lib eikcore.lib
-LIBRARY         eikcoctl.lib avkon.lib estlib.lib fbscli.lib
+LIBRARY         avkon.lib euser.lib apparc.lib cone.lib eikcore.lib
+LIBRARY         eikcoctl.lib estlib.lib fbscli.lib
 LIBRARY         efsrv.lib
 LIBRARY         ImageConversion.lib
 LIBRARY         libgles_cm.lib
 LIBRARY         ws32.lib commondialogs.lib
-LIBRARY         estor.lib 
+LIBRARY         estor.lib eikctl.lib aknnotify.lib apgrfx.lib eikdlg.lib 
 
 START RESOURCE ..\data\blenderlite_reg.rss
 #ifdef WINSCW

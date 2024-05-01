@@ -17,14 +17,14 @@
 //#include <e32cons.h>
 //LOCAL_D CConsoleBase* console;
 #include "BlenderLite.h"
-#include "Mesh.h"
+#include "BlenderLiteContainer.h"
 
-#include "claude.h" //modelo 3d
+#include "Mesh.h"
 #include "mono.h" //modelo 3d
-//#include "marcus.h" //modelo 3d
 #include "Floor.h" //modelo 3d
-#include "sprite.h" //sprite 2D
+//#include "sprite.h" //sprite 2D
 #include "Primitivas.h" //sprite 2D
+#include "GeometriaUI.h" //elementos de la UI
 
 //#include "blenderlite.hrh"
 #include <blenderlite.rsg>
@@ -51,6 +51,10 @@
        (GLfloat)(a * LIGHT_MAX)
 
 // CONSTANTS
+GLshort mouseX = 0;
+GLshort mouseY = 0;
+TBool mouseVisible = true;
+
 /* Materials for the Models object. */
 static const GLfloat objDiffuse[4] = { MATERIALCOLOR(0.8, 0.8, 0.8, 1.0) };
 static const GLfloat objAmbient[4] = { MATERIALCOLOR(0.4, 0.4, 0.4, 1.0) };
@@ -62,20 +66,23 @@ static const GLfloat colorBorde[4]  = { MATERIALCOLOR(0.68, 0.45, 0.13, 1.0) };
 //color borde Select
 //GLfloat colorBordeSelect[4] = { MATERIALCOLOR(0.94, 0.59, 0.17, 1.0) };
 //array de colores
-static const GLfloat ListaColores[5][4] = {
-		{ MATERIALCOLOR(1.0, 1.0, 1.0, 1.0) },   //blanco
-		{ MATERIALCOLOR(0.94, 0.59, 0.17, 1.0)}, //naranja 	
-		{ MATERIALCOLOR(0.0, 0.0, 0.0, 1.0) },    //negro
-		{ MATERIALCOLOR(0.12, 0.12, 0.12, 1.0) },   //gris
-		{ MATERIALCOLOR(0.94, 0.59, 0.17, 0.25f) }       //naranja transparente
-
+static const GLfloat ListaColores[7][4] = {
+		{ MATERIALCOLOR(1.0, 1.0, 1.0, 1.0)     },   //blanco
+		{ MATERIALCOLOR(0.94, 0.59, 0.17, 1.0)  },   //naranja 	
+		{ MATERIALCOLOR(0.0, 0.0, 0.0, 1.0)     },   //negro
+		{ MATERIALCOLOR(0.12, 0.12, 0.12, 1.0)  },   //gris
+		{ MATERIALCOLOR(0.94, 0.59, 0.17, 0.25f)},   //naranja transparente
+		{ MATERIALCOLOR(0.12, 0.12, 0.12, 1.0)  },   //gris
+		{ MATERIALCOLOR(0.22, 0.22, 0.22, 1.0)  },    //cabezera de la barra de herramientas
 };
+
 enum{
 	blanco,
 	naranja,
 	negro,
 	gris,
-	naranjaFace
+	naranjaFace,
+	headerColor
 };
 int colorBordeSelect = 1;
 
@@ -142,7 +149,7 @@ enum{
 
 enum{
 	cubo, esfera, cilindro, plano, vacio, camara,
-    cad, luz, suzanne, claude, marcus, vertice
+    cad, luz, suzanne,vertice
 };
 
 //CPrimitiva Primitivas;
@@ -235,7 +242,8 @@ CBlenderLite::CBlenderLite( TUint aWidth, TUint aHeight, CBlenderLiteInput* aInp
     : CFiniteStateMachine()
 	{
     iScreenWidth  = aWidth;
-    iScreenHeight = aHeight;
+    iScreenHeight = aHeight;	
+	iScreenHeightSplit = (GLfloat)aHeight/2;
     iInputHandler = aInputHandler;
 	}
 
@@ -244,14 +252,13 @@ CBlenderLite::CBlenderLite( TUint aWidth, TUint aHeight, CBlenderLiteInput* aInp
 // Symbian 2nd phase constructor can leave.
 // -----------------------------------------------------------------------------
 //
-//TFixedArray<GLshort, 30> myArray;	
 void CBlenderLite::ConstructL( void ){
 	estado = navegacion;
 
 	//debuger
 	//console = Console::NewL(_L("Consola"),TSize(KConsFullScreen, KConsFullScreen));
 	//Objetos = new Mesh[cantObjetos];
-	CrearObjeto(cubo);
+	AddMesh(cubo);
 }
 
 
@@ -363,13 +370,10 @@ void CBlenderLite::AppInit( void ){
     iSpotEnabled     = EFalse;         // Spot is disabled
 
 	// Push the textures into the loading queue.
-	//_LIT( KModelTexture, "marcus.jpg" );
-	_LIT( KModelTexture, "claude.jpg" );
 	_LIT( KOriginTexture, "origen.png" );
-	_LIT( KColorGridTexture, "color_grid.jpg" );
+	_LIT( KColorGridTexture, "color_grid.png" );
 	_LIT( KMouseTexture, "cursor.png" );	
 	_LIT( KLampTexture, "lamp.png" );	
-	iTextureManager->RequestToLoad( KModelTexture, &iBaseColor, false );
 	iTextureManager->RequestToLoad( KOriginTexture, &iOrigenTextura, false );
 	iTextureManager->RequestToLoad( KColorGridTexture, &iColorGridTextura, false );
 	iTextureManager->RequestToLoad( KMouseTexture, &iMouseTextura, false );
@@ -663,12 +667,105 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	    glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE );
 	    glDrawArrays( GL_POINTS, 0, 1 );
 	    glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_FALSE);
+	    glPopMatrix(); //reinicia la matrix a donde se guardo	
 	}
+
+	dibujarUI();
 
     //termino de dibujar
     redibujar = false;
 }
 
+//Se encarga de la nueva UI 3d
+void CBlenderLite::dibujarUI(){
+	glMatrixMode( GL_PROJECTION );
+	glLoadIdentity();
+    GLfloat aspectRatioNuevo = (GLfloat)(iScreenWidth) / (GLfloat)(iScreenHeight);
+	glOrthof(-iScreenHeightSplit * aspectRatioNuevo, iScreenHeightSplit * aspectRatioNuevo, -iScreenHeightSplit, iScreenHeightSplit, 0.0f, 1000.0f); 
+    glMatrixMode( GL_MODELVIEW );
+
+	glLoadIdentity();
+	glTranslatef( -iScreenHeightSplit* aspectRatioNuevo, iScreenHeightSplit, -100);
+	glScalex( 71400, 71400, 71400 );	
+
+	glDisable( GL_DEPTH_TEST ); //quita el Zbuffer
+	glDisable( GL_CULL_FACE ); // Enable back face culling.
+	//glDisable( GL_POINT_SPRITE_OES );
+	//glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_FALSE);
+	//glEnable( GL_TEXTURE_2D ); // Permite usar texturas
+	glEnable( GL_BLEND ); //permite transparencias
+	//glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glDisable( GL_LIGHTING ); //quita las luces
+	glDisable(GL_POLYGON_OFFSET_FILL); //quita el offset
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //hace que sea pixelada
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); //hace que sea pixelada
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	
+    glVertexPointer( 3, GL_SHORT, 0, SpriteVertices );
+	glNormalPointer( GL_BYTE, 0, SpriteNormal );
+	glTexCoordPointer( 2, GL_BYTE, 0, SpriteUV ); //SpriteUvSize
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	//glBindTexture( GL_TEXTURE_2D, iColorGridTextura.iID ); //selecciona la textura
+	//SetSprite(255,255,0,0);
+
+	//header	
+	glDisable( GL_TEXTURE_2D ); // Permite usar texturas
+	glColor4f(ListaColores[headerColor][0],ListaColores[headerColor][1],ListaColores[headerColor][2],0.5f);
+	DibujarRectangulo(iScreenWidth,24, 0,0);
+	
+	glEnable( GL_TEXTURE_2D ); // Permite usar texturas
+	glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);	
+	glBindTexture( GL_TEXTURE_2D, iMouseTextura.iID ); 
+
+	//que editor esta abierto
+	SetSprite(14,14,113*2,49*2,28,28,5,-5);
+
+	if (estado == navegacion){
+		SetSprite(14,14,1*2,113*2,28,28,26,-5);
+	}
+	else if (estado == edicion){
+		SetSprite(14,14,1*2,97*2,28,28,26,-5);
+	}
+	//dibuja el mouse por arriba de todo
+	if (mouseVisible){
+		SetSprite(10,17,1,1,20,32,mouseX,mouseY);
+	}
+
+	//resetea la perspectiva	
+	ortografica = !ortografica;
+	SetPerspectiva(false);
+}
+
+void CBlenderLite::SetSprite(GLshort ancho, GLshort alto, GLshort origenX, GLshort origenY, GLshort U, GLshort V, GLshort x, GLshort y){
+	glPushMatrix(); //guarda la matrix
+	glTranslatef( x, y, 0);
+	//cambia el tamaño
+	SpriteVertices[3] = SpriteVertices[6] = ancho+1;
+	SpriteVertices[7] = SpriteVertices[10] = -(alto+1);
+	//recalcula uv
+	SpriteUV[0] = (GLbyte)(-128+origenX);
+	SpriteUV[1] = (GLbyte)(-128+origenY);
+	SpriteUV[2] = (GLbyte)(-128+U+origenX);
+	SpriteUV[3] = (GLbyte)(-128+origenY);
+	SpriteUV[4] = (GLbyte)(-128+U+origenX);
+	SpriteUV[5] = (GLbyte)(-128+V+origenY);
+	SpriteUV[6] = (GLbyte)(-128+origenX);
+	SpriteUV[7] = (GLbyte)(-128+V+origenY);
+	glDrawElements( GL_TRIANGLES, SpriteFacesSize, GL_UNSIGNED_SHORT, SpriteFaces );
+	glPopMatrix(); //reinicia la matrix a donde se guardo	
+}
+
+void CBlenderLite::DibujarRectangulo(GLshort ancho, GLshort alto, GLshort x, GLshort y){
+	glPushMatrix(); //guarda la matrix
+	glTranslatef( x, y, 0);
+	//cambia el tamaño
+	SpriteVertices[3] = SpriteVertices[6] = ancho+1;
+	SpriteVertices[7] = SpriteVertices[10] = -(alto+1);
+	glDrawElements( GL_TRIANGLES, SpriteFacesSize, GL_UNSIGNED_SHORT, SpriteFaces );
+	glPopMatrix(); //reinicia la matrix a donde se guardo	
+}
 // -------------------------------------------------------------------------------------------------------
 // CBlenderLite::OnStartLoadingTextures()
 // Called for a MTextureLoadingListener by the texture manager when texture loading operation starts
@@ -690,6 +787,12 @@ void CBlenderLite::OnEndLoadingTexturesL(){
 
 void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 	if( iInputHandler->IsInputPressed( EJoystickLeft ) ){
+		//mueve el mouse
+		if (mouseVisible){
+			mouseX--;
+			if (mouseX < 0){mouseX = 0;};
+		}
+
 		//rotX += fixedMul( 0.1, aDeltaTimeSecs );
 		if (estado == navegacion || estado == edicion){
 			rotX-= 0.5;			
@@ -755,6 +858,12 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 	    redibujar = true;
 	}
 	if( iInputHandler->IsInputPressed( EJoystickRight ) ){
+		//mueve el mouse
+		if (mouseVisible){
+			mouseX++;
+			if (mouseX > iScreenWidth-11){mouseX = iScreenWidth-11;};
+		}
+
 		//rotX -= fixedMul( 1, aDeltaTimeSecs );
 		if (estado == navegacion || estado == edicion){
 			rotX+= 0.5;			
@@ -821,6 +930,12 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 	    redibujar = true;
 	}
 	if( iInputHandler->IsInputPressed( EJoystickUp ) ){
+		//mueve el mouse
+		if (mouseVisible){
+			mouseY++;
+			if (mouseY > 0){mouseY = 0;};
+		}
+
 		if (estado == navegacion || estado == edicion){
 			rotY-= 0.5;			
 		}
@@ -857,6 +972,12 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 	    redibujar = true;
 	}
 	if( iInputHandler->IsInputPressed( EJoystickDown ) ){
+		//mueve el mouse
+		if (mouseVisible){
+			mouseY--;
+			if (mouseY < -iScreenHeight-17){mouseY = -iScreenHeight-17;};
+		}
+
 		if (estado == navegacion || estado == edicion){
 			rotY+= 0.5;			
 		}
@@ -1255,11 +1376,31 @@ void CBlenderLite::Borrar(){
 	else if (estado == navegacion){
 		if (Objetos.Count() < 1){return;}
 		//pregunta de confirmacion
-		HBufC* buf = HBufC::NewLC( 20 );
-		buf->Des().Copy(_L("Eliminar el Objeto?"));
-		if (!DialogAlert(buf)){return;}
+		_LIT(KStaticErrorMessage, "¿Eliminar el Objeto?");
+		if (!DialogAlert(KStaticErrorMessage)){return;}
 		Cancelar();
-		estado = navegacion;
+		//estado = navegacion;
+		//libera la memoria de los punteros primero		
+
+		// Obtener el objeto Mesh seleccionado
+		Mesh* mesh = &Objetos[objSelect];
+
+		// Liberar memoria de los punteros del objeto seleccionado
+		delete[] mesh->vertex;
+		delete[] mesh->normals;
+		delete[] mesh->faces;
+		delete[] mesh->edges;
+		delete[] mesh->uv;
+		delete[] mesh->vertexGroup;
+		delete[] mesh->vertexGroupIndiceSize;
+		for (TInt j = 0; j < mesh->vertexGroupSize; ++j) {
+			delete[] mesh->vertexGroupIndice[j];
+		}
+		delete[] mesh->vertexGroupIndice;
+
+		// Limpiar NewFaces y liberar memoria
+		mesh->NewFaces.Reset();
+
 		Objetos.Remove(objSelect);
 		if (Objetos.Count()-1 < objSelect){
 			objSelect = Objetos.Count()-1;		
@@ -1268,9 +1409,8 @@ void CBlenderLite::Borrar(){
 	else if (estado == edicion){
 		if (Objetos[objSelect].vertexGroupSize < 1){return;}
 		//pregunta de confirmacion
-		HBufC* buf = HBufC::NewLC( 20 );
-		buf->Des().Copy(_L("Eliminar Vertice?"));
-		if (!DialogAlert(buf)){return;}
+		_LIT(KStaticErrorMessage, "¿Eliminar Vertice?");
+		if (!DialogAlert(KStaticErrorMessage)){return;}
 		Mesh& obj = Objetos[objSelect];
 		//busca las caras que contengan algun vertices del grupo de vertices
 		RArray<GLushort> faces;
@@ -1308,63 +1448,43 @@ void CBlenderLite::Borrar(){
     redibujar = true;	
 }
 
-void CBlenderLite::CrearObjeto( int modelo ){
+void CBlenderLite::AddMesh( int modelo ){
 	Cancelar();
 	Mesh obj;
 	obj.visible = true;
-	obj.posX = 0;
-	obj.posY = 0;
-	obj.posZ = 0;
-	obj.rotX = 0;
-	obj.rotY = 0;
-	obj.rotZ = 0;
+	obj.posX = obj.posY = obj.posZ = obj.rotX = obj.rotY = obj.rotZ = 0;
 	obj.specular[0] = obj.specular[1] = obj.specular[2] = obj.specular[3] = 0.3;
 	obj.diffuse[0] = obj.diffuse[1] = obj.diffuse[2] = obj.diffuse[3] = 1.0;
 	obj.emission[0] = obj.emission[1] = obj.emission[2] = obj.emission[3] = 0.0;
 	obj.smooth = true;
 	obj.textura = false;
 	obj.transparencia = false;
-	obj.interpolacion = lineal; //interpolacion lineal
+	obj.interpolacion = lineal;
 	
     if (modelo == cubo){ 
-    	obj.vertexSize = 24 * 3;
-    	obj.normalsSize = 24 * 3;
+    	obj.vertexSize = obj.normalsSize = 24 * 3;
 		obj.facesSize = 12 * 3;
 		obj.edgesSize = 12 * 6;
 		obj.uvSize = 24 * 2;
 		obj.texturaID = 1;
-		obj.scaleX = 45000;
-		obj.scaleY = 45000;
-		obj.scaleZ = 45000;		
+		obj.scaleX = obj.scaleY = obj.scaleZ = 45000;		
 
 		obj.vertex = new GLshort[24 * 3];
 		obj.normals = new GLbyte[24 * 3];
 		obj.faces = new GLushort[12 * 3];
 		obj.edges = new GLushort[12 * 6];
 		obj.uv = new GLbyte[24 * 2];
-		//obj.vertex = Primitivas.CuboVertices(1,1,1);
-		//GLshort *vertex =  new GLshort[24 * 3];
-		//obj.vertex.ReserveL(24 * 3);
-		//vertex = Primitivas.CuboVertices(1,1,1);
-		/*obj.NewFaces.ReserveL(12*3);
-		for (int i = 0; i < 12*3; i++) {
-			obj.NewFaces.Append(obj.faces[i]);
-		}*/
 		for (int i = 0; i < 24*3; i++) {
 			obj.vertex[i] = CuboVertices[i];
 			obj.normals[i] = CuboNormals[i];
 		}
 		for (int i = 0; i < 24*2; i++) {
+			//obj.uv[i] = CuboUV[i];
 			obj.uv[i] = CuboNormals[i];
 		}
 		for (int i = 0; i < 12*3; i++) {
 			obj.faces[i] = CuboTriangles[i];
 		}
-		//CuboVertices
-		//delete[] vertex;
-		/*obj.normals = Primitivas.CuboNormals();
-		obj.faces = Primitivas.CuboFaces();
-		obj.uv = Primitivas.CuboUV();*/
 	}	
     else if (modelo == vertice){
     	obj.vertexSize = 1 * 3;
@@ -1416,38 +1536,11 @@ void CBlenderLite::CrearObjeto( int modelo ){
 		for(int a=0; a < SuzzaneUVSize; a++){
 			obj.uv[a] = SuzzaneUV[a];			
 		}
-	}	
-    else if (modelo == claude){
-    	obj.vertexSize = objVertexdataModelSize;
-    	obj.normalsSize = objNormaldataModelSize;
-		obj.facesSize = objFacedataModelSize;
-		obj.edgesSize = objFacedataModelSize*2;
-		obj.uvSize = objTexdataModelSize;  	
-		obj.texturaID = iBaseColor.iID;
-		obj.scaleX = 65000;
-		obj.scaleY = 65000;
-		obj.scaleZ = 65000;
-		obj.vertex = new GLshort[objVertexdataModelSize];
-		for(int a=0; a < objVertexdataModelSize; a++){
-			obj.vertex[a] = objVertexdataModel[a];	
-			//obj.vertex.Append(objVertexdataModel[a]);
-		}
-		obj.normals = new GLbyte[objNormaldataModelSize];
-		for(int a=0; a < objNormaldataModelSize; a++){
-			obj.normals[a] = objNormaldataModel[a];			
-		}
-		obj.faces = new GLushort[objFacedataModelSize];
-		for(int a=0; a < objFacedataModelSize; a++){
-			obj.faces[a] = objFacedataModel[a];			
-		}
-		obj.edges = new GLushort[obj.edgesSize];
-		obj.uv = new GLbyte[objTexdataModelSize];
-		for(int a=0; a < objTexdataModelSize; a++){
-			obj.uv[a] = objTexdataModel[a];			
-		}	
-    }    
+	}	   
+	else {return;} 
     
-	Objetos.Append(obj);
+	Objetos.Append(obj);	
+		
 	objSelect = Objetos.Count()-1;
 	Objetos[objSelect].AgruparVertices();
 	Objetos[objSelect].RecalcularBordes();
@@ -1712,7 +1805,7 @@ void CBlenderLite::SetDiffuse(){
     redibujar = true;	
 }
 
-void CBlenderLite::SetPerspectiva(){
+void CBlenderLite::SetPerspectiva(TBool redibuja ){
 	// Reinitialize viewport and projection.
 	//glViewport( 0, 0, iScreenWidth, iScreenHeight );
 	// Recalculate the view frustrum
@@ -1729,7 +1822,7 @@ void CBlenderLite::SetPerspectiva(){
     	glOrthof(-90.0f * aspectRatio, 90.0f * aspectRatio, -90.0f, 90.0f, -0.0f, 1000.0f);    	
     }
     glMatrixMode( GL_MODELVIEW );
-    redibujar = true;
+    redibujar = redibuja;
 }
 
 /*void CBlenderLite::DialogAlert(){
@@ -1920,21 +2013,15 @@ void CBlenderLite::Mensaje(HBufC* noteBuf){
 	CAknInformationNote* note = new (ELeave) CAknInformationNote();
 	note->ExecuteLD(*noteBuf);
 	CleanupStack::PopAndDestroy(noteBuf);
-
-	// Liberar explícitamente el objeto CAknInformationNote después de usarlo
-	//delete note;	
 };
 
 void CBlenderLite::MensajeError(HBufC* noteBuf){
     CAknErrorNote* note = new (ELeave) CAknErrorNote();
     note->ExecuteLD(*noteBuf);
-
-	// Liberar explícitamente el objeto CAknInformationNote después de usarlo
-	//delete note;
     CleanupStack::PopAndDestroy(noteBuf);
 }
 
-TBool CBlenderLite::DialogAlert(HBufC* noteBuf){	  
+/*TBool CBlenderLite::DialogAlert(HBufC* noteBuf){	  
     TBool retVal( EFalse );
     CAknQueryDialog* query = CAknQueryDialog::NewL();
     if( query->ExecuteLD( R_ACCEPT_INVITATION_DLG, *noteBuf )) {
@@ -1942,16 +2029,29 @@ TBool CBlenderLite::DialogAlert(HBufC* noteBuf){
     }
 	CleanupStack::PopAndDestroy( noteBuf );
 
-    //CleanupStack::PopAndDestroy( noteBuf );
-    // Liberar explícitamente el objeto CAknQueryDialog después de usarlo
-    //delete query;
+    return retVal;
+}*/
 
+TBool CBlenderLite::DialogAlert(HBufC* noteBuf) {
+    TBool retVal(EFalse);
+	CAknQueryDialog* query = CAknQueryDialog::NewL();
+	if (query->ExecuteLD(R_ACCEPT_INVITATION_DLG, *noteBuf)) {
+		retVal = ETrue;
+	}
+	CleanupStack::PopAndDestroy( noteBuf );
     return retVal;
 }
 
-//
-//HBufC* buf = HBufC::NewLC( 20 );
-//buf->Des().Copy(_L("Activar Textura?"));
+
+TBool CBlenderLite::DialogAlert(const TDesC& noteBuf) {
+    TBool retVal(EFalse);
+	CAknQueryDialog* query = CAknQueryDialog::NewL();
+	if (query->ExecuteLD(R_ACCEPT_INVITATION_DLG, noteBuf)) {
+		retVal = ETrue;
+	}
+
+    return retVal;
+}
 
 TInt CBlenderLite::DialogNumber(TInt valor, TInt min, TInt max, HBufC* noteBuf ){ //TPtrC etiqueta
 	TInt number = valor;
@@ -1970,9 +2070,40 @@ TInt CBlenderLite::DialogNumber(TInt valor, TInt min, TInt max, HBufC* noteBuf )
 // Reacts to the dynamic screen size change during execution of this program.
 // -----------------------------------------------------------------------------
 //
+void CBlenderLite::SetScreenSize( TUint aWidth, TUint aHeight, TBool widescreen = false ){
+    iScreenWidth  = aWidth;
+    iScreenHeight = aHeight;
+	iScreenHeightSplit = (GLfloat)aHeight/2;
+    
+    // Notify the texture manager of screen size change
+    iTextureManager->SetScreenSize( aWidth, aHeight );
+
+    // Reinitialize viewport and projection.
+    glViewport( 0, 0, iScreenWidth, iScreenHeight );
+
+    // Recalculate the view frustrum
+    glMatrixMode( GL_PROJECTION );
+    glLoadIdentity();
+    aspectRatio = (GLfloat)(iScreenWidth) / (GLfloat)(iScreenHeight);
+    if (widescreen && iScreenWidth > iScreenHeight){
+        aspectRatio = (GLfloat)(16) / (GLfloat)(9);    	
+    };
+    if ( !ortografica ){
+		glFrustumf( FRUSTUM_LEFT * aspectRatio, FRUSTUM_RIGHT * aspectRatio,
+					FRUSTUM_BOTTOM, FRUSTUM_TOP,
+					FRUSTUM_NEAR, FRUSTUM_FAR );
+    }
+    else {
+    	glOrthof(-90.0f * aspectRatio, 90.0f * aspectRatio, -90.0f, 90.0f, -5.0f, 1000.0f);    	
+    }
+    glMatrixMode( GL_MODELVIEW );
+	redibujar = true;
+}
+
 void CBlenderLite::SetScreenSize( TUint aWidth, TUint aHeight ){
     iScreenWidth  = aWidth;
     iScreenHeight = aHeight;
+	iScreenHeightSplit = (GLfloat)aHeight/2;
     
     // Notify the texture manager of screen size change
     iTextureManager->SetScreenSize( aWidth, aHeight );
@@ -1993,6 +2124,7 @@ void CBlenderLite::SetScreenSize( TUint aWidth, TUint aHeight ){
     	glOrthof(-90.0f * aspectRatio, 90.0f * aspectRatio, -90.0f, 90.0f, -5.0f, 1000.0f);    	
     }
     glMatrixMode( GL_MODELVIEW );
+	redibujar = true;
 }
 
 void CBlenderLite::DisplayWarningL( const TDesC &aDescr, TInt aErr) const{
@@ -2044,7 +2176,7 @@ void CBlenderLite::LoadFile(const TFileName& aFileName,
 	iTextureManager->DoLoadL();*/
 }
 
-void CBlenderLite::ImportOBJ(){		
+void CBlenderLite::ImportOBJ(){    
     _LIT(KTitle, "Importar Modelo OBJ");
     TFileName file(KNullDesC);
     if (AknCommonDialogs::RunSelectDlgLD(file, R_BLENDERLITE_SELECT_DIALOG, KTitle)){		
@@ -2059,382 +2191,383 @@ void CBlenderLite::ImportOBJ(){
 			_LIT(KFormatString, "Error al abrir: %S");
 			HBufC* noteBuf = HBufC::NewLC(file.Length()+16);
 			noteBuf->Des().Format(KFormatString, &file);
-			MensajeError(noteBuf);  
-		}
-		else {			
-			//crea el objeto
-			Cancelar();
-			Mesh obj;
-			obj.visible = true;
-			obj.posX = obj.posY = obj.posZ = 0;
-			obj.rotX = obj.rotY = obj.rotZ = 0;
-			obj.specular[0] = obj.specular[1] = obj.specular[2] = obj.specular[3] = 0.3;
-			obj.diffuse[0] = obj.diffuse[1] = obj.diffuse[2] = obj.diffuse[3] = 1.0;
-			obj.emission[0] = obj.emission[1] = obj.emission[2] = obj.emission[3] = 0.0;
-			obj.smooth = true;
-			obj.textura = false;
-			obj.transparencia = false;
-			obj.interpolacion = lineal; //interpolacion lineal
+			MensajeError(noteBuf); 
+			return;
+		}		
+		//crea el objeto
+		Cancelar();
+		Mesh obj;
+		obj.visible = true;
+		obj.posX = obj.posY = obj.posZ = 0;
+		obj.rotX = obj.rotY = obj.rotZ = 0;
+		obj.specular[0] = obj.specular[1] = obj.specular[2] = obj.specular[3] = 0.3;
+		obj.diffuse[0] = obj.diffuse[1] = obj.diffuse[2] = obj.diffuse[3] = 1.0;
+		obj.emission[0] = obj.emission[1] = obj.emission[2] = obj.emission[3] = 0.0;
+		obj.smooth = true;
+		obj.textura = false;
+		obj.transparencia = false;
+		obj.interpolacion = lineal; //interpolacion lineal
 
-			TInt vertices = 0;
-			TInt caras = 0;
-			TInt normales = 0;
-			TInt textura = 0;			
-			TInt pos = 0;			
+		TInt vertices = 0;
+		TInt caras = 0;
+		TInt normales = 0;
+		TInt textura = 0;			
+		TInt pos = 0;			
 
-			TBool continuarLeyendo = ETrue; // Variable para controlar la lectura del archivo
-			TBuf8<512> lineBuf;
-			TBuf8<512> tempBuf; // Búfer temporal para almacenar parte de una línea si es necesario
-			
-			//los obj tienen una lista de normales. a veces las normales se pueden repetir y esa es la logica
-			//tambien se puede repetir coordenadas de texturas asi que en vez de tener los uv y normals vertice por vertices.. tienen un listado
-			GLshort* ListVertices = new GLshort[0];
-			GLbyte* ListNormals = new GLbyte[0];
-			GLbyte* ListUVs = new GLbyte[0];
-			TInt* ListCaras = new TInt[0];
+		TBool continuarLeyendo = ETrue; // Variable para controlar la lectura del archivo
+		TBuf8<512> lineBuf;
+		TBuf8<512> tempBuf; // Búfer temporal para almacenar parte de una línea si es necesario
+		
+		//los obj tienen una lista de normales. a veces las normales se pueden repetir y esa es la logica
+		//tambien se puede repetir coordenadas de texturas asi que en vez de tener los uv y normals vertice por vertices.. tienen un listado
+		GLshort* ListVertices = new GLshort[0];
+		GLbyte* ListNormals = new GLbyte[0];
+		GLbyte* ListUVs = new GLbyte[0];
+		TInt* ListCaras = new TInt[0];
 
-			// Leer línea por línea
-			//while (rFile.Read(lineBuf) == KErrNone) {
-			while (continuarLeyendo) {
-				// Leer una línea del archivo
-				err = rFile.Read(lineBuf);
-				if (err != KErrNone) {
-					// Error al leer o final del archivo, salir del bucle
-					break;
-				}
+		// Leer línea por línea
+		//while (rFile.Read(lineBuf) == KErrNone) {
+		while (continuarLeyendo) {
+			// Leer una línea del archivo
+			err = rFile.Read(lineBuf);
+			if (err != KErrNone) {
+				// Error al leer o final del archivo, salir del bucle
+				break;
+			}
 
-				// Concatenar el contenido actual de lineBuf con el contenido anterior de tempBuf
-				tempBuf.Append(lineBuf);
-				lineBuf.Copy(tempBuf); // Copiar la combinación al búfer de línea para su procesamiento
+			// Concatenar el contenido actual de lineBuf con el contenido anterior de tempBuf
+			tempBuf.Append(lineBuf);
+			lineBuf.Copy(tempBuf); // Copiar la combinación al búfer de línea para su procesamiento
 
-    			// Procesar la línea hasta que no haya más saltos de línea o se llegue al final del archivo
-    			while ((pos = lineBuf.Locate('\n')) != KErrNotFound || (pos = lineBuf.Locate('\r')) != KErrNotFound) {
-					//lineas++;
-					// Obtener la línea hasta el salto de línea
-					TPtrC8 line = lineBuf.Left(pos);
+			// Procesar la línea hasta que no haya más saltos de línea o se llegue al final del archivo
+			while ((pos = lineBuf.Locate('\n')) != KErrNotFound || (pos = lineBuf.Locate('\r')) != KErrNotFound) {
+				//lineas++;
+				// Obtener la línea hasta el salto de línea
+				TPtrC8 line = lineBuf.Left(pos);
 
-					// Convertir a descriptor de 16 bits si es necesario
-					HBufC* line16 = HBufC::NewLC(line.Length());
-					line16->Des().Copy(line);
+				// Convertir a descriptor de 16 bits si es necesario
+				HBufC* line16 = HBufC::NewLC(line.Length());
+				line16->Des().Copy(line);
 
-					//es para revisar linea por linea
-					//DialogAlert(line16);
+				//es para revisar linea por linea
+				//DialogAlert(line16);
 
-					// Revisar si empieza con "v " vertices, caras y normales
+				// Revisar si empieza con "v " vertices, caras y normales
 
-					// Contador para almacenar la cantidad de "strings" separados por espacios
-					TInt contador = 0;
-					if (line16->Left(2) == _L("v ")) {
-						contador = 0;						
-						//copia los vertices temporalmente
-						GLshort* temVertices = new GLshort[vertices*3];
-						for(TInt a=0; a < vertices*3; a++){
-							temVertices[a] = ListVertices[a];
-						}
-
-						TLex lex(line16->Des().Mid(2));  // Inicializa TLex con la subcadena a partir del tercer carácter
-						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
-						while (!lex.Eos() && contador < 8) {							
-							TPtrC currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador						
-   							TLex testLex(currentString);// Crear un nuevo objeto TLex para la prueba
-							
-							// Convertir el string en un número TInt
-							TReal number = 0.0;
-							TInt err = testLex.Val(number, '.');
-							if (err == KErrNone && contador < 3) {
-								number = number*1000;								
-								GLshort glNumber = static_cast<GLshort>(number); // Conversión a GLbyte
-								temVertices[vertices*3+contador] = glNumber;
-
-								/*HBufC* noteBuf = HBufC::NewLC(100);
-								_LIT(KFormatString, "vertice: %d-%d Valor: %d");
-								noteBuf->Des().Format(KFormatString, vertices+1, contador+1, temVertices[vertices*3+contador]);
-								DialogAlert(noteBuf);*/
-							}
-							else {
-								temVertices[vertices*3+contador] = 0;
-							}
-
-							// Avanzar al siguiente "string" que no sea espacio en blanco
-							lex.SkipSpace();
-
-							// Incrementar el contador para llevar la cuenta de los strings procesados
-							contador++;
-						}
-						delete[] ListVertices;
-						ListVertices = temVertices;
-						vertices++;
+				// Contador para almacenar la cantidad de "strings" separados por espacios
+				TInt contador = 0;
+				if (line16->Left(2) == _L("v ")) {
+					contador = 0;						
+					//copia los vertices temporalmente
+					GLshort* temVertices = new GLshort[vertices*3];
+					for(TInt a=0; a < vertices*3; a++){
+						temVertices[a] = ListVertices[a];
 					}
-					//orientacion de las normales
-					else if (line16->Left(3) == _L("vn ")){
-						contador = 0;
-						//copia los vertices temporalmente
-						GLbyte* temNormales = new GLbyte[normales*3];
-						for(TInt a=0; a < normales*3; a++){
-							temNormales[a] = ListNormals[a];
-						}
 
-						TLex lex(line16->Des().Mid(3));  // Inicializa TLex con la subcadena a partir del tercer carácter
-
-						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
-						while (!lex.Eos() && contador < 3) {							
-							TPtrC currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador
-   							TLex testLex(currentString); // Crear un nuevo objeto TLex para la prueba
-							
-							TReal number = 0.0;
-							TInt err = testLex.Val(number, '.');
-							if (err == KErrNone) {
-								number = ((number +1)/2)* 255.0 - 128.0;
-								if (number > 127.0){number = 127.0;}
-								else if (number < -128.0){number = -128.0;}
-								GLbyte glNumber = static_cast<GLbyte>(number); // Conversión a GLbyte
-								temNormales[normales*3+contador] = glNumber;
-							}
-							else {
-								temNormales[normales*3+contador] = 0;
-							}
-							lex.SkipSpace();
-							contador++;
-						}						
-						delete[] ListNormals;
-						ListNormals = temNormales;
-						normales++;
-					}
-					//coordenadas UV para texturas
-					else if (line16->Left(3) == _L("vt ")){						
-						contador = 0;
-						//copia los vertices temporalmente
-						GLbyte* temUVs = new GLbyte[textura*2];
-						for(int a=0; a < textura*2; a++){
-							temUVs[a] = ListUVs[a];
-						}
-						TLex lex(line16->Des().Mid(3));  // Inicializa TLex con la subcadena a partir del tercer carácter
-						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
-						while (!lex.Eos() && contador < 2) {							
-							TPtrC currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador
-   							TLex testLex(currentString); // Crear un nuevo objeto TLex para la prueba
-							
-							TReal number = 0.0;
-							TInt err = testLex.Val(number, '.');
-							if (err == KErrNone) {		
-								// Invertir coordenadas X multiplicando por -1
-								if (contador == 0) {
-									number = -number+1;
-								}					
-								number = number * 255.0 - 128.0;
-								if (number > 127.0){number = 127.0;}
-								else if (number < -128.0){number = -128.0;}
-								GLbyte glNumber = static_cast<GLbyte>(number); // Conversión a GLbyte
-								temUVs[textura*2+contador] = glNumber;
-
-								/*HBufC* noteBuf = HBufC::NewLC(100);
-								_LIT(KFormatString, "tex: %d c: %d st: %S TReal: %f GLbyte %d");
-								noteBuf->Des().Format(KFormatString, textura+1, contador, &currentString, number, temUVs[textura*2+contador]);
-								DialogAlert(noteBuf);*/
-							}
-							else {
-								temUVs[textura*2+contador] = 0;
-							}
-							contador++;
-							lex.SkipSpace();
-						}
+					TLex lex(line16->Des().Mid(2));  // Inicializa TLex con la subcadena a partir del tercer carácter
+					// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
+					while (!lex.Eos() && contador < 8) {							
+						TPtrC currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador						
+						TLex testLex(currentString);// Crear un nuevo objeto TLex para la prueba
 						
-						delete[] ListUVs;
-						ListUVs = temUVs;
-
-						/*TBuf<128> unicodeLine;  // Buffer para almacenar la versión Unicode de 'line'
-						unicodeLine.Copy(line);
-						HBufC* noteBuf = HBufC::NewLC(100);
-						_LIT(KFormatString, "tex: %d st: %S UV: %d, %d");
-						noteBuf->Des().Format(KFormatString, textura+1, &unicodeLine, ListUVs[textura*2], ListUVs[textura*2+1]);
-						DialogAlert(noteBuf);*/
-
-						textura++;
-					}
-					//las caras
-					else if (line16->Left(2) == _L("f ")){
-						contador = 0;
-						TInt conTBarras = 0;
-						//copia los vertices temporalmente
-						TInt* temCaras = new TInt[(caras+1)*9];
-						for(TInt a=0; a < caras*9; a++){
-							temCaras[a] = ListCaras[a];
-						}
-
-						TLex lex(line16->Des().Mid(2));  // Inicializa TLex con la subcadena a partir del tercer carácter
-
-						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
-						while (!lex.Eos() && contador < 3) {				
-							TPtrC currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador
-
-							TInt startPos = 0; // Posición inicial
-							TInt tokenLength = 0; // Longitud del token
-							conTBarras = 0;
-
-							// Recorre la cadena hasta encontrar el final
-							while (startPos < currentString.Length()) {
-								// Busca la posición de la siguiente barra diagonal
-								TInt nextSlashPos = currentString.Mid(startPos).Locate('/');
-
-								// Si no se encuentra una barra diagonal, asume que es el último token
-								if (nextSlashPos == KErrNotFound) {
-									tokenLength = currentString.Length() - startPos;
-								} else {
-									tokenLength = nextSlashPos; // Longitud del token hasta la barra diagonal
-								}
-
-								// Extrae el token utilizando la posición y longitud calculadas
-								TPtrC token = currentString.Mid(startPos, tokenLength);
-								TLex testLex(token); // Crear un nuevo objeto TLex para la prueba
-
-								// Convertir el string en un número TInt
-								TInt number = 0;
-								TInt err = testLex.Val(number);
-								if (err == KErrNone && conTBarras < 3) {
-									temCaras[caras*9+contador*3+conTBarras] = number-1;
-								}
-
-								// Actualiza la posición inicial para el próximo token
-								startPos += tokenLength + 1; // Suma 1 para omitir la barra diagonal
-
-								/*HBufC* noteBuf = HBufC::NewLC(100);
-								_LIT(KFormatString, "f: %d ct: %d st: %S num: %d");
-								noteBuf->Des().Format(KFormatString, contador, conTBarras, &currentString, temCaras[caras*9+contador*3+conTBarras]);
-								DialogAlert(noteBuf);*/
-
-								conTBarras++;
-							}	
+						// Convertir el string en un número TInt
+						TReal number = 0.0;
+						TInt err = testLex.Val(number, '.');
+						if (err == KErrNone && contador < 3) {
+							number = number*1000;								
+							GLshort glNumber = static_cast<GLshort>(number); // Conversión a GLbyte
+							temVertices[vertices*3+contador] = glNumber;
 
 							/*HBufC* noteBuf = HBufC::NewLC(100);
-							_LIT(KFormatString, "f: %d st: %S v: %d n: %d uv: %d");
-							noteBuf->Des().Format(KFormatString, (contador+1), &currentString, temCaras[caras*9+contador*3+0]+1, temCaras[caras*9+contador*3+1]+1, temCaras[caras*9+contador*3+2]+1);
-							DialogAlert(noteBuf);*/					
-
-							lex.SkipSpace();
-							contador++;
+							_LIT(KFormatString, "vertice: %d-%d Valor: %d");
+							noteBuf->Des().Format(KFormatString, vertices+1, contador+1, temVertices[vertices*3+contador]);
+							DialogAlert(noteBuf);*/
 						}
+						else {
+							temVertices[vertices*3+contador] = 0;
+						}
+
+						// Avanzar al siguiente "string" que no sea espacio en blanco
+						lex.SkipSpace();
+
+						// Incrementar el contador para llevar la cuenta de los strings procesados
+						contador++;
+					}
+					delete[] ListVertices;
+					ListVertices = temVertices;
+					vertices++;
+				}
+				//orientacion de las normales
+				else if (line16->Left(3) == _L("vn ")){
+					contador = 0;
+					//copia los vertices temporalmente
+					GLbyte* temNormales = new GLbyte[normales*3];
+					for(TInt a=0; a < normales*3; a++){
+						temNormales[a] = ListNormals[a];
+					}
+
+					TLex lex(line16->Des().Mid(3));  // Inicializa TLex con la subcadena a partir del tercer carácter
+
+					// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
+					while (!lex.Eos() && contador < 3) {							
+						TPtrC currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador
+						TLex testLex(currentString); // Crear un nuevo objeto TLex para la prueba
 						
-						delete[] ListCaras;
-						ListCaras = temCaras;
+						TReal number = 0.0;
+						TInt err = testLex.Val(number, '.');
+						if (err == KErrNone) {
+							number = ((number +1)/2)* 255.0 - 128.0;
+							if (number > 127.0){number = 127.0;}
+							else if (number < -128.0){number = -128.0;}
+							GLbyte glNumber = static_cast<GLbyte>(number); // Conversión a GLbyte
+							temNormales[normales*3+contador] = glNumber;
+						}
+						else {
+							temNormales[normales*3+contador] = 0;
+						}
+						lex.SkipSpace();
+						contador++;
+					}						
+					delete[] ListNormals;
+					ListNormals = temNormales;
+					normales++;
+				}
+				//coordenadas UV para texturas
+				else if (line16->Left(3) == _L("vt ")){						
+					contador = 0;
+					//copia los vertices temporalmente
+					GLbyte* temUVs = new GLbyte[textura*2];
+					for(int a=0; a < textura*2; a++){
+						temUVs[a] = ListUVs[a];
+					}
+					TLex lex(line16->Des().Mid(3));  // Inicializa TLex con la subcadena a partir del tercer carácter
+					// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
+					while (!lex.Eos() && contador < 2) {							
+						TPtrC currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador
+						TLex testLex(currentString); // Crear un nuevo objeto TLex para la prueba
+						
+						TReal number = 0.0;
+						TInt err = testLex.Val(number, '.');
+						if (err == KErrNone) {		
+							// Invertir coordenadas X multiplicando por -1
+							if (contador == 0) {
+								number = -number+1;
+							}					
+							number = number * 255.0 - 128.0;
+							if (number > 127.0){number = 127.0;}
+							else if (number < -128.0){number = -128.0;}
+							GLbyte glNumber = static_cast<GLbyte>(number); // Conversión a GLbyte
+							temUVs[textura*2+contador] = glNumber;
+
+							/*HBufC* noteBuf = HBufC::NewLC(100);
+							_LIT(KFormatString, "tex: %d c: %d st: %S TReal: %f GLbyte %d");
+							noteBuf->Des().Format(KFormatString, textura+1, contador, &currentString, number, temUVs[textura*2+contador]);
+							DialogAlert(noteBuf);*/
+						}
+						else {
+							temUVs[textura*2+contador] = 0;
+						}
+						contador++;
+						lex.SkipSpace();
+					}
+					
+					delete[] ListUVs;
+					ListUVs = temUVs;
+
+					/*TBuf<128> unicodeLine;  // Buffer para almacenar la versión Unicode de 'line'
+					unicodeLine.Copy(line);
+					HBufC* noteBuf = HBufC::NewLC(100);
+					_LIT(KFormatString, "tex: %d st: %S UV: %d, %d");
+					noteBuf->Des().Format(KFormatString, textura+1, &unicodeLine, ListUVs[textura*2], ListUVs[textura*2+1]);
+					DialogAlert(noteBuf);*/
+
+					textura++;
+				}
+				//las caras
+				else if (line16->Left(2) == _L("f ")){
+					contador = 0;
+					TInt conTBarras = 0;
+					//copia los vertices temporalmente
+					TInt* temCaras = new TInt[(caras+1)*9];
+					for(TInt a=0; a < caras*9; a++){
+						temCaras[a] = ListCaras[a];
+					}
+
+					TLex lex(line16->Des().Mid(2));  // Inicializa TLex con la subcadena a partir del tercer carácter
+
+					// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
+					while (!lex.Eos() && contador < 3) {				
+						TPtrC currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador
+
+						TInt startPos = 0; // Posición inicial
+						TInt tokenLength = 0; // Longitud del token
+						conTBarras = 0;
+
+						// Recorre la cadena hasta encontrar el final
+						while (startPos < currentString.Length()) {
+							// Busca la posición de la siguiente barra diagonal
+							TInt nextSlashPos = currentString.Mid(startPos).Locate('/');
+
+							// Si no se encuentra una barra diagonal, asume que es el último token
+							if (nextSlashPos == KErrNotFound) {
+								tokenLength = currentString.Length() - startPos;
+							} else {
+								tokenLength = nextSlashPos; // Longitud del token hasta la barra diagonal
+							}
+
+							// Extrae el token utilizando la posición y longitud calculadas
+							TPtrC token = currentString.Mid(startPos, tokenLength);
+							TLex testLex(token); // Crear un nuevo objeto TLex para la prueba
+
+							// Convertir el string en un número TInt
+							TInt number = 0;
+							TInt err = testLex.Val(number);
+							if (err == KErrNone && conTBarras < 3) {
+								temCaras[caras*9+contador*3+conTBarras] = number-1;
+							}
+
+							// Actualiza la posición inicial para el próximo token
+							startPos += tokenLength + 1; // Suma 1 para omitir la barra diagonal
+
+							/*HBufC* noteBuf = HBufC::NewLC(100);
+							_LIT(KFormatString, "f: %d ct: %d st: %S num: %d");
+							noteBuf->Des().Format(KFormatString, contador, conTBarras, &currentString, temCaras[caras*9+contador*3+conTBarras]);
+							DialogAlert(noteBuf);*/
+
+							conTBarras++;
+						}	
 
 						/*HBufC* noteBuf = HBufC::NewLC(100);
-						_LIT(KFormatString, "face: %d v: %d, %d, %d");
-						noteBuf->Des().Format(KFormatString, caras+1, ListCaras[caras*9], ListCaras[caras*9+3], ListCaras[caras*9+6]);
-						DialogAlert(noteBuf);*/						
-						caras++;
+						_LIT(KFormatString, "f: %d st: %S v: %d n: %d uv: %d");
+						noteBuf->Des().Format(KFormatString, (contador+1), &currentString, temCaras[caras*9+contador*3+0]+1, temCaras[caras*9+contador*3+1]+1, temCaras[caras*9+contador*3+2]+1);
+						DialogAlert(noteBuf);*/					
+
+						lex.SkipSpace();
+						contador++;
 					}
+					
+					delete[] ListCaras;
+					ListCaras = temCaras;
 
-					// Eliminar la parte de la línea ya procesada y el carácter de salto de línea
-					lineBuf.Delete(0, pos + 1);
-
-					// Eliminar también los espacios en blanco iniciales
-					lineBuf.TrimLeft();
-				}	
-
-				/*if (caras > 1){
-					HBufC* noteBuf = HBufC::NewLC(100);
-					_LIT(KFormatString, "v: %d, %d, %d, %d, %d, %d");
-					noteBuf->Des().Format(KFormatString, ListCaras[0]+1, ListCaras[3]+1, ListCaras[6]+1, ListCaras[9]+1, ListCaras[12]+1, ListCaras[15]+1);
-					DialogAlert(noteBuf);
-				}*/				
-
-				// Almacenar el contenido restante de lineBuf en tempBuf para la próxima iteración
-				tempBuf.Copy(lineBuf);
-
-				// Verificar si quedan más caracteres en la línea actual
-				continuarLeyendo = (lineBuf.Length() > 0);   
-			}
-
-			/*HBufC* noteBuf = HBufC::NewLC(100);
-			_LIT(KFormatString, "v: %d, %d, %d, %d, %d, %d");
-			noteBuf->Des().Format(KFormatString, ListCaras[0]+1, ListCaras[3]+1, ListCaras[6]+1, ListCaras[9]+1, ListCaras[12]+1, ListCaras[15]+1);
-			DialogAlert(noteBuf);*/
-
-			// cuantos vertices tiene
-			/*HBufC* noteBuf = HBufC::NewLC(75); //TInt::Length(obj.vertexGroupSize)
-			_LIT(KFormatString, "Vertices: %d Caras: %d Normales %d UVs %d");
-			noteBuf->Des().Format(KFormatString, vertices, caras, normales, textura);
-			DialogAlert(noteBuf);
-			//Mensaje(noteBuf);*/
-
-            // Cerrar el archivo
-            rFile.Close();
-
-			//liberar memoria			
-			CleanupStack::PopAndDestroy(&rFile);
-			CleanupStack::PopAndDestroy(&fsSession);
-
-			obj.vertexSize = vertices*3;
-			obj.normalsSize = vertices*3;
-			obj.facesSize = caras*3;
-			obj.edgesSize = 1*6;//caras*6;
-			obj.uvSize = vertices*2; //UV  	
-			obj.texturaID = 1; //defecto
-			obj.scaleX = 65000;
-			obj.scaleY = 65000;
-			obj.scaleZ = 65000;
-
-			obj.edges = new GLushort[obj.edgesSize];
-			obj.normals = new GLbyte[vertices*3];
-			obj.vertex = new GLshort[obj.vertexSize];
-			obj.uv = new GLbyte[obj.uvSize];
-			obj.faces = new GLushort[obj.facesSize];
-			
-			for(TInt v=0; v < obj.vertexSize; v++){
-				obj.vertex[v] = ListVertices[v];
-				/*HBufC* noteBuf = HBufC::NewLC(100);
-				_LIT(KFormatString, "vertice %d, valor: %d");
-				noteBuf->Des().Format(KFormatString, v+1, ListVertices[v]);
-				DialogAlert(noteBuf);*/
-			}
-			for(TInt a=0; a < caras; a++){
-				for(TInt f=0; f < 3; f++){
-					obj.faces[a*3+f] = ListCaras[a*9+f*3];
-					/*for(TInt v=0; v < 3; v++){
-						//a*9 es que ListCaras tiene 9 valores por cara, 3 vertices, 3 normales y 3 UV
-						//f*3 es para ir por las distintas "/" 1/1/1
-						//obj.vertex[ListCaras[a*9+f*3]*3+v] = ListVertices[ListCaras[a*9+f*3]*3+v];
-						HBufC* noteBuf = HBufC::NewLC(100);
-						_LIT(KFormatString, "face %d v%d-%d: %d valor: %d");
-						noteBuf->Des().Format(KFormatString, a+1, f+1, v+1, ListCaras[a*9+f*3]+1, ListVertices[ListCaras[a*9+f*3]*3+v]);
-						DialogAlert(noteBuf);
-					}*/
 					/*HBufC* noteBuf = HBufC::NewLC(100);
-					_LIT(KFormatString, "face %d v%d: %d, Vt: %d %d %d");
-					noteBuf->Des().Format(KFormatString, a+1, f+1, ListCaras[a*9+f*3]+1, ListVertices[ListCaras[a*9+f*3]+0],ListVertices[ListCaras[a*9+f*3]+1],ListVertices[ListCaras[a*9+f*3]+2]);
-					DialogAlert(noteBuf);*/
+					_LIT(KFormatString, "face: %d v: %d, %d, %d");
+					noteBuf->Des().Format(KFormatString, caras+1, ListCaras[caras*9]+1, ListCaras[caras*9+3]+1, ListCaras[caras*9+6]+1);
+					DialogAlert(noteBuf);	*/				
+					caras++;
+				}
 
-					for(TInt uv=0; uv < 2; uv++){
-						obj.uv[ListCaras[a*9+f*3]*2+uv] = ListUVs[ListCaras[a*9+f*3+1]*2+uv];
-					}
-					/*HBufC* noteBuf = HBufC::NewLC(100);
-					_LIT(KFormatString, "face %d v%d: %d, UV: %d %d");
-					noteBuf->Des().Format(KFormatString, a+1, f+1, ListCaras[a*9+f*3]+1, obj.uv[ListCaras[a*9+f*3]*2], obj.uv[ListCaras[a*9+f*3]*2+1]);
-					DialogAlert(noteBuf);*/
+				// Eliminar la parte de la línea ya procesada y el carácter de salto de línea
+				lineBuf.Delete(0, pos + 1);
 
-					for(TInt vn=0; vn < 3; vn++){
-						obj.normals[ListCaras[a*9+f*3]*3+vn] = ListNormals[ListCaras[a*9+f*3+1]*3+vn];
-					}
-					/*HBufC* noteBuf = HBufC::NewLC(100);
-					_LIT(KFormatString, "face %d v%d: %d, VN: %d %d %d");
-					noteBuf->Des().Format(KFormatString, a+1, f+1, ListCaras[a*9+f*3]+1, obj.uv[ListCaras[a*9+f*3]*3], obj.uv[ListCaras[a*9+f*3]*3+1], obj.uv[ListCaras[a*9+f*3]*3+2]);
-					DialogAlert(noteBuf);*/
-				}			
+				// Eliminar también los espacios en blanco iniciales
+				lineBuf.TrimLeft();
 			}	
 
-			//libero memoria		
-			delete[] ListVertices;	
-			delete[] ListCaras;
-			delete[] ListNormals;
-			delete[] ListUVs;
-			
-			Objetos.Append(obj);
-			objSelect = Objetos.Count()-1;
-			Objetos[objSelect].AgruparVertices();
-			Objetos[objSelect].RecalcularBordes();
+			/*if (caras > 1){
+				HBufC* noteBuf = HBufC::NewLC(100);
+				_LIT(KFormatString, "v: %d, %d, %d, %d, %d, %d");
+				noteBuf->Des().Format(KFormatString, ListCaras[0]+1, ListCaras[3]+1, ListCaras[6]+1, ListCaras[9]+1, ListCaras[12]+1, ListCaras[15]+1);
+				DialogAlert(noteBuf);
+			}*/				
 
-			redibujar = true;
+			// Almacenar el contenido restante de lineBuf en tempBuf para la próxima iteración
+			tempBuf.Copy(lineBuf);
+
+			// Verificar si quedan más caracteres en la línea actual
+			continuarLeyendo = (lineBuf.Length() > 0);   
 		}
+
+		/*HBufC* noteBuf = HBufC::NewLC(100);
+		_LIT(KFormatString, "v: %d, %d, %d, %d, %d, %d");
+		noteBuf->Des().Format(KFormatString, ListCaras[0]+1, ListCaras[3]+1, ListCaras[6]+1, ListCaras[9]+1, ListCaras[12]+1, ListCaras[15]+1);
+		DialogAlert(noteBuf);*/
+
+		/*HBufC* noteBuf = HBufC::NewLC(75); //TInt::Length(obj.vertexGroupSize)
+		_LIT(KFormatString, "Termino de leer");
+		noteBuf->Des().Format(KFormatString);
+		DialogAlert(noteBuf);*/
+
+		// cuantos vertices tiene
+		/*HBufC* noteBuf = HBufC::NewLC(100); //TInt::Length(obj.vertexGroupSize)
+		_LIT(KFormatString, "Vertices: %d Caras: %d Normales %d UVs %d");
+		noteBuf->Des().Format(KFormatString, vertices, caras, normales, textura);
+		DialogAlert(noteBuf);
+		//Mensaje(noteBuf);*/
+
+		// Cerrar el archivo
+		rFile.Close();
+
+		//liberar memoria			
+		CleanupStack::PopAndDestroy(&rFile);
+		CleanupStack::PopAndDestroy(&fsSession);
+
+		obj.vertexSize = vertices*3;
+		obj.normalsSize = vertices*3;
+		obj.facesSize = caras*3;
+		obj.edgesSize = caras*6;
+		obj.uvSize = vertices*2; //UV  	
+		obj.texturaID = 1; //defecto
+		obj.scaleX = 65000;
+		obj.scaleY = 65000;
+		obj.scaleZ = 65000;
+
+		obj.edges = new GLushort[obj.edgesSize];
+		obj.normals = new GLbyte[obj.normalsSize];
+		obj.vertex = new GLshort[obj.vertexSize];
+		obj.uv = new GLbyte[obj.uvSize];
+		obj.faces = new GLushort[obj.facesSize];
+		
+		for(TInt v=0; v < obj.vertexSize; v++){
+			obj.vertex[v] = ListVertices[v];
+		}
+		for(TInt a=0; a < caras; a++){
+			for(TInt f=0; f < 3; f++){
+				TInt indice = a*9+f*3;
+				obj.faces[a*3+f] = ListCaras[indice];
+				/*for(TInt v=0; v < 3; v++){
+					//a*9 es que ListCaras tiene 9 valores por cara, 3 vertices, 3 normales y 3 UV
+					//f*3 es para ir por las distintas "/" 1/1/1
+					//obj.vertex[ListCaras[a*9+f*3]*3+v] = ListVertices[ListCaras[a*9+f*3]*3+v];
+					HBufC* noteBuf = HBufC::NewLC(100);
+					_LIT(KFormatString, "face %d v%d-%d: %d valor: %d");
+					noteBuf->Des().Format(KFormatString, a+1, f+1, v+1, ListCaras[a*9+f*3]+1, ListVertices[ListCaras[a*9+f*3]*3+v]);
+					DialogAlert(noteBuf);
+				}*/
+				/*HBufC* noteBuf = HBufC::NewLC(100);
+				_LIT(KFormatString, "face %d v%d: %d, Vt: %d %d %d");
+				noteBuf->Des().Format(KFormatString, a+1, f+1, ListCaras[a*9+f*3]+1, ListVertices[ListCaras[a*9+f*3]+0],ListVertices[ListCaras[a*9+f*3]+1],ListVertices[ListCaras[a*9+f*3]+2]);
+				DialogAlert(noteBuf);*/
+
+				for(TInt uv=0; uv < 2; uv++){
+					obj.uv[ListCaras[indice]*2+uv] = ListUVs[ListCaras[indice+1]*2+uv];
+				}
+				/*HBufC* noteBuf = HBufC::NewLC(100);
+				_LIT(KFormatString, "face %d v%d: %d, UV: %d %d");
+				noteBuf->Des().Format(KFormatString, a+1, f+1, ListCaras[a*9+f*3]+1, obj.uv[ListCaras[a*9+f*3]*2], obj.uv[ListCaras[a*9+f*3]*2+1]);
+				DialogAlert(noteBuf);*/
+
+				for(TInt vn=0; vn < 3; vn++){
+					obj.normals[ListCaras[indice]*3+vn] = ListNormals[ListCaras[indice+1]*3+vn];
+				}
+				/*HBufC* noteBuf = HBufC::NewLC(100);
+				_LIT(KFormatString, "face %d v%d: %d, VN: %d %d %d");
+				noteBuf->Des().Format(KFormatString, a+1, f+1, ListCaras[a*9+f*3]+1, obj.uv[ListCaras[a*9+f*3]*3], obj.uv[ListCaras[a*9+f*3]*3+1], obj.uv[ListCaras[a*9+f*3]*3+2]);
+				DialogAlert(noteBuf);*/
+			}			
+		}	
+
+		//libero memoria		
+		delete[] ListVertices;	
+		delete[] ListCaras;
+		delete[] ListNormals;
+		delete[] ListUVs;
+		
+		Objetos.Append(obj);
+		objSelect = Objetos.Count()-1;
+		Objetos[objSelect].AgruparVertices();
+		Objetos[objSelect].RecalcularBordes();
+
+		redibujar = true;
     }	
     else {
     	_LIT(KFormatString, "Error al leer el Archivo");

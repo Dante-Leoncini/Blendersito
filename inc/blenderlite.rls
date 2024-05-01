@@ -20,11 +20,9 @@ rls_string STRING_r_blenderlite_lamp_off     "Turn lamp off"
 rls_string STRING_r_blenderlite_spot_on      "Turn spot on"
 rls_string STRING_r_blenderlite_spot_off     "Turn spot off"
 
-rls_string STRING_r_blenderlite_crearObjetos   "Crear Objetos"
+rls_string STRING_r_blenderlite_add            "Add"
 rls_string STRING_r_blenderlite_crearCubo      "Crear Cubo"
 rls_string STRING_r_blenderlite_crearVertice   "Crear Vertice"
-rls_string STRING_r_blenderlite_crearClaude    "Crear Claude"
-rls_string STRING_r_blenderlite_crearMarcus    "Crear Marcus"
 rls_string STRING_r_blenderlite_crearSuzanne   "Crear Suzanne"
 rls_string STRING_r_blenderlite_crearLuz       "Crear Luz"
 rls_string STRING_r_blenderlite_crearCamara    "Crear Camara"
@@ -80,7 +78,11 @@ rls_string STRING_r_blenderlite_OrigenToGeometry   "Origen a la Geometria"
 rls_string STRING_r_blenderlite_OrigenToSelect   "Origen a la Seleccion"
 rls_string STRING_r_blenderlite_OrigenToCursor   "Origen al cursor 3D"
 
+rls_string STRING_r_blenderlite_widescreen_on    "Pantalla Ancha on"
+rls_string STRING_r_blenderlite_widescreen_off   "Pantalla Ancha off"
 
+// Progress Note Label
+rls_string STRING_r_blenderlite_progress_singular  "Loading\nPlease wait..."
 
 rls_string STRING_r_blenderlite_newTexture   "Nueva Textura"
 rls_string STRING_r_blenderlite_ImportOBJ   "Import Wavefront (.obj)"

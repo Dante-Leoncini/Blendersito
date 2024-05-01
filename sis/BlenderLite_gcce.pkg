@@ -19,14 +19,10 @@
 "..\..\..\..\epoc32\data\Z\private\10003a3f\import\apps\blenderlite_reg.RSC" -"!:\private\10003a3f\import\apps\blenderlite_reg.RSC"
 "..\..\..\..\epoc32\data\z\resource\apps\blenderlite_icon.mif"  			        -"!:\resource\apps\blenderlite_icon.mif"
 
-"..\inc\texturas\marcus.jpg"        -"!:\private\A00D021D\marcus.jpg"
-"..\inc\texturas\claude.jpg"   -"!:\private\A00D021D\claude.jpg"
 "..\inc\texturas\origen.png"   -"!:\private\A00D021D\origen.png"
-"..\inc\texturas\color_grid.jpg"   -"!:\private\A00D021D\color_grid.jpg"
+"..\inc\texturas\color_grid.png"   -"!:\private\A00D021D\color_grid.png"
 "..\inc\texturas\lamp.png"   -"!:\private\A00D021D\lamp.png"
 "..\inc\texturas\cursor.png"   -"!:\private\A00D021D\cursor.png"
-
-
 
 ;required for application to be covered by backup/restore facility 
 "backup_registration.xml"						                                    -"!:\private\A00D021D\backup_registration.xml"

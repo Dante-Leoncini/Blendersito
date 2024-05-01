@@ -1,5 +1,12 @@
+//constantes
+const TInt CuboVertexSize = 24 * 3;
+const TInt CuboNormalsSize = 24 * 3;
+const TInt CuboFacesSize = 12 * 3;
+const TInt CuboEdgesSize = 12 * 6;
+const TInt CuboUvSize = 24 * 2;
+
 /* Define normals for the cube */
-GLbyte CuboNormals[24 * 3] = {
+static const GLbyte CuboNormals[CuboNormalsSize] = {
     /* top */
     0,0,1,
     0,0,1,
@@ -39,7 +46,7 @@ GLbyte CuboNormals[24 * 3] = {
 
 /* Define indices for drawing the triangles ( 5 sides of the cube )
    Nasa Hubble texture is drawn on these sides. */
-GLushort CuboTriangles[12 * 3] = {
+static const GLushort CuboTriangles[CuboFacesSize] = {
     /* top */
      1,0,3,
      1,3,2,
@@ -67,17 +74,9 @@ GLushort CuboTriangles[12 * 3] = {
 
 /* Macro for changing the input texture coordinate values from
    GLubyte [0,255] to GLbyte [-128,127]. See more info below. */
-#define tex(u,v) (GLbyte)( (u) - 128 ) , (GLbyte)( (v) - 128 )
+//#define tex(u,v) (GLbyte)( (u) - 128 ) , (GLbyte)( (v) - 128 )
 
-/*class CPrimitiva {
-    public:
-        //GLshort* CuboVertices(TInt x, TInt y, TInt z);
-        GLushort* CuboFaces();
-        GLbyte* CuboNormals();
-        GLbyte* CuboUV();
-};*/
-
-GLshort CuboVertices[24 * 3] = {
+static const GLshort CuboVertices[CuboVertexSize] = {
 	/* top */
 	-2000,  2000,  2000,
 	2000,  2000,  2000,
@@ -115,40 +114,40 @@ GLshort CuboVertices[24 * 3] = {
 	-2000, -2000, -2000
 };
 
-GLbyte CuboUV[24 * 2] = {
+static const GLbyte CuboUV[CuboUvSize] = {
 	/* top, whole texture nasa_hubble.h */
-	tex(0,0),
-	tex(255,0),
-	tex(255,255),
-	tex(0,255),
+	-128,-128,
+	127,-128,
+	127,127,
+	-128,127,
 
 	/* front, spiral with tail */
-	tex(0,255),
-	tex(127,255),
-	tex(127,127),
-	tex(0,127),
+	-128,127,
+	127,127,
+	127,127,
+	-128,127,
 
 	/* right, red nebulae */
-	tex(127,255),
-	tex(255,255),
-	tex(255,127),
-	tex(127,127),
+	127,127,
+	127,127,
+	127,127,
+	127,127,
 
 	/* left, plasma cloud */
-	tex(0,127),
-	tex(127,127),
-	tex(127,0),
-	tex(0,0),
+	-128,127,
+	127,127,
+	127,-128,
+	-128,-128,
 
 	/* back, 2 spirals */
-	tex(127,127),
-	tex(255,127),
-	tex(255,0),
-	tex(127,0),
+	127,127,
+	127,127,
+	127,-128,
+	127,-128,
 
 	/* bottom, whole texture ogles.jpg */
-	tex(255,255),
-	tex(255,0),
-	tex(0,0),
-	tex(0,255)
+	127,127,
+	127,-128,
+	-128,-128,
+	-128,127
 };

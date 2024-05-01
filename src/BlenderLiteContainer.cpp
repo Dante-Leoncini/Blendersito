@@ -5,12 +5,27 @@
  * ==============================================================================
  */
 
+#include <eikprogi.h>
+#include <aknnotecontrol.h>
+
 // INCLUDE FILES
+#include <eiklabel.h>
+#include <e32math.h>
+#include <aknglobalnote.h>
+#include <aknwaitdialog.h>
+#include <aknexnote.rsg>
+#include <eikprogi.h>
+#include <aknnotecontrol.h>
+
 #include "BlenderLiteContainer.h"
+#include "BlenderLiteAppUi.h"
+#include "blenderlite.hrh"
+
+// CONSTANTS
+#include "BlenderLiteConstants.h"
 
 
 // ================= MEMBER FUNCTIONS =======================
-
 // ---------------------------------------------------------
 // CBlenderLiteContainer::ConstructL
 // Symbian 2nd phase constructor
@@ -103,6 +118,15 @@ void CBlenderLiteContainer::ConstructL(const TRect& /*aRect*/){
         EGL_NONE
     };
 
+    const EGLint attrib_list_sinfsaa[] = {
+        EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+        EGL_BUFFER_SIZE, BufferSize,
+        EGL_DEPTH_SIZE, 16,
+        EGL_SAMPLE_BUFFERS, 0,  // Desactiva el antialiasing
+        EGL_SAMPLES, 0,         // Desactiva el antialiasing
+        EGL_NONE
+    };
+
     // Define properties for requesting a non-antialiased window surface
     const EGLint attrib_list[] = {
 				EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
@@ -112,6 +136,7 @@ void CBlenderLiteContainer::ConstructL(const TRect& /*aRect*/){
     };
 
     // Choose an EGLConfig that best matches to the properties in attrib_list_fsaa
+    //if ( eglChooseConfig( iEglDisplay, attrib_list_fsaa, configList, configSize, &numOfConfigs ) == EGL_FALSE )
     if ( eglChooseConfig( iEglDisplay, attrib_list_fsaa, configList, configSize, &numOfConfigs ) == EGL_FALSE )
         {
         _LIT( KChooseConfigFailed, "eglChooseConfig failed" );
@@ -236,6 +261,23 @@ void CBlenderLiteContainer::SizeChanged(){
         }
     }
 
+//cambia entre WideScreen a pantalla normal
+TBool widescreen = false;
+void CBlenderLiteContainer::SetWidescreen(){
+    if( iOpenGlInitialized && iBlenderLite ){
+        TSize size;
+        size = this->Size();
+        if (widescreen){
+            widescreen = false;
+            iBlenderLite->iWidescreenEnabled = false;
+        }
+        else {
+            widescreen = true;
+            iBlenderLite->iWidescreenEnabled = true;
+        }
+        iBlenderLite->SetScreenSize( size.iWidth, size.iHeight, widescreen );
+    }
+}
 
 // ---------------------------------------------------------
 // CBlenderLiteContainer::HandleResourceChange(
@@ -336,6 +378,22 @@ int CBlenderLiteContainer::DrawCallBack( TAny* aInstance )
     return 0;
     }
 
+// -----------------------------------------------------------------------------
+// CAknExNoteContainer::DialogDismissedL()
+// Called when/if the dialog has been dismissed.
+// iIdle must be canceled when cancel button is pressed.
+// -----------------------------------------------------------------------------
+//
+void CBlenderLiteContainer::DialogDismissedL( TInt aButtonId )
+    {
+    // Check when pressing cancel button.
+    if ( aButtonId == -1 )
+        { 
+        delete iIdle;
+        iIdle = NULL;
+        }
+    }
+
 // ---------------------------------------------------------
 // CBlenderLiteContainer::HandleControlEventL(
 //     CCoeControl* aControl,TCoeEvent aEventType)
@@ -344,6 +402,140 @@ int CBlenderLiteContainer::DrawCallBack( TAny* aInstance )
 void CBlenderLiteContainer::HandleControlEventL(
     CCoeControl* /*aControl*/,TCoeEvent /*aEventType*/)
     {
+    }
+
+// -----------------------------------------------------------------------------
+// CAknExNoteContainer::ShowGeneralNoteL()
+// Show General Note
+// -----------------------------------------------------------------------------
+//
+void CBlenderLiteContainer::ShowGeneralNoteL( TInt aResourceId, 
+                                            const CAknNoteDialog::
+                                            TTimeout aTimeout, 
+                                            const CAknNoteDialog::TTone aTone )
+    {
+    // Create CAknNoteDialog instance
+    CAknNoteDialog* dlg = new ( ELeave ) CAknNoteDialog( aTone, aTimeout );
+    
+    // Show the Dialog
+    dlg->ExecuteLD( aResourceId );
+}
+
+// -----------------------------------------------------------------------------
+// CAknExNoteContainer::ShowGeneralNoteL()
+// Show General Note
+// -----------------------------------------------------------------------------
+//
+void CBlenderLiteContainer::ShowGeneralNoteL( TInt aResourceId, 
+    TInt /* aControlId */, const CAknNoteDialog::TTimeout aTimeout,
+    const CAknNoteDialog::TTone aTone,TBool aPlural )
+    {
+
+    // Create CAknNoteDialog instance
+    CAknNoteDialog* dlg = new ( ELeave ) CAknNoteDialog( aTone, aTimeout );
+
+    dlg->PrepareLC( aResourceId );
+    dlg->SetTextPluralityL( aPlural );
+    
+    // Show the Dialog
+    dlg->RunLD();
+}
+
+// -----------------------------------------------------------------------------
+// CAknExNoteContainer::ShowShowNoteL()
+// Show Note.
+// -----------------------------------------------------------------------------
+//
+void CBlenderLiteContainer::ShowShowNoteL( TAknGlobalNoteType aType, 
+                                         TInt aResourceId )
+    {
+    //Allocate TBuf with constant length.
+    TBuf<KBlenderLiteTextBufLength> text( NULL );
+
+    // Reads a resource into a descriptor.
+    CEikonEnv::Static()->ReadResource( text, aResourceId );
+
+    TPtrC noteText( text );
+
+    // Create new CAknGlobalNote instance.
+    CAknGlobalNote* globalNote = CAknGlobalNote::NewL();
+
+    // Push CAknGlobalNote's pointer to CleanupStack
+    CleanupStack::PushL( globalNote );
+
+    iPermanentNoteId = globalNote->ShowNoteL( aType, noteText );
+
+    // Pop and Destroy CAknGlobalNote's pointer from CleanupStack
+    CleanupStack::PopAndDestroy();
+}
+
+// -----------------------------------------------------------------------------
+// CAknExNoteContainer::ShowProgressNoteUnderSingleProcessL()
+// Show ProgressNote Under Single Process.
+// -----------------------------------------------------------------------------
+//
+void CBlenderLiteContainer::ShowProgressNoteUnderSingleProcessL( 
+                                                          TInt aResourceId, 
+                                                          TInt /* aControlId */){ 
+    // Delete possible previous CAknProgressDialog.
+    delete iProgressDialog;
+
+    // Create new CAknProgressDialog.
+    iProgressDialog = new ( ELeave ) CAknProgressDialog( reinterpret_cast
+                                                         <CEikDialog**> 
+                                                         ( &iProgressDialog ) );
+    
+    iProgressDialog->SetCallback( this );
+    iProgressDialog->PrepareLC( aResourceId );
+    iProgressInfo = iProgressDialog->GetProgressInfoL();
+    iProgressInfo->SetFinalValue( KBlenderLiteProgressbarFinalValue );
+    iProgressDialog->RunLD();
+
+    delete iIdle;
+    iIdle = CIdle::NewL( CActive::EPriorityStandard );
+    TCallBack callback( CallbackIncrementProgressNoteL, this );
+    iIdle->Start( callback );
+}
+
+// -----------------------------------------------------------------------------
+// CAknExNoteContainer::CallbackIncrementProgressNoteL()
+// Just call UpdateProgressNote() function.
+// If return 1(ETrue), CIdle calls this again.
+// If retrun 0(EFalse), CIdle does not call this.
+// -----------------------------------------------------------------------------
+//
+TInt CBlenderLiteContainer::CallbackIncrementProgressNoteL( TAny* aThis )
+    {
+    return static_cast<CBlenderLiteContainer*>( aThis )->UpdateProgressNote();
+    }
+
+// -----------------------------------------------------------------------------
+// CAknExNoteContainer::UpdateProgressNote()
+// Updates ProgressNote
+// -----------------------------------------------------------------------------
+//
+TInt CBlenderLiteContainer::UpdateProgressNote()
+    {
+    TTime intervalTime;
+    intervalTime.HomeTime();
+    intervalTime += TTimeIntervalMicroSeconds( 50000 );
+    TTime currentTime;
+    currentTime.HomeTime();
+
+    while ( intervalTime > currentTime )
+        {
+        currentTime.HomeTime();
+        }
+
+    iProgressInfo->IncrementAndDraw( 1 );
+    if ( KBlenderLiteProgressbarFinalValue <= iProgressInfo->CurrentValue() )
+        {
+        iProgressDialog->ProcessFinishedL();
+        delete iProgressDialog;
+        iProgressDialog = NULL;
+        return 0;
+        }
+    return 1;
     }
 
 // End of File

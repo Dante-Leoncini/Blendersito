@@ -13,27 +13,27 @@ class Mesh { //clase Mesh
 		GLfloat rotX; GLfloat rotY; GLfloat rotZ;
 		GLfixed scaleX; GLfixed scaleY; GLfixed scaleZ;
 		TInt vertexSize;
+		TInt vertexGroupSize;
 		TInt normalsSize;
 		TInt facesSize;
 		TInt edgesSize;
 		TInt uvSize;
-		TInt interpolacion;
-		GLshort * vertex;
-		GLbyte * normals;
-		GLushort * faces;
-		RArray<GLushort> NewFaces;
-		GLushort * edges;
-		GLbyte * uv;
-		
+		TInt interpolacion;		
 		GLuint texturaID;
 		GLfloat diffuse[4];		
 		GLfloat specular[4];	
-		GLfloat emission[4];		
+		GLfloat emission[4];	
 
-		TInt vertexGroupSize;
+		GLshort* vertex;
+		GLbyte* normals;
+		GLushort* faces;
+		GLushort* edges;
+		GLbyte* uv;
 		GLushort* vertexGroup;
 		TInt* vertexGroupIndiceSize;
 		GLushort** vertexGroupIndice;
+		
+		RArray<GLushort> NewFaces;	
 		
 		void Mesh::RemoveVertex(TInt vertexToRemove){
 			vertexGroupSize--;
@@ -131,13 +131,18 @@ class Mesh { //clase Mesh
 					vertexGroupIndice[i][s] = newVertexGroupIndice[i][s];						
 				}
 			}		
-			delete[] newVertexGroup;
-			delete[] newVertexGroupIndice;	
-			delete[] newVertexGroupIndiceSize;	
+	
 			delete[] newVertex;
 			delete[] newNormals;
-			delete[] newUv;
+			delete[] newUv;	
+			delete[] newVertexGroup;
+			delete[] newVertexGroupIndiceSize;
+			for (TInt k = 0; k < vertexGroupSize; ++k) {
+				delete[] newVertexGroupIndice[k];
+			}
+			delete[] newVertexGroupIndice;
 		}
+
 		void Mesh::RemoveFaces(RArray<GLushort>& facesIndexToRemove, TInt vertexToRemove) {
 			GLushort * newFaces = new GLushort[facesSize - facesIndexToRemove.Count()*3];
 			TInt newSize = 0;
@@ -263,10 +268,16 @@ class Mesh { //clase Mesh
 					vertexGroupIndice[a][i] = TempVertexIndiceGroup[a][i];	
 				}
 			}	
+
+			// Liberar memoria de TempVertexPos, TempVertexIndice y TempVertexIndiceGroup
 			delete[] TempVertexPos;
 			delete[] TempVertexIndice;
+
+			// Liberar memoria de TempVertexIndiceGroup y sus elementos
+			for (TInt k = 0; k < vertexSize; ++k) {
+				delete[] TempVertexIndiceGroup[k];
+			}
 			delete[] TempVertexIndiceGroup;
-			delete[] TempVertexIndiceGroupSize;
 		}
 		
 		TBool Mesh::isDuplicateEdge(Edge* edges, TInt edgesSize, GLushort v1, GLushort v2) {

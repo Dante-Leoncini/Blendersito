@@ -63,17 +63,28 @@ void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
             aMenuPane->SetItemDimmed(EBlenderLiteOrigenSetOrigen, EFalse);
             aMenuPane->SetItemDimmed(EBlenderLiteSeleccionar, EFalse);
             aMenuPane->SetItemDimmed(EBlenderLiteEditarObjeto, ETrue);
-            aMenuPane->SetItemDimmed(EBlenderLiteCrearObjetos, ETrue);
+            aMenuPane->SetItemDimmed(EBlenderLiteAdd, ETrue);
             aMenuPane->SetItemDimmed(EBlenderLiteImportOBJ, ETrue);
+            aMenuPane->SetItemDimmed(EBlenderLiteWidescreen, ETrue);
             
         } else {
             aMenuPane->SetItemDimmed(EBlenderLiteOrigenSetOrigen, ETrue);
             aMenuPane->SetItemDimmed(EBlenderLiteSeleccionar, ETrue);
             aMenuPane->SetItemDimmed(EBlenderLiteEditarObjeto, EFalse);
-            aMenuPane->SetItemDimmed(EBlenderLiteCrearObjetos, EFalse);
+            aMenuPane->SetItemDimmed(EBlenderLiteAdd, EFalse);
             aMenuPane->SetItemDimmed(EBlenderLiteImportOBJ, EFalse);
+            aMenuPane->SetItemDimmed(EBlenderLiteWidescreen, EFalse);
         }
+        // Texto para setear la pantalla ancha
+        if ( iAppContainer->iBlenderLite->iWidescreenEnabled ){
+            aMenuPane->SetItemTextL( EBlenderLiteWidescreen, R_WIDESCREEN_OFF );
+            }
+        else {
+            aMenuPane->SetItemTextL( EBlenderLiteWidescreen, R_WIDESCREEN_ON  );
+        } 
     }
+    
+    
     // Item texts for the lighting menu.
     /*if ( aResourceId == R_BLENDERLITE_LIGHTING_MENU )
         {
@@ -276,17 +287,20 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             iAppContainer->iBlenderLite->ToggleSpot();
             break;
         //nuevos!!!
-        case EBlenderLiteCrearCubo:
-            iAppContainer->iBlenderLite->CrearObjeto(cubo);
-            break;  
-        case EBlenderLiteCrearClaude:
-            iAppContainer->iBlenderLite->CrearObjeto(claude);
+        case EBlenderLiteImportOBJ:
+            iAppContainer->iBlenderLite->ImportOBJ();
+            break; 
+        case EBlenderLiteWidescreen:
+            iAppContainer->SetWidescreen();
+            break;
+        case EBlenderLiteCrearCubo:            
+            iAppContainer->iBlenderLite->AddMesh(cubo);
             break;  
         case EBlenderLiteCrearSuzanne:
-            iAppContainer->iBlenderLite->CrearObjeto(suzanne);
+            iAppContainer->iBlenderLite->AddMesh(suzanne);
             break;  
         case EBlenderLiteCrearVertice:
-            iAppContainer->iBlenderLite->CrearObjeto(vertice);
+            iAppContainer->iBlenderLite->AddMesh(vertice);
             break;  
         case EBlenderLiteSetSpecular:
             iAppContainer->iBlenderLite->SetSpecular();
@@ -383,9 +397,6 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             break; 
         case EBlenderLiteModificadorScrew:
             iAppContainer->iBlenderLite->AddModificador(screw);
-            break; 
-        case EBlenderLiteImportOBJ:
-            iAppContainer->iBlenderLite->ImportOBJ();
             break; 
         case EBlenderLiteNewTexture:
             iAppContainer->iBlenderLite->NewTexture();

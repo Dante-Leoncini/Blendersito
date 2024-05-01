@@ -4,7 +4,7 @@
 #define SuzzaneFacesModel       4330
 
 /** Vertices for the Model object. */
-static const int SuzzaneVertexSize = 2210 * 3;
+static const TInt SuzzaneVertexSize = 2210 * 3;
 //TFixedArray<GLshort, 2210 * 3> SuzzaneVertex =[	
 static const GLshort SuzzaneVertex[SuzzaneVertexSize]={
     0, 1542, 2612,
@@ -2220,7 +2220,7 @@ static const GLshort SuzzaneVertex[SuzzaneVertexSize]={
 };
 
 /* Define normals for the cube */
-static const int SuzzaneNormalSize = 2210 * 3;
+static const TInt SuzzaneNormalSize = 2210 * 3;
 static const GLbyte SuzzaneNormal[SuzzaneNormalSize]={
     0,122,34,
     0,-8,127,
@@ -4435,7 +4435,7 @@ static const GLbyte SuzzaneNormal[SuzzaneNormalSize]={
 };
 
 /** Indices to the Model object vertices. */
-static const int SuzzaneFaceSize = 4330 * 3;
+static const TInt SuzzaneFaceSize = 4330 * 3;
 static const GLushort SuzzaneFace[SuzzaneFaceSize]={
     108,1611,511,
     512,513,1611,
@@ -8770,7 +8770,7 @@ static const GLushort SuzzaneFace[SuzzaneFaceSize]={
 };
 
 /* textura UV */
-static const int SuzzaneUVSize = 2308 * 2;
+static const TInt SuzzaneUVSize = 2308 * 2;
 static const GLbyte SuzzaneUV[SuzzaneUVSize] ={
     5,-29,
     5,-41,

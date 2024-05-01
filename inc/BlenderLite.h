@@ -99,10 +99,11 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void Cancelar( void );
         void Aceptar( void );
         
+        void dibujarUI();
         void guardarEstado( int indice );
         void ReestablecerEstado( int indice );
         void SetEje( int eje );     
-        void CrearObjeto( int modelo );
+        void AddMesh( int modelo );
         void SetTexture(); //int texturaID 
         void ActivarTextura();
         void SetInterpolation();
@@ -113,11 +114,13 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void SetEmission();
         void SetEditMode();
         void Extruir();
-        void SetPerspectiva( void );
+        void SetPerspectiva( TBool redibuja = true );
         void EnfocarObjeto();
         void Borrar();
         void changeSelect();
         void InfoObject(TInt opciones);
+        void SetSprite(GLshort ancho, GLshort alto, GLshort origenX, GLshort origenY, GLshort U, GLshort V, GLshort x, GLshort y);
+        void DibujarRectangulo(GLshort ancho, GLshort alto, GLshort x, GLshort y);
         void SetViewpoint(TInt opcion);
         void AddModificador(TInt opcion);
         void TecladoNumerico(TInt numero);
@@ -135,6 +138,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void Mensaje(HBufC* noteBuf);
         void MensajeError(HBufC* noteBuf);
         TBool DialogAlert(HBufC* noteBuf);
+        TBool DialogAlert(const TDesC& noteBuf);
         TInt DialogNumber( TInt valor, TInt min, TInt max, HBufC* noteBuf); //,TPtrC etiqueta
         void Tab();
         
@@ -159,6 +163,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
          * @param aHeight New height of the screen.
          */
         void SetScreenSize( TUint aWidth, TUint aHeight );
+        void SetScreenSize( TUint aWidth, TUint aHeight, TBool widescreen );
 
     protected: // New functions
 
@@ -185,6 +190,8 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         GLfloat sin( GLfloat aRad );
 
     public:  // Data
+        /** para el menu de la app */
+        TBool iWidescreenEnabled;
 
 		/**
 		 * Application states:
@@ -209,29 +216,31 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
 
     private:  // Data
 
-        	/** Texture manager that is used to load the used textures. */
-        	CTextureManager * iTextureManager;
-            /** Width of the screen */
-            TUint iScreenWidth;
-            /** Height of the screen */
-            TUint iScreenHeight;
-        	/** Texturas */
-        	TTexture iBaseColor;  	
-        	TTexture iOrigenTextura;
-        	TTexture iColorGridTextura;
-        	TTexture iMouseTextura;
-        	TTexture iLampTextura;
-            /** Particle coordinates */
-            GLfixed *iParticleCoords;
-            // Wait note dialog for indicating refresh operation
-            // of the List Model (owned)
-    		CAknWaitDialog* iWaitDialog;
+		/** Texture manager that is used to load the used textures. */
+		CTextureManager * iTextureManager;
+		/** Width of the screen */
+		TUint iScreenWidth;
+		/** Height of the screen */
+		TUint iScreenHeight;
+        //el alto de la pantalla dividida a la mitad
+        GLfloat iScreenHeightSplit;
+		/** Texturas */
+		TTexture iBaseColor;  	
+		TTexture iOrigenTextura;
+		TTexture iColorGridTextura;
+		TTexture iMouseTextura;
+		TTexture iLampTextura;
+		/** Particle coordinates */
+		GLfixed *iParticleCoords;
+		// Wait note dialog for indicating refresh operation
+		// of the List Model (owned)
+		CAknWaitDialog* iWaitDialog;
 
-            /**
-             * Input handler that maps keycodes to inputs and stores the current state
-             * for each key. Owned by the C#Name#Container.
-             */
-            CBlenderLiteInput* iInputHandler;
+		/**
+		 * Input handler that maps keycodes to inputs and stores the current state
+		 * for each key. Owned by the C#Name#Container.
+		 */
+		CBlenderLiteInput* iInputHandler;
     };
 
 #endif // BLENDERLITE_H
