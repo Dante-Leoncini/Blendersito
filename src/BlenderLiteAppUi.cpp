@@ -83,40 +83,51 @@ void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
             aMenuPane->SetItemTextL( EBlenderLiteWidescreen, R_WIDESCREEN_ON  );
         } 
     }
-    
-    
-    // Item texts for the lighting menu.
-    /*if ( aResourceId == R_BLENDERLITE_LIGHTING_MENU )
-        {
-        // Text for switching the lights on/off.
-        if ( iAppContainer->iBlenderLite->iLightingEnabled )
-            {
-            aMenuPane->SetItemTextL( EBlenderLiteLights, R_LIGHTS_OFF );
-            }
-        else
-            {
-            aMenuPane->SetItemTextL( EBlenderLiteLights, R_LIGHTS_ON  );
-            }
-
-        // Text for switching the lamp on/off.
-        if ( iAppContainer->iBlenderLite->iLampEnabled )
-            {
-            aMenuPane->SetItemTextL( EBlenderLiteLamp, R_LAMP_OFF );
-            }
-        else
-            {
-            aMenuPane->SetItemTextL( EBlenderLiteLamp, R_LAMP_ON );
-            }
-
-        // Text for switching the spot on/off.
-        if ( iAppContainer->iBlenderLite->iSpotEnabled )
-            {
-            aMenuPane->SetItemTextL( EBlenderLiteSpot, R_SPOT_OFF );
-            }
+    else if (aResourceId == R_VIEWPORT_OVERLEY_MENU ) {
+        if ( iAppContainer->iBlenderLite->showOverlays ){
+            aMenuPane->SetItemTextL( EViewportSetOverlay, R_HIDEOVERLAY );
+        }
         else {
-            aMenuPane->SetItemTextL( EBlenderLiteSpot, R_SPOT_ON );
-		}
-	}*/
+            aMenuPane->SetItemTextL( EViewportSetOverlay, R_SHOWOVERLAY  );
+        } 
+        if ( iAppContainer->iBlenderLite->show3DCursor ){
+            aMenuPane->SetItemTextL( EViewportSet3DCursor, R_HIDE3DCURSOR );
+        }
+        else {
+            aMenuPane->SetItemTextL( EViewportSet3DCursor, R_SHOW3DCURSOR  );
+        } 
+
+        if ( iAppContainer->iBlenderLite->showFloor ){
+            aMenuPane->SetItemTextL( EViewportSetShowFloor, R_HIDEFLOOR );
+        }
+        else {
+            aMenuPane->SetItemTextL( EViewportSetShowFloor, R_SHOWFLOOR  );
+        } 
+        if ( iAppContainer->iBlenderLite->showYaxis ){
+            aMenuPane->SetItemTextL( EViewportSetShowYaxis, R_HIDEYAXIS );
+        }
+        else {
+            aMenuPane->SetItemTextL( EViewportSetShowYaxis, R_SHOWYAXIS  );
+        } 
+        if ( iAppContainer->iBlenderLite->showXaxis ){
+            aMenuPane->SetItemTextL( EViewportSetShowXaxis, R_HIDEXAXIS );
+        }
+        else {
+            aMenuPane->SetItemTextL( EViewportSetShowXaxis, R_SHOWXAXIS  );
+        } 
+        if ( iAppContainer->iBlenderLite->showOutlineSelect ){
+            aMenuPane->SetItemTextL( EViewportSetOutlineSelect, R_HIDEOUTLINESELECT );
+        }
+        else {
+            aMenuPane->SetItemTextL( EViewportSetOutlineSelect, R_SHOWOUTLINESELECT  );
+        } 
+        if ( iAppContainer->iBlenderLite->showOrigins ){
+            aMenuPane->SetItemTextL( EViewportSetOrigins, R_HIDEORIGIN );
+        }
+        else {
+            aMenuPane->SetItemTextL( EViewportSetOrigins, R_SHOWORIGIN  );
+        }    
+    }    
 }
 
 // ----------------------------------------------------
@@ -272,6 +283,8 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
     switch ( aCommand )
         {
         case EAknSoftkeyBack:
+            iAppContainer->iBlenderLite->SetMouse();
+            break;
         case EEikCmdExit:
             {
             Exit();
@@ -286,7 +299,28 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
         case EBlenderLiteSpot:
             iAppContainer->iBlenderLite->ToggleSpot();
             break;
-        //nuevos!!!
+        //nuevos!!!      
+        case EViewportSetShowFloor:
+            iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->showFloor);
+            break;       
+        case EViewportSetShowYaxis:
+            iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->showYaxis);
+            break;       
+        case EViewportSetShowXaxis:
+            iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->showXaxis);
+            break;       
+        case EViewportSetOutlineSelect:
+            iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->showOutlineSelect);
+            break;       
+        case EViewportSetOrigins:
+            iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->showOrigins);
+            break;          
+        case EViewportSetOverlay:
+            iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->showOverlays);
+            break;       
+        case EViewportSet3DCursor:
+            iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->show3DCursor);
+            break; 
         case EBlenderLiteImportOBJ:
             iAppContainer->iBlenderLite->ImportOBJ();
             break; 

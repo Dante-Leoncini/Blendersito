@@ -51,9 +51,6 @@
        (GLfloat)(a * LIGHT_MAX)
 
 // CONSTANTS
-GLshort mouseX = 0;
-GLshort mouseY = 0;
-TBool mouseVisible = true;
 
 /* Materials for the Models object. */
 static const GLfloat objDiffuse[4] = { MATERIALCOLOR(0.8, 0.8, 0.8, 1.0) };
@@ -119,6 +116,21 @@ GLfloat rotY = 20.0; //66.2
 GLfloat posX = 0;
 GLfloat posY = 0;
 GLfloat posZ = 0;
+
+//vista 3d
+GLshort mouseX = 0;
+GLshort mouseY = 0;
+bool mouseVisible = false;
+bool showOverlays = true;
+bool show3DCursor = true;
+bool showFloor = true;
+bool showYaxis = true;
+bool showXaxis = true;
+bool showOutlineSelect = true;
+bool showOrigins = true;
+GLfloat Cursor3DposX = 0.0f;
+GLfloat Cursor3DposZ = 0.0f;
+GLfloat Cursor3DposY = 0.0f;
 
 //solo redibuja si este valor esta en true
 bool redibujar = true;
@@ -254,6 +266,13 @@ CBlenderLite::CBlenderLite( TUint aWidth, TUint aHeight, CBlenderLiteInput* aInp
 //
 void CBlenderLite::ConstructL( void ){
 	estado = navegacion;
+	showOverlays = true;
+	show3DCursor = true;
+	showFloor = true;
+	showYaxis = true;
+	showXaxis = true;
+	showOutlineSelect = true;
+	showOrigins = true;
 
 	//debuger
 	//console = Console::NewL(_L("Consola"),TSize(KConsFullScreen, KConsFullScreen));
@@ -373,16 +392,19 @@ void CBlenderLite::AppInit( void ){
 	_LIT( KOriginTexture, "origen.png" );
 	_LIT( KColorGridTexture, "color_grid.png" );
 	_LIT( KMouseTexture, "cursor.png" );	
-	_LIT( KLampTexture, "lamp.png" );	
+	_LIT( KLampTexture, "lamp.png" );		
+	_LIT( KCursor3dTextura, "cursor3d.png" );	
 	iTextureManager->RequestToLoad( KOriginTexture, &iOrigenTextura, false );
 	iTextureManager->RequestToLoad( KColorGridTexture, &iColorGridTextura, false );
 	iTextureManager->RequestToLoad( KMouseTexture, &iMouseTextura, false );
 	iTextureManager->RequestToLoad( KLampTexture, &iLampTextura, false );
+	iTextureManager->RequestToLoad( KCursor3dTextura, &iCursor3dTextura, false );
+	
 	
 	//Start to load the textures.
 	iTextureManager->DoLoadL();
 	
-	iParticleCoords = new GLfixed[1 * 3];
+	//iParticleCoords = new GLfixed[1 * 3];
 }
 
 
@@ -393,7 +415,7 @@ void CBlenderLite::AppInit( void ){
 //
 void CBlenderLite::AppExit( void ){
 	delete iTextureManager;
-    delete[] iParticleCoords;
+    //delete[] iParticleCoords;
 }
 
 
@@ -505,7 +527,7 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 		}  
 		
 		//dibuja el borde seleccionado
-		if(objSelect == o){
+		if(objSelect == o && showOverlays && showOutlineSelect){
 		    glDisable( GL_LIGHTING );
 			glEnable(GL_COLOR_MATERIAL);
 			glDisable( GL_TEXTURE_2D );  
@@ -572,41 +594,60 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 				glColor4f(ListaColores[colorBordeSelect][0],ListaColores[colorBordeSelect][1],ListaColores[colorBordeSelect][2],ListaColores[colorBordeSelect][3]);
 				glDrawElements( GL_LINES, Objetos[o].edgesSize, GL_UNSIGNED_SHORT, Objetos[o].edges );	
 			}
-		};	
-		
+		};		
 	    glPopMatrix(); //reinicia la matrix a donde se guardo  
 	}
 
-	//dibujar las lineas del piso
-	glLineWidth(1);	
-	glDisable(GL_POLYGON_OFFSET_FILL);
-    glDisable( GL_TEXTURE_2D );
-    glDisable( GL_LIGHTING );
-	glEnable(GL_COLOR_MATERIAL);
-	glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  ListaColores[negro]  );
-	glMaterialfv(   GL_FRONT_AND_BACK, GL_AMBIENT,  ListaColores[negro]  );
-	glMaterialfv(   GL_FRONT_AND_BACK, GL_SPECULAR, ListaColores[negro] );
-    glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
-	glNormalPointer( GL_BYTE, 0, objNormaldataFloor );
-	
+	//dibujar las lineas del piso y el piso
+	if (showOverlays && (showFloor || showXaxis || showYaxis)){
+		//glPushMatrix(); //guarda la matrix
+		//glTranslatef( 0, -5000, 0);
+		glDisable(GL_POLYGON_OFFSET_FILL);
+		glDisable( GL_TEXTURE_2D );
+		glDisable( GL_LIGHTING );
+		glEnable(GL_COLOR_MATERIAL);
+		glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  ListaColores[negro]  );
+		glMaterialfv(   GL_FRONT_AND_BACK, GL_AMBIENT,  ListaColores[negro]  );
+		glMaterialfv(   GL_FRONT_AND_BACK, GL_SPECULAR, ListaColores[negro] );
+		glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
+		glNormalPointer( GL_BYTE, 0, objNormaldataFloor );	
+		glLineWidth(1);	
 
-	//dibuja el piso
-	glPushMatrix(); //guarda la matrix
-	glTranslatef( 0, -5000, 0);
-	glColor4f(LineaPiso[0],LineaPiso[1],LineaPiso[2],LineaPiso[3]);
-	glDrawElements( GL_LINES, objFacesFloor, GL_UNSIGNED_SHORT, objFacedataFloor );	 
-	//linea Verde
-	glLineWidth(2);
-	glColor4f(LineaPisoRoja[0],LineaPisoRoja[1],LineaPisoRoja[2],LineaPisoRoja[3]);
-	glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeRojo );	
-	//linea Roja
-	glColor4f(LineaPisoVerde[0],LineaPisoVerde[1],LineaPisoVerde[2],LineaPisoVerde[3]);
-	glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeVerde ); 
-    glPopMatrix(); //reinicia la matrix a donde se guardo	
+		//dibuja el piso
+		
+		if (showFloor){
+			glColor4f(LineaPiso[0],LineaPiso[1],LineaPiso[2],LineaPiso[3]);
+			glDrawElements( GL_LINES, objFacesFloor, GL_UNSIGNED_SHORT, objFacedataFloor );			
+		}		
+		//linea Verde
+		if (showXaxis){
+			glLineWidth(2);
+			glColor4f(LineaPisoRoja[0],LineaPisoRoja[1],LineaPisoRoja[2],LineaPisoRoja[3]);
+			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeRojo );
+		}
+		//linea Roja	
+		if (showYaxis){
+			glLineWidth(2);
+			glColor4f(LineaPisoVerde[0],LineaPisoVerde[1],LineaPisoVerde[2],LineaPisoVerde[3]);
+			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeVerde );
+		}
+		//glPopMatrix(); //reinicia la matrix a donde se guardo		
+	}
 	
     //dibuja los ejes de transformacion    
 	glDisable( GL_DEPTH_TEST );
-	if (estado != navegacion && estado != edicion){		
+	if (estado != navegacion && estado != edicion){	
+		glDisable( GL_LIGHTING );
+		glDisable( GL_TEXTURE_2D );  
+		glDisable(GL_POLYGON_OFFSET_FILL);
+		glEnable(GL_COLOR_MATERIAL);
+		glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  ListaColores[negro]  );
+		glMaterialfv(   GL_FRONT_AND_BACK, GL_AMBIENT,  ListaColores[negro]  );
+		glMaterialfv(   GL_FRONT_AND_BACK, GL_SPECULAR, ListaColores[negro] );
+		glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
+		glNormalPointer( GL_BYTE, 0, objNormaldataFloor );
+
+		glLineWidth(2);	
 		glPushMatrix(); //guarda la matrix
 		//posicion, rotacion y escala del objeto seleccionado
 		glTranslatef( Objetos[objSelect].posX, Objetos[objSelect].posZ, Objetos[objSelect].posY);
@@ -645,12 +686,16 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	}
 	
 	//dibuja el origen del objeto
-	if (Objetos.Count() > 0){
-	    glPopMatrix(); //reinicia la matrix a donde se guardo
+	if (Objetos.Count() > 0 && showOverlays && showOrigins){
+		glDisable( GL_LIGHTING );
+		glEnable( GL_TEXTURE_2D );
+		glDisable(GL_POLYGON_OFFSET_FILL);
+		glEnable(GL_COLOR_MATERIAL);
+		
+	    glPushMatrix(); //guarda la matrix
 		glTranslatef( Objetos[objSelect].posX, Objetos[objSelect].posZ, Objetos[objSelect].posY);
 		glEnable( GL_CULL_FACE ); // Enable back face culling.
 		// Enable point sprites.
-		glEnable( GL_TEXTURE_2D );
 		glEnable( GL_POINT_SPRITE_OES );
 		// Enable blending for transparency.
 		glEnable( GL_BLEND );
@@ -667,6 +712,46 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	    glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE );
 	    glDrawArrays( GL_POINTS, 0, 1 );
 	    glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_FALSE);
+	    glPopMatrix(); //reinicia la matrix a donde se guardo	
+	}
+	//dibuja el cursor 3D	
+	if (showOverlays && show3DCursor){
+		glDisable( GL_LIGHTING );
+		glEnable( GL_TEXTURE_2D );
+		glDisable(GL_POLYGON_OFFSET_FILL);
+		glEnable(GL_COLOR_MATERIAL);
+
+	    glPushMatrix(); //guarda la matrix
+		glTranslatef( Cursor3DposX, Cursor3DposZ, Cursor3DposY);
+		glDisable( GL_CULL_FACE ); // Enable back face culling.
+		// Enable point sprites.
+		glEnable( GL_POINT_SPRITE_OES );
+		// Enable blending for transparency.
+		glEnable( GL_BLEND );
+		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+		// Make the points bigger.
+		glPointSize( 32 );
+		glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
+		GLshort posicionPunto[3]={0, 0, 0};
+	    glVertexPointer( 3, GL_SHORT, 0, posicionPunto );
+	    glBindTexture( GL_TEXTURE_2D, iCursor3dTextura.iID ); //selecciona la textura
+	    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	    glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE );
+	    glDrawArrays( GL_POINTS, 0, 1 );
+	    glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_FALSE);
+
+		//dibuja lineas		
+		glDisable( GL_TEXTURE_2D );
+		glDisable( GL_POINT_SPRITE_OES );
+		glDisable( GL_BLEND );
+
+		glLineWidth(1);	
+		glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);
+	    glVertexPointer( 3, GL_SHORT, 0, Cursor3DVertices );
+		glDrawElements( GL_LINES, Cursor3DEdgesSize, GL_UNSIGNED_SHORT, Cursor3DEdges );	
+
 	    glPopMatrix(); //reinicia la matrix a donde se guardo	
 	}
 
@@ -722,12 +807,14 @@ void CBlenderLite::dibujarUI(){
 	//que editor esta abierto
 	SetSprite(14,14,113*2,49*2,28,28,5,-5);
 
-	if (estado == navegacion){
-		SetSprite(14,14,1*2,113*2,28,28,26,-5);
-	}
-	else if (estado == edicion){
-		SetSprite(14,14,1*2,97*2,28,28,26,-5);
-	}
+	//icono de modo objeto
+	if (estado != edicion){SetSprite(14,14,1*2,113*2,28,28,25,-5);}
+	//icono de edicion de mesh
+	else {SetSprite(14,14,1*2,97*2,28,28,25,-5);}
+	//icono de overlay
+	if (showOverlays){SetSprite(14,14,32*2,80*2,28,28,45,-5);}
+	else {SetSprite(14,14,32*2,96*2,28,28,45,-5);}
+
 	//dibuja el mouse por arriba de todo
 	if (mouseVisible){
 		SetSprite(10,17,1,1,20,32,mouseX,mouseY);
@@ -766,6 +853,20 @@ void CBlenderLite::DibujarRectangulo(GLshort ancho, GLshort alto, GLshort x, GLs
 	glDrawElements( GL_TRIANGLES, SpriteFacesSize, GL_UNSIGNED_SHORT, SpriteFaces );
 	glPopMatrix(); //reinicia la matrix a donde se guardo	
 }
+
+void CBlenderLite::SetMouse(){
+	mouseVisible = !mouseVisible;
+	mouseX = iScreenWidth/2;
+	mouseY = -iScreenHeightSplit;
+    redibujar = true;
+}
+
+//invierte cualquier valor que se le manda, de verdadero a falso y viceversa
+void CBlenderLite::ToggleValue(bool& valueToUpdate){
+    valueToUpdate = !valueToUpdate;
+    redibujar = true;
+}
+
 // -------------------------------------------------------------------------------------------------------
 // CBlenderLite::OnStartLoadingTextures()
 // Called for a MTextureLoadingListener by the texture manager when texture loading operation starts

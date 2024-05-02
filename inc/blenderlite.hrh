@@ -80,16 +80,24 @@ enum TBlenderLiteMenuCommands
     EBlenderLiteNewTexture,
 
     EBlenderLiteProgressNote,
-    EBlenderLiteWaitNote
+    EBlenderLiteWaitNote,
+
+    EViewportSetOverlay,
+    EViewportSet3DCursor,
+
+    EViewportSetShowFloor,
+    EViewportSetShowYaxis,  
+    EViewportSetShowXaxis,
+    EViewportSetOutlineSelect,
+    EViewportSetOrigins
 };
 
-enum TAknExNoteNoteControlIds
-    {
+enum TAknExNoteNoteControlIds {
     EAknExNoteCtrlIdErrorNote = 0x100,
     EAknExNoteCtrlIdProgressNote,
     EAknExNoteCtrlIdWaitNote,
     EAknExNoteCtrlIdDynamicText
-    };
+};
 
 //enum TBlenderLiteNoteControlIds {
 //    EBlenderLiteProgressNote,

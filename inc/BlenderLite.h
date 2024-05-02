@@ -118,6 +118,8 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void EnfocarObjeto();
         void Borrar();
         void changeSelect();
+        void SetMouse();
+        void ToggleValue(bool& valueToUpdate);
         void InfoObject(TInt opciones);
         void SetSprite(GLshort ancho, GLshort alto, GLshort origenX, GLshort origenY, GLshort U, GLshort V, GLshort x, GLshort y);
         void DibujarRectangulo(GLshort ancho, GLshort alto, GLshort x, GLshort y);
@@ -192,6 +194,13 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
     public:  // Data
         /** para el menu de la app */
         TBool iWidescreenEnabled;
+        bool showOverlays;
+        bool show3DCursor;
+        bool showFloor;
+        bool showYaxis;
+        bool showXaxis;
+        bool showOutlineSelect;
+        bool showOrigins;
 
 		/**
 		 * Application states:
@@ -230,8 +239,9 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
 		TTexture iColorGridTextura;
 		TTexture iMouseTextura;
 		TTexture iLampTextura;
+        TTexture iCursor3dTextura;
 		/** Particle coordinates */
-		GLfixed *iParticleCoords;
+		//GLfixed *iParticleCoords;
 		// Wait note dialog for indicating refresh operation
 		// of the List Model (owned)
 		CAknWaitDialog* iWaitDialog;

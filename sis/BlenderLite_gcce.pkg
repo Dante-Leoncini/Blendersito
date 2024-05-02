@@ -22,6 +22,7 @@
 "..\inc\texturas\origen.png"   -"!:\private\A00D021D\origen.png"
 "..\inc\texturas\color_grid.png"   -"!:\private\A00D021D\color_grid.png"
 "..\inc\texturas\lamp.png"   -"!:\private\A00D021D\lamp.png"
+"..\inc\texturas\cursor3d.png"   -"!:\private\A00D021D\cursor3d.png"
 "..\inc\texturas\cursor.png"   -"!:\private\A00D021D\cursor.png"
 
 ;required for application to be covered by backup/restore facility 

@@ -123,19 +123,18 @@ RESOURCE MENU_PANE r_blenderlite_menu
             {
                 command = EBlenderLiteImportOBJ;
                 txt = STRING_r_blenderlite_ImportOBJ;
-            },
+            },            
         	MENU_ITEM
             {
                 command = EBlenderLiteWidescreen;
                 txt = STRING_r_blenderlite_widescreen_on;
-            }
-			
-            //MENU_ITEM
-            //{
-            //    command = EBlenderLiteLighting;
-            //    cascade = r_blenderlite_lighting_menu;
-            //    txt = STRING_r_blenderlite_lighting;
-            //}
+            },		
+        	MENU_ITEM
+            {
+                command = EBlenderLiteModificadores;
+                cascade = r_viewport_overley_menu;
+                txt = STRING_r_Overlay;
+            }            
         };
 }
 
@@ -266,7 +265,7 @@ RESOURCE MENU_PANE r_blenderlite_vista3D_menu{
         {
             command = EBlenderLiteNavegacion;
             txt = STRING_r_blenderlite_SetNavegacion;
-        }   
+        }         
     };
 }
 
@@ -314,6 +313,52 @@ RESOURCE MENU_PANE r_blenderlite_editarMaterial_menu{
             command = EBlenderLiteNewTexture;
             txt = STRING_r_blenderlite_newTexture;
         }                   
+    };
+}
+
+//----------------------------------------------------
+//
+//    r_viewport_overley_menu
+//
+//----------------------------------------------------
+//
+RESOURCE MENU_PANE r_viewport_overley_menu{
+	items = {
+        MENU_ITEM
+        {
+            command = EViewportSetOverlay;
+            txt = STRING_r_HideOverlay;
+        },
+        MENU_ITEM
+        {
+            command = EViewportSet3DCursor;
+            txt = STRING_r_Hide3DCursor;
+        },
+        MENU_ITEM
+        {
+            command = EViewportSetShowFloor;
+            txt = STRING_r_HideFloor;
+        },
+        MENU_ITEM
+        {
+            command = EViewportSetShowYaxis;
+            txt = STRING_r_HideYaxis;
+        },
+        MENU_ITEM
+        {
+            command = EViewportSetShowXaxis;
+            txt = STRING_r_HideXaxis;
+        },
+        MENU_ITEM
+        {
+            command = EViewportSetOutlineSelect;
+            txt = STRING_r_HideOutlineSelect;
+        },
+        MENU_ITEM
+        {
+            command = EViewportSetOrigins;
+            txt = STRING_r_HideOrigin;
+        }        
     };
 }
 
@@ -439,6 +484,7 @@ RESOURCE TBUF256 r_blenderlite_perspectiva{buf = STRING_r_blenderlite_perspectiv
 RESOURCE TBUF256 r_blenderlite_ObjFocus{buf = STRING_r_blenderlite_ObjFocus;}
 RESOURCE TBUF256 r_blenderlite_CambiarObjeto{buf = STRING_r_blenderlite_CambiarObjeto;}
 RESOURCE TBUF256 r_blenderlite_SetNavegacion{buf = STRING_r_blenderlite_SetNavegacion;}
+
 RESOURCE TBUF256 r_blenderlite_BorrarObjeto{buf = STRING_r_blenderlite_BorrarObjeto;}
 
 RESOURCE TBUF256 r_blenderlite_editarMaterial{buf = STRING_r_blenderlite_editarMaterial;}
@@ -481,47 +527,36 @@ RESOURCE TBUF256 r_blenderlite_OrigenToGeometry{buf = STRING_r_blenderlite_Orige
 RESOURCE TBUF256 r_blenderlite_OrigenToSelect{buf = STRING_r_blenderlite_OrigenToSelect;}
 RESOURCE TBUF256 r_blenderlite_OrigenToCursor{buf = STRING_r_blenderlite_OrigenToCursor;}
 
-RESOURCE TBUF256 r_widescreen_on
-{
-    buf = STRING_r_blenderlite_widescreen_on;
-}
+RESOURCE TBUF256 r_widescreen_on{buf = STRING_r_blenderlite_widescreen_on;}
+RESOURCE TBUF256 r_widescreen_off{buf = STRING_r_blenderlite_widescreen_off;}
 
-RESOURCE TBUF256 r_widescreen_off
-{
-    buf = STRING_r_blenderlite_widescreen_off;
-}
+RESOURCE TBUF256 r_lights_on{buf = STRING_r_blenderlite_lights_on;}
+RESOURCE TBUF256 r_lights_off{buf = STRING_r_blenderlite_lights_off;}
 
-RESOURCE TBUF256 r_lights_on
-{
-    buf = STRING_r_blenderlite_lights_on;
-}
+RESOURCE TBUF256 r_lamp_on{buf = STRING_r_blenderlite_lamp_on;}
+RESOURCE TBUF256 r_lamp_off{buf = STRING_r_blenderlite_lamp_off;}
 
-RESOURCE TBUF256 r_lights_off
-{
-    buf = STRING_r_blenderlite_lights_off;
-}
+RESOURCE TBUF256 r_spot_on{buf = STRING_r_blenderlite_spot_on;}
+RESOURCE TBUF256 r_spot_off{buf = STRING_r_blenderlite_spot_off;}
 
+//-----------------------------------------------------------------------------
+//Los nuevos que son mas claros y simples
+//-----------------------------------------------------------------------------
+RESOURCE TBUF256 r_hideoverlay{buf = STRING_r_HideOverlay;}
+RESOURCE TBUF256 r_showoverlay{buf = STRING_r_ShowOverlay;}
+RESOURCE TBUF256 r_hide3dcursor{buf = STRING_r_Hide3DCursor;}
+RESOURCE TBUF256 r_show3dcursor{buf = STRING_r_Show3DCursor;}
 
-RESOURCE TBUF256 r_lamp_on
-{
-    buf = STRING_r_blenderlite_lamp_on;
-}
-
-RESOURCE TBUF256 r_lamp_off
-{
-    buf = STRING_r_blenderlite_lamp_off;
-}
-
-
-RESOURCE TBUF256 r_spot_on
-{
-    buf = STRING_r_blenderlite_spot_on;
-}
-
-RESOURCE TBUF256 r_spot_off
-{
-    buf = STRING_r_blenderlite_spot_off;
-}
+RESOURCE TBUF256 r_hideFloor{buf = STRING_r_HideFloor;}
+RESOURCE TBUF256 r_showFloor{buf = STRING_r_ShowFloor;}
+RESOURCE TBUF256 r_hideYaxis{buf = STRING_r_HideYaxis;}
+RESOURCE TBUF256 r_showYaxis{buf = STRING_r_ShowYaxis;}
+RESOURCE TBUF256 r_hideXaxis{buf = STRING_r_HideXaxis;}
+RESOURCE TBUF256 r_showXaxis{buf = STRING_r_ShowXaxis;}
+RESOURCE TBUF256 r_hideOutlineSelect{buf = STRING_r_HideOutlineSelect;}
+RESOURCE TBUF256 r_showOutlineSelect{buf = STRING_r_ShowOutlineSelect;}
+RESOURCE TBUF256 r_hideOrigin{buf = STRING_r_HideOrigin;}
+RESOURCE TBUF256 r_showOrigin{buf = STRING_r_ShowOrigin;}
 
 //-----------------------------------------------------------------------------
 //

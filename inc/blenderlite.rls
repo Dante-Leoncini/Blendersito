@@ -10,7 +10,7 @@
 rls_string STRING_r_app_caption_string       "BlenderLite"
 rls_string STRING_r_app_short_caption_string "BlenderLite"
 
-rls_string STRING_r_blenderlite_exit         "Salir"
+rls_string STRING_r_blenderlite_exit         "Quit"
 
 rls_string STRING_r_blenderlite_lighting     "Luces"
 rls_string STRING_r_blenderlite_lights_on    "Turn lights on"
@@ -39,6 +39,7 @@ rls_string STRING_r_blenderlite_perspectiva    "Cambiar Perspectiva"
 rls_string STRING_r_blenderlite_ObjFocus       "Enfocar Objeto"
 rls_string STRING_r_blenderlite_CambiarObjeto  "Cambiar Objeto"
 rls_string STRING_r_blenderlite_SetNavegacion  "Cambiar Navegacion"
+
 rls_string STRING_r_blenderlite_Borrar         "Eliminar"
 
 rls_string STRING_r_blenderlite_editarMaterial "Editar Material"
@@ -86,6 +87,22 @@ rls_string STRING_r_blenderlite_progress_singular  "Loading\nPlease wait..."
 
 rls_string STRING_r_blenderlite_newTexture   "Nueva Textura"
 rls_string STRING_r_blenderlite_ImportOBJ   "Import Wavefront (.obj)"
+
+rls_string STRING_r_Overlay         "Overlays"
+rls_string STRING_r_ShowOverlay     "Show Overlays"
+rls_string STRING_r_HideOverlay     "Hide Overlays"
+rls_string STRING_r_Hide3DCursor    "Hide 3D Cursor"
+rls_string STRING_r_Show3DCursor    "Show 3D Cursor"
+rls_string STRING_r_HideFloor       "Hide Floor"
+rls_string STRING_r_ShowFloor       "Show Floor"
+rls_string STRING_r_HideYaxis       "Hide Y Axis"
+rls_string STRING_r_ShowYaxis       "Show Y Axis"
+rls_string STRING_r_HideXaxis       "Hide X Axis"
+rls_string STRING_r_ShowXaxis       "Show X Axis"
+rls_string STRING_r_HideOutlineSelect     "Hide Outline Select"
+rls_string STRING_r_ShowOutlineSelect     "Show Outline Select"
+rls_string STRING_r_HideOrigin      "Hide Origin"
+rls_string STRING_r_ShowOrigin      "Show Origin"
 
 
 // End of File
