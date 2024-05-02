@@ -1,6 +1,17 @@
 //para los sprites
 static const GLshort pointVertex[3]={0, 0, 0};
 
+static const TInt LineaLightVertexSize = 2 * 3;
+static const TInt LineaEdgeSize = 1 * 2;
+
+static GLshort LineaLightVertex[LineaLightVertexSize] = {    
+    0, 0, 0,
+    0, -30000, 0,
+};
+
+//para cualquier linea simple
+static const GLushort LineaEdge[LineaEdgeSize]={0, 1};
+
 static const TInt CameraVertexSize = 8 * 3;
 static const TInt CameraEdgesSize = 11 * 2;
 

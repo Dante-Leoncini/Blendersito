@@ -63,14 +63,14 @@ static const GLfloat colorBorde[4]  = { MATERIALCOLOR(0.68, 0.45, 0.13, 1.0) };
 //color borde Select
 //GLfloat colorBordeSelect[4] = { MATERIALCOLOR(0.94, 0.59, 0.17, 1.0) };
 //array de colores
-static const GLfloat ListaColores[7][4] = {
+static const GLfloat ListaColores[8][4] = {
 		{ MATERIALCOLOR(1.0, 1.0, 1.0, 1.0)     },   //blanco
 		{ MATERIALCOLOR(0.94, 0.59, 0.17, 1.0)  },   //naranja 	
 		{ MATERIALCOLOR(0.0, 0.0, 0.0, 1.0)     },   //negro
 		{ MATERIALCOLOR(0.12, 0.12, 0.12, 1.0)  },   //gris
 		{ MATERIALCOLOR(0.94, 0.59, 0.17, 0.25f)},   //naranja transparente
-		{ MATERIALCOLOR(0.12, 0.12, 0.12, 1.0)  },   //gris
 		{ MATERIALCOLOR(0.22, 0.22, 0.22, 1.0)  },    //cabezera de la barra de herramientas
+		{ MATERIALCOLOR(0.0, 0.0, 0.0, 0.25f)     },   //negroTransparente
 };
 
 enum{
@@ -79,7 +79,8 @@ enum{
 	negro,
 	gris,
 	naranjaFace,
-	headerColor
+	headerColor,
+	negroTransparente
 };
 int colorBordeSelect = 1;
 
@@ -288,9 +289,9 @@ void CBlenderLite::ConstructL( void ){
 	Objects[0].scaleX = Objects[0].scaleY = Objects[0].scaleZ = 40000;
 
 	AddObject(light);
-	Objects[1].posX = 300;
-	Objects[1].posY = 900;
-	Objects[1].posZ = 2000;
+	Objects[1].posX = -3000;
+	Objects[1].posY = 1500;
+	Objects[1].posZ = 4500;
 }
 
 
@@ -620,6 +621,41 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	glEnable( GL_BLEND );
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
+	//dibujar las lineas del piso y el piso
+	if (showOverlays && (showFloor || showXaxis || showYaxis)){
+		glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
+		//glNormalPointer( GL_BYTE, 0, objNormaldataFloor );
+
+		//dibuja el piso			
+		glLineWidth(1);	
+		if (showFloor){
+			glColor4f(LineaPiso[0],LineaPiso[1],LineaPiso[2],LineaPiso[3]);
+			glDrawElements( GL_LINES, objFacesFloor, GL_UNSIGNED_SHORT, objFacedataFloor );			
+		}		
+		//linea Verde
+		if (showXaxis){
+			glLineWidth(2);
+			glColor4f(LineaPisoRoja[0],LineaPisoRoja[1],LineaPisoRoja[2],LineaPisoRoja[3]);
+			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeRojo );
+		}
+		else if (showFloor){
+			glLineWidth(1);
+			glColor4f(LineaPiso[0],LineaPiso[1],LineaPiso[2],LineaPiso[3]);
+			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeRojo );
+		}
+		//linea Roja	
+		if (showYaxis){
+			glLineWidth(2);
+			glColor4f(LineaPisoVerde[0],LineaPisoVerde[1],LineaPisoVerde[2],LineaPisoVerde[3]);
+			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeVerde );
+		}
+		else if (showFloor){
+			glLineWidth(1);
+			glColor4f(LineaPiso[0],LineaPiso[1],LineaPiso[2],LineaPiso[3]);
+			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeVerde );
+		}	
+	}
+
 	//dibujo de objetos nuevo!
 	if (showOverlays){
 		for(TInt o=0; o < Objects.Count(); o++){
@@ -674,6 +710,14 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 
 				glDisable( GL_POINT_SPRITE_OES );			
 				glDisable( GL_TEXTURE_2D ); 
+		
+				glLineWidth(1);	
+				glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negroTransparente][3]);
+				//glScalex( 0, 10, 0 ); //4500
+				LineaLightVertex[4] = -Objects[o].posZ;
+				glVertexPointer( 3, GL_SHORT, 0, LineaLightVertex );
+				glDrawElements( GL_LINES, LineaEdgeSize, GL_UNSIGNED_SHORT, LineaEdge );
+
 				glDisable( GL_BLEND );
 				glDepthMask(GL_TRUE); // Reactiva la escritura en el Z-buffer
 			}
@@ -681,47 +725,12 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 			glPopMatrix(); //reinicia la matrix a donde se guardo	
 		};
 	}
-
-	//dibujar las lineas del piso y el piso
-	if (showOverlays && (showFloor || showXaxis || showYaxis)){
-		glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
-		glNormalPointer( GL_BYTE, 0, objNormaldataFloor );
-
-		//dibuja el piso			
-		glLineWidth(1);	
-		if (showFloor){
-			glColor4f(LineaPiso[0],LineaPiso[1],LineaPiso[2],LineaPiso[3]);
-			glDrawElements( GL_LINES, objFacesFloor, GL_UNSIGNED_SHORT, objFacedataFloor );			
-		}		
-		//linea Verde
-		if (showXaxis){
-			glLineWidth(2);
-			glColor4f(LineaPisoRoja[0],LineaPisoRoja[1],LineaPisoRoja[2],LineaPisoRoja[3]);
-			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeRojo );
-		}
-		else if (showFloor){
-			glLineWidth(1);
-			glColor4f(LineaPiso[0],LineaPiso[1],LineaPiso[2],LineaPiso[3]);
-			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeRojo );
-		}
-		//linea Roja	
-		if (showYaxis){
-			glLineWidth(2);
-			glColor4f(LineaPisoVerde[0],LineaPisoVerde[1],LineaPisoVerde[2],LineaPisoVerde[3]);
-			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeVerde );
-		}
-		else if (showFloor){
-			glLineWidth(1);
-			glColor4f(LineaPiso[0],LineaPiso[1],LineaPiso[2],LineaPiso[3]);
-			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeVerde );
-		}	
-	}
 	
     //dibuja los ejes de transformacion    
 	glDisable( GL_DEPTH_TEST );
 	if (estado != navegacion && estado != edicion){	
 		glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
-		glNormalPointer( GL_BYTE, 0, objNormaldataFloor );
+		//glNormalPointer( GL_BYTE, 0, objNormaldataFloor );
 
 		glLineWidth(2);	
 		glPushMatrix(); //guarda la matrix
@@ -849,7 +858,7 @@ void CBlenderLite::dibujarUI(){
 
 	//header	
 	glDisable( GL_TEXTURE_2D ); // Permite usar texturas
-	glColor4f(ListaColores[headerColor][0],ListaColores[headerColor][1],ListaColores[headerColor][2],0.5f);
+	glColor4f(ListaColores[headerColor][0],ListaColores[headerColor][1],ListaColores[headerColor][2],0.8f);
 	DibujarRectangulo(iScreenWidth,24, 0,0);
 	
 	glEnable( GL_TEXTURE_2D ); // Permite usar texturas
