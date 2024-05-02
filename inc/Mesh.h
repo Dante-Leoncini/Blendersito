@@ -1,10 +1,19 @@
 //tipos de objetos
-typedef enum { mesh, camera, light, empty, armature, curve } TiposObjetos;
+typedef enum { mesh, camera, light, empty, armature, curve };
 typedef GLshort Edge[2];
+
+class Object { //clase Mesh
+	public:
+		TInt type;
+		TBool visible;
+		GLfloat posX; GLfloat posY; GLfloat posZ;
+		GLfloat rotX; GLfloat rotY; GLfloat rotZ;
+		GLfixed scaleX; GLfixed scaleY; GLfixed scaleZ;
+};
 
 class Mesh { //clase Mesh
 	public:
-		TiposObjetos type;
+		TInt type;
 		TBool visible;
 		TBool textura;
 		TBool smooth;

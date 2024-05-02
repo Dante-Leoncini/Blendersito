@@ -94,16 +94,15 @@ static const GLfloat ColorTransformY[4]  = { MATERIALCOLOR(0.65, 0.81, 0.38, 1.0
 static const GLfloat ColorTransformZ[4]  = { MATERIALCOLOR(0.46, 0.67, 0.89, 1.0) };
 
 /* Global ambient light. */
-static const GLfloat globalAmbient[4]   = { LIGHTCOLOR(0.0, 0.0, 0.0, 1.0) };
+static const GLfloat globalAmbient[4]   = { LIGHTCOLOR(0.5, 0.5, 0.5, 1.0) };
 
 /* Lamp parameters. */
 static const GLfloat lightDiffuseLamp[4]   = { LIGHTCOLOR(0.8, 0.8, 0.8, 1.0) };
-static const GLfloat lightAmbientLamp[4]   = { LIGHTCOLOR(0.4, 0.4, 0.4, 1.0) };
-GLfloat lightPositionLamp[4]  = { -10, -5, 50, 0 }; // x, y, z
-
+static const GLfloat lightAmbient[4]   = { LIGHTCOLOR(0.0, 0.0, 0.0, 1.0) };
+static const GLfloat sunLightPosition[4]  = {-100, 1000, 1000, 0 }; // y, z, x, si es direccional o puntual
+	
 /* Spotlight parameters. */
 static const GLfloat lightDiffuseSpot[4]   = { LIGHTCOLOR(0.0, 0.0, 0.0, 1.0) };
-static const GLfloat lightAmbientSpot[4]   = { LIGHTCOLOR(0.0, 0.0, 0.0, 1.0) };
 static const GLfloat lightSpecularSpot[4]  = { LIGHTCOLOR(0.0, 0.0, 3.0, 1.0) };
 static const GLfloat lightPositionSpot[4]  = {  0, -10, -1, 0 };
 static const GLfloat lightDirectionSpot[4] = {  0,  10,  1, 1 };
@@ -111,7 +110,7 @@ static const GLfloat lightDirectionSpot[4] = {  0,  10,  1, 1 };
 //camara
 bool ortografica = false;
 GLfloat aspectRatio;
-GLfloat rotX = 153.5;
+GLfloat rotX = 113.5;
 GLfloat rotY = 20.0; //66.2
 GLfloat posX = 0;
 GLfloat posY = 0;
@@ -187,6 +186,7 @@ class SaveState {
 SaveState estadoObj;
 
 //Crea un array de objetos
+RArray<Object> Objects;
 RArray<Mesh> Objetos;
 TInt objSelect = 0;
 TInt tipoSelect = vertexSelect;
@@ -278,6 +278,19 @@ void CBlenderLite::ConstructL( void ){
 	//console = Console::NewL(_L("Consola"),TSize(KConsFullScreen, KConsFullScreen));
 	//Objetos = new Mesh[cantObjetos];
 	AddMesh(cubo);
+	AddObject(camera);
+	Objects[0].posX = -800*6.8;
+	Objects[0].posY = -800*7.29;
+	Objects[0].posZ = 800*4.91;
+	//Objects[0].rotX = 45;
+	Objects[0].rotZ = -45.0;//-63.85 o 26.15;
+	Objects[0].rotY = -26.15;//63.85;
+	Objects[0].scaleX = Objects[0].scaleY = Objects[0].scaleZ = 40000;
+
+	AddObject(light);
+	Objects[1].posX = 300;
+	Objects[1].posY = 900;
+	Objects[1].posZ = 2000;
 }
 
 
@@ -358,13 +371,14 @@ void CBlenderLite::AppInit( void ){
     // Set up lamp.
     glEnable( GL_LIGHT0 );
     glLightfv(  GL_LIGHT0, GL_DIFFUSE,  lightDiffuseLamp  );
-    glLightfv(  GL_LIGHT0, GL_AMBIENT,  lightAmbientLamp  );
+    glLightfv(  GL_LIGHT0, GL_AMBIENT,  lightAmbient  );
     glLightfv(  GL_LIGHT0, GL_SPECULAR, lightDiffuseLamp  );
-    glLightfv(  GL_LIGHT0, GL_POSITION, lightPositionLamp );
+    glLightfv(  GL_LIGHT0, GL_POSITION, sunLightPosition );
 
     // Set up spot.  Initially spot is disabled.
+    //glEnable( GL_LIGHT1 );
     glLightfv(  GL_LIGHT1, GL_DIFFUSE,  lightDiffuseSpot  );
-    glLightfv(  GL_LIGHT1, GL_AMBIENT,  lightAmbientSpot  );
+    glLightfv(  GL_LIGHT1, GL_AMBIENT,  lightAmbient  );
     glLightfv(  GL_LIGHT1, GL_SPECULAR, lightSpecularSpot );
     glLightfv(  GL_LIGHT1, GL_POSITION, lightPositionSpot );
 
@@ -384,7 +398,6 @@ void CBlenderLite::AppInit( void ){
     glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST );
 
     // Initialize menu state variables, Symbian menu stuff.
-    iLightingEnabled = ETrue;          // Lighting is enabled
     iLampEnabled     = ETrue;          // Lamp is enabled
     iSpotEnabled     = EFalse;         // Spot is disabled
 
@@ -440,14 +453,8 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     glLoadIdentity();
-    glEnable( GL_DEPTH_TEST );		
+    glEnable( GL_DEPTH_TEST );	
 
-	//posicion lamparas
-	/*lightPositionLamp[0] = 0;
-	lightPositionLamp[1] = 0;
-	lightPositionLamp[2] = 0;
-    glLightfv(  GL_LIGHT0, GL_POSITION, lightPositionLamp );*/
-    
 	glTranslatef( posX, posZ, -cameraDistance+posY);
 	glRotatef(rotY, 1, 0, 0); //angulo, X Y Z
 	glRotatef(rotX, 0, 1, 0); //angulo, X Y Z
@@ -471,8 +478,8 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 		//posicion, rotacion y escala del objeto
 		glTranslatef( Objetos[o].posX, Objetos[o].posZ, Objetos[o].posY);
 		glRotatef(Objetos[o].rotX, 1, 0, 0); //angulo, X Y Z
-		glRotatef(Objetos[o].rotY, 0, 0, 1); //angulo, X Y Z
 		glRotatef(Objetos[o].rotZ, 0, 1, 0); //angulo, X Y Z
+		glRotatef(Objetos[o].rotY, 0, 0, 1); //angulo, X Y Z
 		glScalex( Objetos[o].scaleX, Objetos[o].scaleZ, Objetos[o].scaleY );	
 
 		glEnable( GL_LIGHTING );
@@ -597,24 +604,91 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 		};		
 	    glPopMatrix(); //reinicia la matrix a donde se guardo  
 	}
+	//fin del dibujado de objetos
+
+	//el resto de objetos no usan materiales ni luces
+	glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  ListaColores[negro] );
+	glMaterialfv(   GL_FRONT_AND_BACK, GL_AMBIENT,  ListaColores[negro] );
+	glMaterialfv(   GL_FRONT_AND_BACK, GL_SPECULAR, ListaColores[negro] );
+	glDisable( GL_CULL_FACE ); // Enable back face culling.
+	glDisable( GL_LIGHTING );
+	glDisable(GL_POLYGON_OFFSET_FILL);
+	glEnable(GL_COLOR_MATERIAL);
+	glDisable( GL_TEXTURE_2D );
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+
+	//dibujo de objetos nuevo!
+	if (showOverlays){
+		for(TInt o=0; o < Objects.Count(); o++){
+			//si es un mesh o no es visible, lo saltea
+			if(!Objects[o].visible || Objects[o].type == mesh) {continue;}
+
+			glDisable( GL_TEXTURE_2D );
+			glPushMatrix(); //guarda la matrix
+
+			//posicion, rotacion y escala del objeto
+			glTranslatef( Objects[o].posX, Objects[o].posZ, Objects[o].posY);
+
+			//si es un empty
+			if (Objects[o].type == empty){		
+				glDisable( GL_TEXTURE_2D );	 
+				glDisable( GL_BLEND );
+				glRotatef(Objects[o].rotX, 1, 0, 0); //angulo, X Y Z
+				glRotatef(Objects[o].rotZ, 0, 1, 0); //angulo, X Y Z
+				glRotatef(Objects[o].rotY, 0, 0, 1); //angulo, X Y Z
+				glScalex( Objects[o].scaleX, Objects[o].scaleZ, Objects[o].scaleY );		
+				glLineWidth(1);	
+				glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);
+				glVertexPointer( 3, GL_SHORT, 0, EmptyVertices );
+				glDrawElements( GL_LINES, EmptyEdgesSize, GL_UNSIGNED_SHORT, EmptyEdges );
+			}
+			else if (Objects[o].type == camera){			
+				glDisable( GL_TEXTURE_2D ); 
+				glDisable( GL_BLEND );
+				glRotatef(Objects[o].rotX, 1, 0, 0); //angulo, X Y Z
+				glRotatef(Objects[o].rotZ, 0, 1, 0); //angulo, X Y Z
+				glRotatef(Objects[o].rotY, 0, 0, 1); //angulo, X Y Z
+				glScalex( Objects[o].scaleX, Objects[o].scaleZ, Objects[o].scaleY );
+				glLineWidth(1);	
+				glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);
+				glVertexPointer( 3, GL_SHORT, 0, CameraVertices );
+				glDrawElements( GL_LINES, CameraEdgesSize, GL_UNSIGNED_SHORT, CameraEdges );
+			}
+			else if (Objects[o].type == light){				
+				glEnable( GL_TEXTURE_2D ); 
+				glEnable( GL_BLEND );
+				glDepthMask(GL_FALSE); // Desactiva la escritura en el Z-buffer
+
+				glEnable( GL_POINT_SPRITE_OES ); //activa el uso de sprites en los vertices
+				glPointSize( 32 ); //tamaño del punto
+				glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);
+				glVertexPointer( 3, GL_SHORT, 0, pointVertex );
+				glBindTexture( GL_TEXTURE_2D, iLampTextura.iID ); //selecciona la textura
+
+				glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE );
+				glDrawArrays( GL_POINTS, 0, 1 );
+				glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_FALSE);
+
+				glDisable( GL_POINT_SPRITE_OES );			
+				glDisable( GL_TEXTURE_2D ); 
+				glDisable( GL_BLEND );
+				glDepthMask(GL_TRUE); // Reactiva la escritura en el Z-buffer
+			}
+
+			glPopMatrix(); //reinicia la matrix a donde se guardo	
+		};
+	}
 
 	//dibujar las lineas del piso y el piso
 	if (showOverlays && (showFloor || showXaxis || showYaxis)){
-		//glPushMatrix(); //guarda la matrix
-		//glTranslatef( 0, -5000, 0);
-		glDisable(GL_POLYGON_OFFSET_FILL);
-		glDisable( GL_TEXTURE_2D );
-		glDisable( GL_LIGHTING );
-		glEnable(GL_COLOR_MATERIAL);
-		glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  ListaColores[negro]  );
-		glMaterialfv(   GL_FRONT_AND_BACK, GL_AMBIENT,  ListaColores[negro]  );
-		glMaterialfv(   GL_FRONT_AND_BACK, GL_SPECULAR, ListaColores[negro] );
 		glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
-		glNormalPointer( GL_BYTE, 0, objNormaldataFloor );	
-		glLineWidth(1);	
+		glNormalPointer( GL_BYTE, 0, objNormaldataFloor );
 
-		//dibuja el piso
-		
+		//dibuja el piso			
+		glLineWidth(1);	
 		if (showFloor){
 			glColor4f(LineaPiso[0],LineaPiso[1],LineaPiso[2],LineaPiso[3]);
 			glDrawElements( GL_LINES, objFacesFloor, GL_UNSIGNED_SHORT, objFacedataFloor );			
@@ -625,25 +699,27 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 			glColor4f(LineaPisoRoja[0],LineaPisoRoja[1],LineaPisoRoja[2],LineaPisoRoja[3]);
 			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeRojo );
 		}
+		else if (showFloor){
+			glLineWidth(1);
+			glColor4f(LineaPiso[0],LineaPiso[1],LineaPiso[2],LineaPiso[3]);
+			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeRojo );
+		}
 		//linea Roja	
 		if (showYaxis){
 			glLineWidth(2);
 			glColor4f(LineaPisoVerde[0],LineaPisoVerde[1],LineaPisoVerde[2],LineaPisoVerde[3]);
 			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeVerde );
 		}
-		//glPopMatrix(); //reinicia la matrix a donde se guardo		
+		else if (showFloor){
+			glLineWidth(1);
+			glColor4f(LineaPiso[0],LineaPiso[1],LineaPiso[2],LineaPiso[3]);
+			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeVerde );
+		}	
 	}
 	
     //dibuja los ejes de transformacion    
 	glDisable( GL_DEPTH_TEST );
 	if (estado != navegacion && estado != edicion){	
-		glDisable( GL_LIGHTING );
-		glDisable( GL_TEXTURE_2D );  
-		glDisable(GL_POLYGON_OFFSET_FILL);
-		glEnable(GL_COLOR_MATERIAL);
-		glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  ListaColores[negro]  );
-		glMaterialfv(   GL_FRONT_AND_BACK, GL_AMBIENT,  ListaColores[negro]  );
-		glMaterialfv(   GL_FRONT_AND_BACK, GL_SPECULAR, ListaColores[negro] );
 		glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
 		glNormalPointer( GL_BYTE, 0, objNormaldataFloor );
 
@@ -684,59 +760,39 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 		}	
 	    glPopMatrix(); //reinicia la matrix a donde se guardo	
 	}
-	
+				
 	//dibuja el origen del objeto
-	if (Objetos.Count() > 0 && showOverlays && showOrigins){
-		glDisable( GL_LIGHTING );
-		glEnable( GL_TEXTURE_2D );
-		glDisable(GL_POLYGON_OFFSET_FILL);
-		glEnable(GL_COLOR_MATERIAL);
-		
+	if (Objetos.Count() > 0 && showOverlays && showOrigins){		
 	    glPushMatrix(); //guarda la matrix
 		glTranslatef( Objetos[objSelect].posX, Objetos[objSelect].posZ, Objetos[objSelect].posY);
-		glEnable( GL_CULL_FACE ); // Enable back face culling.
+
+		glEnable( GL_TEXTURE_2D );
+		glEnable( GL_BLEND );
 		// Enable point sprites.
 		glEnable( GL_POINT_SPRITE_OES );
-		// Enable blending for transparency.
-		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 		// Make the points bigger.
 		glPointSize( 8 );
 		glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
-		GLshort posicionPunto[3]={0, 0, 0};
-	    glVertexPointer( 3, GL_SHORT, 0, posicionPunto );
+	    glVertexPointer( 3, GL_SHORT, 0, pointVertex );
 	    glBindTexture( GL_TEXTURE_2D, iOrigenTextura.iID ); //selecciona la textura
-	    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
 	    glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE );
 	    glDrawArrays( GL_POINTS, 0, 1 );
 	    glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_FALSE);
+		glDisable( GL_POINT_SPRITE_OES );
 	    glPopMatrix(); //reinicia la matrix a donde se guardo	
 	}
 	//dibuja el cursor 3D	
 	if (showOverlays && show3DCursor){
-		glDisable( GL_LIGHTING );
-		glEnable( GL_TEXTURE_2D );
-		glDisable(GL_POLYGON_OFFSET_FILL);
-		glEnable(GL_COLOR_MATERIAL);
-
 	    glPushMatrix(); //guarda la matrix
 		glTranslatef( Cursor3DposX, Cursor3DposZ, Cursor3DposY);
-		glDisable( GL_CULL_FACE ); // Enable back face culling.
-		// Enable point sprites.
-		glEnable( GL_POINT_SPRITE_OES );
-		// Enable blending for transparency.
+		
+		glEnable( GL_TEXTURE_2D );
 		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-		// Make the points bigger.
-		glPointSize( 32 );
+		glEnable( GL_POINT_SPRITE_OES ); // Enable point sprites.	
+		glPointSize( 32 ); // Make the points bigger.
 		glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
-		GLshort posicionPunto[3]={0, 0, 0};
-	    glVertexPointer( 3, GL_SHORT, 0, posicionPunto );
+	    glVertexPointer( 3, GL_SHORT, 0, pointVertex );
 	    glBindTexture( GL_TEXTURE_2D, iCursor3dTextura.iID ); //selecciona la textura
-	    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	    glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE );
 	    glDrawArrays( GL_POINTS, 0, 1 );
@@ -773,15 +829,11 @@ void CBlenderLite::dibujarUI(){
 	glTranslatef( -iScreenHeightSplit* aspectRatioNuevo, iScreenHeightSplit, -100);
 	glScalex( 71400, 71400, 71400 );	
 
-	glDisable( GL_DEPTH_TEST ); //quita el Zbuffer
-	glDisable( GL_CULL_FACE ); // Enable back face culling.
 	//glDisable( GL_POINT_SPRITE_OES );
 	//glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_FALSE);
 	//glEnable( GL_TEXTURE_2D ); // Permite usar texturas
 	glEnable( GL_BLEND ); //permite transparencias
 	//glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	glDisable( GL_LIGHTING ); //quita las luces
-	glDisable(GL_POLYGON_OFFSET_FILL); //quita el offset
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //hace que sea pixelada
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); //hace que sea pixelada
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -1284,46 +1336,6 @@ void CBlenderLite::OnEnterStateL( TInt /*aState*/ ){
 	// Nothing to do here...
 }
 
-//----------------------------------------------------------
-// The following methods are called by the CBlenderLiteAppUi
-// class when handling the incoming menu events.
-//----------------------------------------------------------
-
-
-// -----------------------------------------------------------------------------
-// CBlenderLite::ToggleLighting
-// Enable/Disable lighting from the application menu.
-// -----------------------------------------------------------------------------
-//
-void CBlenderLite::ToggleLighting( void ){
-    // If texture loading is still going on, return from this method without doing anything.
-	if ( GetState() == ELoadingTextures ){
-        return;
-    }
-    if ( iLightingEnabled){
-        iLightingEnabled = EFalse;
-    	glShadeModel( GL_FLAT );  // Don't need smooth shading when no lights
-        glDisable( GL_LIGHTING );
-        
-        /* Set both textures environments to GL_REPLACE. */
-		glBindTexture( GL_TEXTURE_2D, iBaseColor.iID );
-		glTexEnvx(  GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-        }
-    else
-        {
-        iLightingEnabled = ETrue;
-    	glShadeModel( GL_SMOOTH ); // For the lighting to work properly
-        glEnable( GL_LIGHTING );
-
-    	/* Set both textures environments to GL_MODULATE. */
-    	glBindTexture( GL_TEXTURE_2D, iBaseColor.iID );
-    	glTexEnvx(  GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
-	    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-        }
-    }
-
-
 // -----------------------------------------------------------------------------
 // CBlenderLite::ToggleLamp
 // Enable/Disable lamp from the application menu.
@@ -1549,6 +1561,18 @@ void CBlenderLite::Borrar(){
     redibujar = true;	
 }
 
+void CBlenderLite::AddObject( TInt tipo ){
+	Cancelar();
+	Object obj;
+	obj.type = tipo;
+	obj.visible = true;
+	obj.posX = obj.posY = obj.posZ = obj.rotX = obj.rotY = obj.rotZ = 0;
+	obj.scaleX = obj.scaleY = obj.scaleZ = 45000;
+    
+	Objects.Append(obj);
+    redibujar = true;
+}
+
 void CBlenderLite::AddMesh( int modelo ){
 	Cancelar();
 	Mesh obj;
@@ -1641,7 +1665,6 @@ void CBlenderLite::AddMesh( int modelo ){
 	else {return;} 
     
 	Objetos.Append(obj);	
-		
 	objSelect = Objetos.Count()-1;
 	Objetos[objSelect].AgruparVertices();
 	Objetos[objSelect].RecalcularBordes();

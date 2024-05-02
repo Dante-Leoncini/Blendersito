@@ -10,24 +10,7 @@
 	
 // DATA TYPES
 enum TBlenderLiteMenuCommands
-{    		
-    EBlenderLiteLighting = 1,
-    EBlenderLiteAdd,
-    EBlenderLiteLights,
-    EBlenderLiteLamp,
-    EBlenderLiteSpot,
-    
-    EBlenderLiteCrearCubo,
-    EBlenderLiteCrearEsfera,
-    EBlenderLiteCrearCilindro,
-    EBlenderLiteCrearPlano,
-    EBlenderLiteCrearEmpty,
-    EBlenderLiteCrearCamara,
-    EBlenderLiteCrearCad,
-    EBlenderLiteCrearLuz,
-    EBlenderLiteCrearSuzanne,
-    EBlenderLiteCrearVertice,
-    
+{    		    
     EBlenderLiteTopView,
     EBlenderLiteFrontView,
     EBlenderLiteRightView,
@@ -89,7 +72,15 @@ enum TBlenderLiteMenuCommands
     EViewportSetShowYaxis,  
     EViewportSetShowXaxis,
     EViewportSetOutlineSelect,
-    EViewportSetOrigins
+    EViewportSetOrigins,
+
+    EViewportAdd,
+    EAddCube,
+    EAddCamera,
+    EAddLight,
+    EAddMonkey,
+    EAddVertex,
+    EAddEmpty
 };
 
 enum TAknExNoteNoteControlIds {

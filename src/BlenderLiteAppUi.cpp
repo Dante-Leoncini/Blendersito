@@ -13,6 +13,7 @@
 
 #include <eikmenup.h>
 #include <avkon.hrh>
+#include "Mesh.h"
 
 // ================= MEMBER FUNCTIONS =======================
 //
@@ -63,7 +64,7 @@ void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
             aMenuPane->SetItemDimmed(EBlenderLiteOrigenSetOrigen, EFalse);
             aMenuPane->SetItemDimmed(EBlenderLiteSeleccionar, EFalse);
             aMenuPane->SetItemDimmed(EBlenderLiteEditarObjeto, ETrue);
-            aMenuPane->SetItemDimmed(EBlenderLiteAdd, ETrue);
+            aMenuPane->SetItemDimmed(EViewportAdd, ETrue);
             aMenuPane->SetItemDimmed(EBlenderLiteImportOBJ, ETrue);
             aMenuPane->SetItemDimmed(EBlenderLiteWidescreen, ETrue);
             
@@ -71,7 +72,7 @@ void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
             aMenuPane->SetItemDimmed(EBlenderLiteOrigenSetOrigen, ETrue);
             aMenuPane->SetItemDimmed(EBlenderLiteSeleccionar, ETrue);
             aMenuPane->SetItemDimmed(EBlenderLiteEditarObjeto, EFalse);
-            aMenuPane->SetItemDimmed(EBlenderLiteAdd, EFalse);
+            aMenuPane->SetItemDimmed(EViewportAdd, EFalse);
             aMenuPane->SetItemDimmed(EBlenderLiteImportOBJ, EFalse);
             aMenuPane->SetItemDimmed(EBlenderLiteWidescreen, EFalse);
         }
@@ -290,15 +291,6 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             Exit();
             break;
             }
-        case EBlenderLiteLights:
-            iAppContainer->iBlenderLite->ToggleLighting();
-            break;
-        case EBlenderLiteLamp:
-            iAppContainer->iBlenderLite->ToggleLamp();
-            break;
-        case EBlenderLiteSpot:
-            iAppContainer->iBlenderLite->ToggleSpot();
-            break;
         //nuevos!!!      
         case EViewportSetShowFloor:
             iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->showFloor);
@@ -326,14 +318,23 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             break; 
         case EBlenderLiteWidescreen:
             iAppContainer->SetWidescreen();
+            break;    
+        case EAddCamera:            
+            iAppContainer->iBlenderLite->AddObject(camera);
+            break;   
+        case EAddLight:            
+            iAppContainer->iBlenderLite->AddObject(light);
+            break;       
+        case EAddEmpty:            
+            iAppContainer->iBlenderLite->AddObject(empty);
             break;
-        case EBlenderLiteCrearCubo:            
+        case EAddCube:            
             iAppContainer->iBlenderLite->AddMesh(cubo);
             break;  
-        case EBlenderLiteCrearSuzanne:
+        case EAddMonkey:
             iAppContainer->iBlenderLite->AddMesh(suzanne);
             break;  
-        case EBlenderLiteCrearVertice:
+        case EAddVertex:
             iAppContainer->iBlenderLite->AddMesh(vertice);
             break;  
         case EBlenderLiteSetSpecular:

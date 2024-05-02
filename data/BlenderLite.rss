@@ -109,9 +109,9 @@ RESOURCE MENU_PANE r_blenderlite_menu
 			},		
         	MENU_ITEM
             {
-                command = EBlenderLiteAdd;
-                cascade = r_blenderlite_add_menu;
-                txt = STRING_r_blenderlite_add;
+                command = EViewportAdd;
+                cascade = r_viewport_add_menu;
+                txt = STRING_r_Add;
             },		
         	MENU_ITEM
             {
@@ -169,52 +169,35 @@ RESOURCE MENU_PANE r_blenderlite_modificadores_menu
 
 //----------------------------------------------------
 //
-//    r_blenderlite_add_menu
+//    r_viewporte_add_menu
 //
 //----------------------------------------------------
 //
-RESOURCE MENU_PANE r_blenderlite_add_menu{
+RESOURCE MENU_PANE r_viewport_add_menu{
 	items = {
         MENU_ITEM {
-            command = EBlenderLiteCrearCubo;
-            txt = STRING_r_blenderlite_crearCubo;
+            command = EAddCube;
+            txt = STRING_r_AddCube;
         },
         MENU_ITEM {
-            command = EBlenderLiteCrearVertice;
-            txt = STRING_r_blenderlite_crearVertice;
+            command = EAddVertex;
+            txt = STRING_r_AddVertex;
         },
         MENU_ITEM {
-            command = EBlenderLiteCrearEsfera;
-            txt = STRING_r_blenderlite_crearEsfera;
-        },
-        MENU_ITEM 
-        {
-            command = EBlenderLiteCrearCilindro;
-            txt = STRING_r_blenderlite_crearCilindro;
+            command = EAddEmpty;
+            txt = STRING_r_AddEmpty;
         },
         MENU_ITEM {
-            command = EBlenderLiteCrearPlano;
-            txt = STRING_r_blenderlite_crearPlano;
+            command = EAddCamera;
+            txt = STRING_r_AddCamera;
         },
         MENU_ITEM {
-            command = EBlenderLiteCrearEmpty;
-            txt = STRING_r_blenderlite_crearEmpty;
+            command = EAddLight;
+            txt = STRING_r_AddLight;
         },
         MENU_ITEM {
-            command = EBlenderLiteCrearCad;
-            txt = STRING_r_blenderlite_crearCad;
-        },
-        MENU_ITEM {
-            command = EBlenderLiteCrearCamara;
-            txt = STRING_r_blenderlite_crearCamara;
-        },
-        MENU_ITEM {
-            command = EBlenderLiteCrearLuz;
-            txt = STRING_r_blenderlite_crearLuz;
-        },
-        MENU_ITEM {
-            command = EBlenderLiteCrearSuzanne;
-            txt = STRING_r_blenderlite_crearSuzanne;
+            command = EAddMonkey;
+            txt = STRING_r_AddMonkey;
         }
     };
 }
@@ -463,19 +446,13 @@ RESOURCE MENU_PANE r_blenderlite_editarOrigen_menu{
 //
 //----------------------------------------------------
 //
-RESOURCE TBUF256 r_blenderlite_add{buf = STRING_r_blenderlite_add;}
-RESOURCE TBUF256 r_blenderlite_crearCube{buf = STRING_r_blenderlite_crearCubo;}
-RESOURCE TBUF256 r_blenderlite_crearVertice{buf = STRING_r_blenderlite_crearVertice;}
-RESOURCE TBUF256 r_blenderlite_crearClaude{buf = STRING_r_blenderlite_crearClaude;}
-RESOURCE TBUF256 r_blenderlite_crearMarcus{buf = STRING_r_blenderlite_crearMarcus;}
-RESOURCE TBUF256 r_blenderlite_crearSuzanne{buf = STRING_r_blenderlite_crearSuzanne;}
-RESOURCE TBUF256 r_blenderlite_crearLuz{buf = STRING_r_blenderlite_crearLuz;}
-RESOURCE TBUF256 r_blenderlite_crearCamara{buf = STRING_r_blenderlite_crearCamara;}
-RESOURCE TBUF256 r_blenderlite_crearEsfera{buf = STRING_r_blenderlite_crearEsfera;}
-RESOURCE TBUF256 r_blenderlite_crearCilindro{buf = STRING_r_blenderlite_crearCilindro;}
-RESOURCE TBUF256 r_blenderlite_crearPlano{buf = STRING_r_blenderlite_crearPlano;}
-RESOURCE TBUF256 r_blenderlite_crearEmpty{buf = STRING_r_blenderlite_crearEmpty;}
-RESOURCE TBUF256 r_blenderlite_crearCad{buf = STRING_r_blenderlite_crearCad;}
+//RESOURCE TBUF256 r_Add{buf = STRING_r_Add;}
+//RESOURCE TBUF256 r_AddCube{buf = STRING_r_AddCube;}
+//RESOURCE TBUF256 r_AddVertex{buf = STRING_r_AddVertex;}
+//RESOURCE TBUF256 r_AddEmpty{buf = STRING_r_AddEmpty;}
+//RESOURCE TBUF256 r_AddCamera{buf = STRING_r_AddCamera;}
+//RESOURCE TBUF256 r_AddLight{buf = STRING_r_AddLight;}
+//RESOURCE TBUF256 r_AddMonkey{buf = STRING_r_AddMonkey;}
 
 RESOURCE TBUF256 r_blenderlite_topView{buf = STRING_r_blenderlite_topView;}
 RESOURCE TBUF256 r_blenderlite_frontView{buf = STRING_r_blenderlite_frontView;}

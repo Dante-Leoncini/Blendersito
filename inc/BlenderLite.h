@@ -84,11 +84,6 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
 		 * Changes the current state to "running".
 		 */
 		void OnEndLoadingTexturesL();
-
-        /**
-         * Toggles lighting enabled/disabled.
-         */
-        void ToggleLighting( void );
         
         //mover al siguiente casillero
         void Rotar( GLfixed aDeltaTimeSecs );
@@ -100,10 +95,11 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void Aceptar( void );
         
         void dibujarUI();
-        void guardarEstado( int indice );
-        void ReestablecerEstado( int indice );
-        void SetEje( int eje );     
-        void AddMesh( int modelo );
+        void guardarEstado( TInt indice );
+        void ReestablecerEstado( TInt indice );
+        void SetEje( TInt eje );     
+        void AddMesh( TInt modelo );
+        void AddObject( TInt tipo );
         void SetTexture(); //int texturaID 
         void ActivarTextura();
         void SetInterpolation();
