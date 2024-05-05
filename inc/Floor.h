@@ -1,9 +1,8 @@
 // MACROS
-#define MATERIAL_MAX 1
 #define objFacesFloor       64
 
-/** Vertices for the Floor object. */
-static const GLshort objVertexdataFloor[]={
+// Vertices for the Floor object. 
+static const GLshort objVertexdataFloor[71*3]={
     0, 0, -32767, //verde
     0, 0, 32767,  //verde
     -32767, 0, 0, //rojo
@@ -84,7 +83,7 @@ static const GLshort objVertexdataFloor[]={
    0, -32767,  0,
 };
 
-/* Define normals for the cube */
+// Define normals for the cube 
 static const GLbyte objNormaldataFloor[]={
     0,127,0,
     0,127,0,
@@ -96,7 +95,7 @@ static const GLbyte objNormaldataFloor[]={
     0,127,0
 };
 
-/** Indices to the Floor object vertices. */
+// Indices to the Floor object vertices.
 static const GLushort EjeVerde[2]={0, 1};
 static const GLushort EjeRojo[2]={2, 3};
 static const GLushort EjeAzul[2]={68, 69};

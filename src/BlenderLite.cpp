@@ -137,12 +137,7 @@ bool redibujar = true;
 
 //interpolacion
 enum {lineal, closest};
-enum{
-	Rendered,
-	Texture,
-	Solid,
-	Wireframe
-};
+enum {Solid, MaterialPreview, Wireframe, Rendered};
 
 enum{
 	navegacion,
@@ -161,14 +156,14 @@ enum{
 
 enum{
 	cubo, esfera, cilindro, plano, vacio, camara,
-    cad, luz, suzanne,vertice
+    cad, luz, monkey,vertice
 };
 
 //CPrimitiva Primitivas;
 
 typedef enum { X, Y, Z, XYZ } Axis;
 
-TInt view = Rendered;
+TInt view = MaterialPreview;
 TInt axisSelect = X;
 
 class SaveState {
@@ -188,7 +183,8 @@ SaveState estadoObj;
 
 //Crea un array de objetos
 RArray<Object> Objects;
-RArray<Mesh> Objetos;
+RArray<Material> Materials;
+RArray<Mesh> Meshes;
 TInt objSelect = 0;
 TInt tipoSelect = vertexSelect;
 TInt EditSelect = 0;
@@ -197,7 +193,7 @@ GLshort estadoVertex[3]={0, 0, 0};
 void CBlenderLite::changeSelect(){
 	if (estado == navegacion){
 		EditSelect = 0;
-		if (objSelect+1 > Objetos.Count()-1){
+		if (objSelect+1 > Objects.Count()-1){
 			objSelect = 0;
 		}
 		else {
@@ -206,13 +202,14 @@ void CBlenderLite::changeSelect(){
 	}
 	else if (estado == edicion){
 		EditSelect++;
-		if (tipoSelect == vertexSelect && EditSelect >= Objetos[objSelect].vertexGroupSize){
+		Mesh& pMesh = Meshes[Objects[objSelect].Id];	
+		if (tipoSelect == vertexSelect && EditSelect >= pMesh.vertexGroupSize){
 			EditSelect = 0;			
 		}	
-		else if (tipoSelect == edgeSelect && EditSelect >= Objetos[objSelect].facesSize/2){
+		if (tipoSelect == edgeSelect && EditSelect >= pMesh.facesSize/2){
 			EditSelect = 0;			
 		}	
-		else if (tipoSelect == faceSelect && EditSelect >= Objetos[objSelect].facesSize/3){
+		else if (tipoSelect == faceSelect && EditSelect >= pMesh.facesSize/3){
 			EditSelect = 0;			
 		}	
 	};
@@ -275,10 +272,25 @@ void CBlenderLite::ConstructL( void ){
 	showOutlineSelect = true;
 	showOrigins = true;
 
+	//tiene que haber un material por defecto siempre
+	Material mat;	
+	mat.specular[0] = mat.specular[1] = mat.specular[2] = mat.specular[3] = 0.3;
+	mat.diffuse[0] = mat.diffuse[1] = mat.diffuse[2] = mat.diffuse[3] = 1.0;
+	mat.emission[0] = mat.emission[1] = mat.emission[2] = mat.emission[3] = 0.0;
+	mat.textura = false;
+	mat.transparent = false;
+	mat.interpolacion = lineal;
+	mat.textureID = 1;
+	Materials.Append(mat);
+
+	//material para pruebas	
+	mat.textureID = 2;
+	mat.textura = true;
+	Materials.Append(mat);
+
 	//debuger
 	//console = Console::NewL(_L("Consola"),TSize(KConsFullScreen, KConsFullScreen));
-	//Objetos = new Mesh[cantObjetos];
-	AddMesh(cubo);
+	//Objects = new Mesh[cantObjects];
 	AddObject(camera);
 	Objects[0].posX = -800*6.8;
 	Objects[0].posY = -800*7.29;
@@ -292,6 +304,8 @@ void CBlenderLite::ConstructL( void ){
 	Objects[1].posX = -3000;
 	Objects[1].posY = 1500;
 	Objects[1].posZ = 4500;
+	//AddMesh(monkey);
+	AddMesh(cubo);
 }
 
 
@@ -398,10 +412,6 @@ void CBlenderLite::AppInit( void ){
     // Do not use perspective correction
     glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST );
 
-    // Initialize menu state variables, Symbian menu stuff.
-    iLampEnabled     = ETrue;          // Lamp is enabled
-    iSpotEnabled     = EFalse;         // Spot is disabled
-
 	// Push the textures into the loading queue.
 	_LIT( KOriginTexture, "origen.png" );
 	_LIT( KColorGridTexture, "color_grid.png" );
@@ -463,147 +473,155 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	glScalex( 1 << 10, 1 << 10, 1 << 10 );	
 	
 	//bucle que dibuja cada objeto en orden
-	for(int o=0; o < Objetos.Count(); o++){
-		if (Objetos[o].vertexGroupSize <= 0){
-			continue;
-		}
-		glPushMatrix(); //guarda la matrix
-		// Set head front material
-		glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
-		glDisable(GL_COLOR_MATERIAL);
-		glMaterialfv(   GL_FRONT_AND_BACK, GL_AMBIENT,  objAmbient  );
-		glMaterialfv(   GL_FRONT_AND_BACK, GL_SPECULAR, Objetos[o].specular );
-		glMaterialx( GL_FRONT_AND_BACK, GL_SHININESS,   12 << 16     );
-		glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[negro] );
+	if(Meshes.Count() > 0){
+		for(int o=0; o < Objects.Count(); o++){
+			Object& obj = Objects[o];
+			Mesh& pMesh = Meshes[obj.Id];
+			Material& mat = Materials[pMesh.material];
+	
+			//si es un mesh o no es visible, lo saltea
+			if(!obj.visible || obj.type != mesh ) {continue;}
+				
+			//posicion, rotacion y escala del objeto
+			glPushMatrix(); //guarda la matrix
+			glTranslatef( obj.posX, obj.posZ, obj.posY);
+			glRotatef(obj.rotX, 1, 0, 0); //angulo, X Y Z
+			glRotatef(obj.rotZ, 0, 1, 0); //angulo, X Y Z
+			glRotatef(obj.rotY, 0, 0, 1); //angulo, X Y Z
+			glScalex( obj.scaleX, obj.scaleZ, obj.scaleY );	
+	
+			glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
+			glDisable(GL_COLOR_MATERIAL);
+			glMaterialfv(   GL_FRONT_AND_BACK, GL_AMBIENT,  objAmbient  );
+			glMaterialfv(   GL_FRONT_AND_BACK, GL_SPECULAR, mat.specular );
+			glMaterialx( GL_FRONT_AND_BACK, GL_SHININESS,   12 << 16     );
+			glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[negro] );
+	
+			glEnable( GL_LIGHTING );
+			glDisable(GL_POLYGON_OFFSET_FILL);
+			// Set array pointers from mesh.
+			glVertexPointer( 3, GL_SHORT, 0, pMesh.vertex );
+			glNormalPointer( GL_BYTE, 0, pMesh.normals );
+			//resetea las lienas a 1
+			glLineWidth(1);	
+	
+			glShadeModel( GL_SMOOTH );
+			//if (obj.smooth){glShadeModel( GL_SMOOTH );}
+			//else {glShadeModel( GL_FLAT );}
 			
-		//posicion, rotacion y escala del objeto
-		glTranslatef( Objetos[o].posX, Objetos[o].posZ, Objetos[o].posY);
-		glRotatef(Objetos[o].rotX, 1, 0, 0); //angulo, X Y Z
-		glRotatef(Objetos[o].rotZ, 0, 1, 0); //angulo, X Y Z
-		glRotatef(Objetos[o].rotY, 0, 0, 1); //angulo, X Y Z
-		glScalex( Objetos[o].scaleX, Objetos[o].scaleZ, Objetos[o].scaleY );	
-
-		glEnable( GL_LIGHTING );
-		glDisable( GL_TEXTURE_2D );
-		glDisable(GL_POLYGON_OFFSET_FILL);
-		// Set array pointers from mesh.
-		glVertexPointer( 3, GL_SHORT, 0, Objetos[o].vertex );
-		glNormalPointer( GL_BYTE, 0, Objetos[o].normals );
-		//resetea las lienas a 1
-		glLineWidth(1);	
-
-		if (Objetos[o].smooth){glShadeModel( GL_SMOOTH );}
-		else {glShadeModel( GL_FLAT );}
-		
-		//modelo con textura
-		if (view == 0){
-			glTexCoordPointer( 2, GL_BYTE, 0, Objetos[o].uv );
-			if (Objetos[o].textura){
-				glEnable( GL_TEXTURE_2D );
-			};			 
-			glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE, Objetos[o].diffuse );        
-			glBindTexture(  GL_TEXTURE_2D, Objetos[o].texturaID ); //selecciona la textura	
-			//transparencia
-			if (Objetos[o].transparencia){glEnable(GL_BLEND);}
-			else {glDisable(GL_BLEND);}
-			//textura pixelada o suave
-			if (Objetos[o].interpolacion == lineal){
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			//modelo con textura
+			if (view == MaterialPreview){
+				glTexCoordPointer( 2, GL_BYTE, 0, pMesh.uv );
+				glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE, mat.diffuse ); 
+				if (mat.textura){
+					glEnable( GL_TEXTURE_2D );
+					glBindTexture(  GL_TEXTURE_2D, mat.textureID ); //selecciona la textura	
+				}
+				else {glDisable( GL_TEXTURE_2D );}
+				
+				//transparent
+				if (mat.transparent){glEnable(GL_BLEND);}
+				else {glDisable(GL_BLEND);}
+				//textura pixelada o suave
+				if (mat.interpolacion == lineal){
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				}
+				else if (mat.interpolacion == closest){
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				}
+				glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, mat.emission );
+				// Obtiene el puntero del arreglo
+				//const GLushort* myArrayPointer = &obj.NewFaces[0];
+				//glDrawElements( GL_TRIANGLES, obj.NewFaces.Count(), GL_UNSIGNED_SHORT, &obj.NewFaces[0] );	
+				glDrawElements( GL_TRIANGLES, pMesh.facesSize*3, GL_UNSIGNED_SHORT, pMesh.faces );		
 			}
-			else if (Objetos[o].interpolacion == closest){
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			//modelo sin textura
+			if (view == Solid){
+				glDisable( GL_TEXTURE_2D );
+				glDisable(GL_BLEND);
+				glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  mat.diffuse   ); 
+				glDrawElements( GL_TRIANGLES, pMesh.facesSize*3, GL_UNSIGNED_SHORT, pMesh.faces );
 			}
-			glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, Objetos[o].emission );
-			// Obtiene el puntero del arreglo
-			//const GLushort* myArrayPointer = &Objetos[o].NewFaces[0];
-			//glDrawElements( GL_TRIANGLES, Objetos[o].NewFaces.Count(), GL_UNSIGNED_SHORT, &Objetos[o].NewFaces[0] );	
-			glDrawElements( GL_TRIANGLES, Objetos[o].facesSize, GL_UNSIGNED_SHORT, Objetos[o].faces );		
+			//wireframe view
+			else if(objSelect != o){    
+				glDisable( GL_LIGHTING );
+				glEnable(GL_COLOR_MATERIAL);
+				glColor4f(ListaColores[gris][0],ListaColores[gris][1],ListaColores[gris][2],ListaColores[gris][3]);
+				//glDrawElements( GL_LINES, pMesh.edgesSize, GL_UNSIGNED_SHORT, pMesh.edges );	
+			}  
+			
+			//dibuja el borde seleccionado
+			if(objSelect == o && showOverlays && showOutlineSelect){
+				glDisable( GL_LIGHTING );
+				glEnable(GL_COLOR_MATERIAL);
+				glDisable( GL_TEXTURE_2D );  
+				glEnable(GL_POLYGON_OFFSET_FILL);
+				//si se esta editando
+				if (estado == edicion || estado == translacionVertex){
+					//bordes
+					glPolygonOffset(1.0, -1.0);
+					glLineWidth(1);	 
+					glColor4f(ListaColores[gris][0],
+							  ListaColores[gris][1],
+							  ListaColores[gris][2],
+							  ListaColores[gris][3]);
+					//glDrawElements( GL_LINES, obj.edgesSize, GL_UNSIGNED_SHORT, obj.edges );
+					//vertices
+					if (tipoSelect == vertexSelect){
+						glPolygonOffset(1.0, -4.0);
+						glColor4f(ListaColores[negro][0],
+								  ListaColores[negro][1],
+								  ListaColores[negro][2],
+								  ListaColores[negro][3]);
+						glPointSize(4);
+						glDrawElements( GL_POINTS, pMesh.vertexGroupSize, GL_UNSIGNED_SHORT, pMesh.vertexGroup);
+						//vertice seleccionado
+						if (pMesh.vertexGroupSize > 0){
+							glPolygonOffset(1.0, -10.0);
+							glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
+							glDrawArrays( GL_POINTS, pMesh.vertexGroup[EditSelect], 1 );				
+						}					
+					}
+					//borde seleccionado
+					else if (tipoSelect == edgeSelect){		
+						//vertice seleccionado
+						/*if (obj.edgesSize > 0){		
+							glPolygonOffset(1.0, -10.0);
+							glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
+							glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, &obj.edges[EditSelect*2]);
+						}	*/		
+					}
+					//cara seleccionado
+					else if (tipoSelect == faceSelect){	
+						//vertice seleccionado
+						if (pMesh.facesSize > 0){	
+							glEnable(GL_BLEND);
+							glDisable(GL_LIGHTING);
+							glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+							glPolygonOffset(1.0, -10.0);
+							glColor4f(ListaColores[naranjaFace][0],ListaColores[naranjaFace][1],ListaColores[naranjaFace][2],ListaColores[naranjaFace][3]);
+							glDrawElements( GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, &pMesh.faces[EditSelect*3]);
+							glDisable(GL_BLEND);
+						}				
+					}
+				}
+				else if (view != 2){
+					glPolygonOffset(1.0, 200.0);
+					glLineWidth(3);	 
+					glColor4f(ListaColores[colorBordeSelect][0],ListaColores[colorBordeSelect][1],ListaColores[colorBordeSelect][2],ListaColores[colorBordeSelect][3]);
+					//glDrawElements( GL_LINES, obj.edgesSize, GL_UNSIGNED_SHORT, obj.edges );	
+				}	
+				else { //bordes seleccionados en wireframe
+					glDisable(GL_POLYGON_OFFSET_FILL);
+					glLineWidth(1);		
+					glColor4f(ListaColores[colorBordeSelect][0],ListaColores[colorBordeSelect][1],ListaColores[colorBordeSelect][2],ListaColores[colorBordeSelect][3]);
+					//glDrawElements( GL_LINES, obj.edgesSize, GL_UNSIGNED_SHORT, obj.edges );	
+				}
+			};		
+			glPopMatrix(); //reinicia la matrix a donde se guardo  
 		}
-		//modelo sin textura
-		else if (view == 1){
-			glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  Objetos[o].diffuse   ); 
-			glDrawElements( GL_TRIANGLES, Objetos[o].facesSize, GL_UNSIGNED_SHORT, Objetos[o].faces );
-		}
-		//wireframe view
-		else if(objSelect != o){    
-		    glDisable( GL_LIGHTING );
-			glEnable(GL_COLOR_MATERIAL);
-			glColor4f(ListaColores[gris][0],ListaColores[gris][1],ListaColores[gris][2],ListaColores[gris][3]);
-			glDrawElements( GL_LINES, Objetos[o].edgesSize, GL_UNSIGNED_SHORT, Objetos[o].edges );	
-		}  
-		
-		//dibuja el borde seleccionado
-		if(objSelect == o && showOverlays && showOutlineSelect){
-		    glDisable( GL_LIGHTING );
-			glEnable(GL_COLOR_MATERIAL);
-			glDisable( GL_TEXTURE_2D );  
-			glEnable(GL_POLYGON_OFFSET_FILL);
-			//si se esta editando
-			if (estado == edicion || estado == translacionVertex){
-				//bordes
-				glPolygonOffset(1.0, -1.0);
-				glLineWidth(1);	 
-				glColor4f(ListaColores[gris][0],
-						  ListaColores[gris][1],
-						  ListaColores[gris][2],
-						  ListaColores[gris][3]);
-				glDrawElements( GL_LINES, Objetos[o].edgesSize, GL_UNSIGNED_SHORT, Objetos[o].edges );
-				//vertices
-				if (tipoSelect == vertexSelect){
-					glPolygonOffset(1.0, -4.0);
-					glColor4f(ListaColores[negro][0],
-							  ListaColores[negro][1],
-							  ListaColores[negro][2],
-							  ListaColores[negro][3]);
-					glPointSize(4);
-					glDrawElements( GL_POINTS, Objetos[o].vertexGroupSize, GL_UNSIGNED_SHORT, Objetos[o].vertexGroup);
-					//vertice seleccionado
-					if (Objetos[o].vertexGroupSize > 0){
-						glPolygonOffset(1.0, -10.0);
-						glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
-					    glDrawArrays( GL_POINTS, Objetos[o].vertexGroup[EditSelect], 1 );
-						//glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[gris] );					
-					}					
-				}
-				//borde seleccionado
-				else if (tipoSelect == edgeSelect){		
-					//vertice seleccionado
-					if (Objetos[o].edgesSize > 0){		
-						glPolygonOffset(1.0, -10.0);
-						glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
-						glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, &Objetos[o].edges[EditSelect*2]);
-					}			
-				}
-				//cara seleccionado
-				else if (tipoSelect == faceSelect){	
-					//vertice seleccionado
-					if (Objetos[o].facesSize > 0){	
-						glEnable(GL_BLEND);
-						glDisable(GL_LIGHTING);
-						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-						glPolygonOffset(1.0, -10.0);
-						glColor4f(ListaColores[naranjaFace][0],ListaColores[naranjaFace][1],ListaColores[naranjaFace][2],ListaColores[naranjaFace][3]);
-						glDrawElements( GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, &Objetos[o].faces[EditSelect*3]);
-						glDisable(GL_BLEND);
-					}				
-				}
-			}
-			else if (view != 2){
-				glPolygonOffset(1.0, 200.0);
-				glLineWidth(3);	 
-				glColor4f(ListaColores[colorBordeSelect][0],ListaColores[colorBordeSelect][1],ListaColores[colorBordeSelect][2],ListaColores[colorBordeSelect][3]);
-				glDrawElements( GL_LINES, Objetos[o].edgesSize, GL_UNSIGNED_SHORT, Objetos[o].edges );	
-			}	
-			else { //bordes seleccionados en wireframe
-				glDisable(GL_POLYGON_OFFSET_FILL);
-				glLineWidth(1);		
-				glColor4f(ListaColores[colorBordeSelect][0],ListaColores[colorBordeSelect][1],ListaColores[colorBordeSelect][2],ListaColores[colorBordeSelect][3]);
-				glDrawElements( GL_LINES, Objetos[o].edgesSize, GL_UNSIGNED_SHORT, Objetos[o].edges );	
-			}
-		};		
-	    glPopMatrix(); //reinicia la matrix a donde se guardo  
 	}
 	//fin del dibujado de objetos
 
@@ -659,48 +677,53 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	//dibujo de objetos nuevo!
 	if (showOverlays){
 		for(TInt o=0; o < Objects.Count(); o++){
+			Object& obj = Objects[o];
 			//si es un mesh o no es visible, lo saltea
-			if(!Objects[o].visible || Objects[o].type == mesh) {continue;}
+			if(!obj.visible || obj.type == mesh) {continue;}
 
 			glDisable( GL_TEXTURE_2D );
 			glPushMatrix(); //guarda la matrix
 
 			//posicion, rotacion y escala del objeto
-			glTranslatef( Objects[o].posX, Objects[o].posZ, Objects[o].posY);
+			glTranslatef( obj.posX, obj.posZ, obj.posY);
 
+			//color si esta seleccionado
+			if (objSelect == o){
+				glColor4f(ListaColores[colorBordeSelect][0],ListaColores[colorBordeSelect][1],ListaColores[colorBordeSelect][2],ListaColores[colorBordeSelect][3]);
+			}
+			else {		
+				glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);		
+			}
 			//si es un empty
-			if (Objects[o].type == empty){		
+			if (obj.type == empty){		
 				glDisable( GL_TEXTURE_2D );	 
 				glDisable( GL_BLEND );
-				glRotatef(Objects[o].rotX, 1, 0, 0); //angulo, X Y Z
-				glRotatef(Objects[o].rotZ, 0, 1, 0); //angulo, X Y Z
-				glRotatef(Objects[o].rotY, 0, 0, 1); //angulo, X Y Z
-				glScalex( Objects[o].scaleX, Objects[o].scaleZ, Objects[o].scaleY );		
+				glRotatef(obj.rotX, 1, 0, 0); //angulo, X Y Z
+				glRotatef(obj.rotZ, 0, 1, 0); //angulo, X Y Z
+				glRotatef(obj.rotY, 0, 0, 1); //angulo, X Y Z
+				glScalex( obj.scaleX, obj.scaleZ, obj.scaleY );		
 				glLineWidth(1);	
-				glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);
 				glVertexPointer( 3, GL_SHORT, 0, EmptyVertices );
 				glDrawElements( GL_LINES, EmptyEdgesSize, GL_UNSIGNED_SHORT, EmptyEdges );
 			}
-			else if (Objects[o].type == camera){			
+			else if (obj.type == camera){			
 				glDisable( GL_TEXTURE_2D ); 
 				glDisable( GL_BLEND );
-				glRotatef(Objects[o].rotX, 1, 0, 0); //angulo, X Y Z
-				glRotatef(Objects[o].rotZ, 0, 1, 0); //angulo, X Y Z
-				glRotatef(Objects[o].rotY, 0, 0, 1); //angulo, X Y Z
-				glScalex( Objects[o].scaleX, Objects[o].scaleZ, Objects[o].scaleY );
+				glRotatef(obj.rotX, 1, 0, 0); //angulo, X Y Z
+				glRotatef(obj.rotZ, 0, 1, 0); //angulo, X Y Z
+				glRotatef(obj.rotY, 0, 0, 1); //angulo, X Y Z
+				glScalex( obj.scaleX, obj.scaleZ, obj.scaleY );
 				glLineWidth(1);	
-				glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);
 				glVertexPointer( 3, GL_SHORT, 0, CameraVertices );
 				glDrawElements( GL_LINES, CameraEdgesSize, GL_UNSIGNED_SHORT, CameraEdges );
 			}
-			else if (Objects[o].type == light){				
+			else if (obj.type == light){				
 				glEnable( GL_TEXTURE_2D ); 
 				glEnable( GL_BLEND );
 				glDepthMask(GL_FALSE); // Desactiva la escritura en el Z-buffer
 
 				glEnable( GL_POINT_SPRITE_OES ); //activa el uso de sprites en los vertices
 				glPointSize( 32 ); //tamaño del punto
-				glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);
 				glVertexPointer( 3, GL_SHORT, 0, pointVertex );
 				glBindTexture( GL_TEXTURE_2D, iLampTextura.iID ); //selecciona la textura
 
@@ -712,9 +735,8 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 				glDisable( GL_TEXTURE_2D ); 
 		
 				glLineWidth(1);	
-				glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negroTransparente][3]);
 				//glScalex( 0, 10, 0 ); //4500
-				LineaLightVertex[4] = -Objects[o].posZ;
+				LineaLightVertex[4] = (GLshort)-obj.posZ;
 				glVertexPointer( 3, GL_SHORT, 0, LineaLightVertex );
 				glDrawElements( GL_LINES, LineaEdgeSize, GL_UNSIGNED_SHORT, LineaEdge );
 
@@ -729,22 +751,21 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
     //dibuja los ejes de transformacion    
 	glDisable( GL_DEPTH_TEST );
 	if (estado != navegacion && estado != edicion){	
+		Object& obj = Objects[objSelect];		
+		Mesh& pMesh = Meshes[obj.Id];
 		glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
-		//glNormalPointer( GL_BYTE, 0, objNormaldataFloor );
-
 		glLineWidth(2);	
 		glPushMatrix(); //guarda la matrix
-		//posicion, rotacion y escala del objeto seleccionado
-		glTranslatef( Objetos[objSelect].posX, Objetos[objSelect].posZ, Objetos[objSelect].posY);
+		glTranslatef( obj.posX, obj.posZ, obj.posY);
 		if (estado != translacion){
-			glRotatef(Objetos[objSelect].rotX, 1, 0, 0); //angulo, X Y Z
-			glRotatef(Objetos[objSelect].rotY, 0, 0, 1); //angulo, X Y Z
-			glRotatef(Objetos[objSelect].rotZ, 0, 1, 0); //angulo, X Y Z			
+			glRotatef(obj.rotX, 1, 0, 0); //angulo, X Y Z
+			glRotatef(obj.rotY, 0, 0, 1); //angulo, X Y Z
+			glRotatef(obj.rotZ, 0, 1, 0); //angulo, X Y Z			
 		}
 		if (estado == translacionVertex){
-			glTranslatef(Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[EditSelect]*3]  *Objetos[objSelect].scaleX/65000, 
-					     Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[EditSelect]*3+1]*Objetos[objSelect].scaleY/65000, 
-						 Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[EditSelect]*3+2]*Objetos[objSelect].scaleZ/65000
+			glTranslatef(pMesh.vertex[pMesh.vertexGroup[EditSelect]*3]  *obj.scaleX/65000, 
+					     pMesh.vertex[pMesh.vertexGroup[EditSelect]*3+1]*obj.scaleY/65000, 
+					     pMesh.vertex[pMesh.vertexGroup[EditSelect]*3+2]*obj.scaleZ/65000
 			);		
 		}
 		if (axisSelect == X){
@@ -771,9 +792,9 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	}
 				
 	//dibuja el origen del objeto
-	if (Objetos.Count() > 0 && showOverlays && showOrigins){		
+	if (Objects.Count() > 0 && showOverlays && showOrigins){		
 	    glPushMatrix(); //guarda la matrix
-		glTranslatef( Objetos[objSelect].posX, Objetos[objSelect].posZ, Objetos[objSelect].posY);
+		glTranslatef( Objects[objSelect].posX, Objects[objSelect].posZ, Objects[objSelect].posY);
 
 		glEnable( GL_TEXTURE_2D );
 		glEnable( GL_BLEND );
@@ -841,7 +862,7 @@ void CBlenderLite::dibujarUI(){
 	//glDisable( GL_POINT_SPRITE_OES );
 	//glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_FALSE);
 	//glEnable( GL_TEXTURE_2D ); // Permite usar texturas
-	glEnable( GL_BLEND ); //permite transparencias
+	glEnable( GL_BLEND ); //permite transparents
 	//glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //hace que sea pixelada
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); //hace que sea pixelada
@@ -918,7 +939,7 @@ void CBlenderLite::DibujarRectangulo(GLshort ancho, GLshort alto, GLshort x, GLs
 void CBlenderLite::SetMouse(){
 	mouseVisible = !mouseVisible;
 	mouseX = iScreenWidth/2;
-	mouseY = -iScreenHeightSplit;
+	mouseY = (GLshort)-iScreenHeightSplit;
     redibujar = true;
 }
 
@@ -959,49 +980,50 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 		if (estado == navegacion || estado == edicion){
 			rotX-= 0.5;			
 		}
-		else if (estado == translacionVertex){		
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
+		else if (estado == translacionVertex){	
+			Mesh& pMesh = Meshes[Objects[objSelect].Id];	
+			for(int g=0; g < pMesh.vertexGroupIndiceSize[EditSelect]; g++){
 				if (axisSelect == X){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3] += 30;					
+					pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][g]*3] += 30;					
 				}
 				else if (axisSelect == Y){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+2] -= 30;				
+					pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][g]*3+2] -= 30;				
 				}
 				else if (axisSelect == Z){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+1] -= 30;	
+					pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][g]*3+1] -= 30;	
 				}
 			}
 		}
 		else if (estado == translacion){
 			if (axisSelect == X){
-				Objetos[objSelect].posX += 30;					
+				Objects[objSelect].posX += 30;					
 			}
 			else if (axisSelect == Y){
-				Objetos[objSelect].posY -= 30;					
+				Objects[objSelect].posY -= 30;					
 			}
 			else if (axisSelect == Z){
-				Objetos[objSelect].posZ -= 30;					
+				Objects[objSelect].posZ -= 30;					
 			}
 		}
 		else if (estado == rotacion){
 			if (axisSelect == X){
-				Objetos[objSelect].rotX -= 1;					
+				Objects[objSelect].rotX -= 1;					
 			}
 			else if (axisSelect == Y){
-				Objetos[objSelect].rotY -= 1;					
+				Objects[objSelect].rotY -= 1;					
 			}
 			else if (axisSelect == Z){
-				Objetos[objSelect].rotZ -= 1;					
+				Objects[objSelect].rotZ -= 1;					
 			}
 		}
 		else if (estado == escala){
-			if (axisSelect == X){Objetos[objSelect].scaleX -= 1000;}
-			else if (axisSelect == Y){Objetos[objSelect].scaleY -= 1000;}
-			else if (axisSelect == Z){Objetos[objSelect].scaleZ -= 1000;}
+			if (axisSelect == X){Objects[objSelect].scaleX -= 1000;}
+			else if (axisSelect == Y){Objects[objSelect].scaleY -= 1000;}
+			else if (axisSelect == Z){Objects[objSelect].scaleZ -= 1000;}
 			else if (axisSelect == XYZ){
-				Objetos[objSelect].scaleX -= 1000;
-				Objetos[objSelect].scaleY -= 1000;
-				Objetos[objSelect].scaleZ -= 1000;
+				Objects[objSelect].scaleX -= 1000;
+				Objects[objSelect].scaleY -= 1000;
+				Objects[objSelect].scaleZ -= 1000;
 			}
 		}
 		/*else if (estado == movimientoView){
@@ -1030,49 +1052,50 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 		if (estado == navegacion || estado == edicion){
 			rotX+= 0.5;			
 		}
-		else if (estado == translacionVertex){		
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
+		else if (estado == translacionVertex){	
+			Mesh& pMesh = Meshes[Objects[objSelect].Id];		
+			for(int g=0; g < pMesh.vertexGroupIndiceSize[EditSelect]; g++){
 				if (axisSelect == X){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3] -= 30;					
+					pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][g]*3] -= 30;					
 				}
 				else if (axisSelect == Y){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+2] += 30;				
+					pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][g]*3+2] += 30;				
 				}
 				else if (axisSelect == Z){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+1] += 30;	
+					pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][g]*3+1] += 30;	
 				}
 			}
 		}
 		else if (estado == translacion){
 			if (axisSelect == X){
-				Objetos[objSelect].posX -= 30;					
+				Objects[objSelect].posX -= 30;					
 			}
 			else if (axisSelect == Y){
-				Objetos[objSelect].posY += 30;					
+				Objects[objSelect].posY += 30;					
 			}
 			else if (axisSelect == Z){
-				Objetos[objSelect].posZ += 30;					
+				Objects[objSelect].posZ += 30;					
 			}
 		}
 		else if (estado == rotacion){
 			if (axisSelect == X){
-				Objetos[objSelect].rotX += 1;					
+				Objects[objSelect].rotX += 1;					
 			}
 			else if (axisSelect == Y){
-				Objetos[objSelect].rotY += 1;					
+				Objects[objSelect].rotY += 1;					
 			}
 			else if (axisSelect == Z){
-				Objetos[objSelect].rotZ += 1;					
+				Objects[objSelect].rotZ += 1;					
 			}
 		}
 		else if (estado == escala){
-			if (axisSelect == X){Objetos[objSelect].scaleX += 1000;}
-			else if (axisSelect == Y){Objetos[objSelect].scaleY += 1000;}
-			else if (axisSelect == Z){Objetos[objSelect].scaleZ += 1000;}
+			if (axisSelect == X){Objects[objSelect].scaleX += 1000;}
+			else if (axisSelect == Y){Objects[objSelect].scaleY += 1000;}
+			else if (axisSelect == Z){Objects[objSelect].scaleZ += 1000;}
 			else if (axisSelect == XYZ){
-				Objetos[objSelect].scaleX += 1000;
-				Objetos[objSelect].scaleY += 1000;
-				Objetos[objSelect].scaleZ += 1000;
+				Objects[objSelect].scaleX += 1000;
+				Objects[objSelect].scaleY += 1000;
+				Objects[objSelect].scaleZ += 1000;
 			}			
 		}
 		/*
@@ -1101,28 +1124,29 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 		if (estado == navegacion || estado == edicion){
 			rotY-= 0.5;			
 		}
-		else if (estado == translacionVertex){		
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
+		else if (estado == translacionVertex){	
+			Mesh& pMesh = Meshes[Objects[objSelect].Id];	
+			for(int g=0; g < pMesh.vertexGroupIndiceSize[EditSelect]; g++){
 				if (axisSelect == X){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3] -= 30;					
+					pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][g]*3] -= 30;					
 				}
 				else if (axisSelect == Y){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+2] += 30;				
+					pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][g]*3+2] += 30;				
 				}
 				else if (axisSelect == Z){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+1] += 30;	
+					pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][g]*3+1] += 30;	
 				}
 			}
 		}
 		else if (estado == translacion){
 			if (axisSelect == X){
-				Objetos[objSelect].posX -= 30;					
+				Objects[objSelect].posX -= 30;					
 			}
 			else if (axisSelect == Y){
-				Objetos[objSelect].posY += 30;					
+				Objects[objSelect].posY += 30;					
 			}
 			else if (axisSelect == Z){
-				Objetos[objSelect].posZ += 30;					
+				Objects[objSelect].posZ += 30;					
 			}
 		}/*
 		else if (estado == movimientoView){
@@ -1143,28 +1167,29 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 		if (estado == navegacion || estado == edicion){
 			rotY+= 0.5;			
 		}
-		else if (estado == translacionVertex){		
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
+		else if (estado == translacionVertex){	
+			Mesh& pMesh = Meshes[Objects[objSelect].Id];	
+			for(int g=0; g < pMesh.vertexGroupIndiceSize[EditSelect]; g++){
 				if (axisSelect == X){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3] += 30;					
+					pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][g]*3] += 30;					
 				}
 				else if (axisSelect == Y){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+2] -= 30;				
+					pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][g]*3+2] -= 30;				
 				}
 				else if (axisSelect == Z){
-					Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+1] -= 30;	
+					pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][g]*3+1] -= 30;	
 				}
 			}
 		}
 		else if (estado == translacion){
 			if (axisSelect == X){
-				Objetos[objSelect].posX += 30;					
+				Objects[objSelect].posX += 30;					
 			}
 			else if (axisSelect == Y){
-				Objetos[objSelect].posY -= 30;					
+				Objects[objSelect].posY -= 30;					
 			}
 			else if (axisSelect == Z){
-				Objetos[objSelect].posZ -= 30;					
+				Objects[objSelect].posZ -= 30;					
 			}
 		}
 	    redibujar = true;
@@ -1184,7 +1209,7 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 
 void CBlenderLite::SetRotacion(){
 	//si no hay objetos
-	if (Objetos.Count() < 1){return;}
+	if (Objects.Count() < 1){return;}
 	else if (estado == navegacion){
 		guardarEstado(objSelect);
 		estado = rotacion;	
@@ -1198,7 +1223,7 @@ void CBlenderLite::SetRotacion(){
 void CBlenderLite::SetEscala(){
 	//XYZ tiene escala
 	//si no hay objetos
-	if (Objetos.Count() < 1){return;}
+	if (Objects.Count() < 1){return;}
 	else if (estado == navegacion){
 		guardarEstado(objSelect);
 		estado = escala;
@@ -1211,7 +1236,7 @@ void CBlenderLite::SetEscala(){
 };
 void CBlenderLite::SetPosicion(){
 	//si no hay objetos
-	if (Objetos.Count() < 1){return;}
+	if (Objects.Count() < 1){return;}
 	else if (estado == navegacion){
 		guardarEstado(objSelect);
 		estado = translacion;
@@ -1258,7 +1283,7 @@ void CBlenderLite::Cancelar(){
 };
 
 void CBlenderLite::Aceptar(){
-	if (estado == navegacion){
+	if (estado == navegacion && Objects[objSelect].type == mesh){
 		estado = edicion;	
 		colorBordeSelect = 1;	
 	}
@@ -1291,47 +1316,47 @@ void CBlenderLite::Tab(){
 
 
 void CBlenderLite::ReestablecerEstado(int indice){
-	if (estado == translacionVertex){
-		 for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
-			Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3] = estadoVertex[0];
-			Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+2] = estadoVertex[1];	
-			Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+1] = estadoVertex[2];	
+	/*if (estado == translacionVertex){
+		 for(int g=0; g < Objects[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
+			Objects[objSelect].vertex[Objects[objSelect].vertexGroupIndice[EditSelect][g]*3] = estadoVertex[0];
+			Objects[objSelect].vertex[Objects[objSelect].vertexGroupIndice[EditSelect][g]*3+2] = estadoVertex[1];	
+			Objects[objSelect].vertex[Objects[objSelect].vertexGroupIndice[EditSelect][g]*3+1] = estadoVertex[2];	
 		}
 	}
-	else {
-		Objetos[indice].posX = estadoObj.posX;
-		Objetos[indice].posY = estadoObj.posY;
-		Objetos[indice].posZ = estadoObj.posZ;
-		Objetos[indice].rotX = estadoObj.rotX;
-		Objetos[indice].rotY = estadoObj.rotY;
-		Objetos[indice].rotZ = estadoObj.rotZ;
-		Objetos[indice].scaleX = estadoObj.scaleX;
-		Objetos[indice].scaleY = estadoObj.scaleY;
-		Objetos[indice].scaleZ = estadoObj.scaleZ;		
-	}
+	else {*/
+		Objects[indice].posX = estadoObj.posX;
+		Objects[indice].posY = estadoObj.posY;
+		Objects[indice].posZ = estadoObj.posZ;
+		Objects[indice].rotX = estadoObj.rotX;
+		Objects[indice].rotY = estadoObj.rotY;
+		Objects[indice].rotZ = estadoObj.rotZ;
+		Objects[indice].scaleX = estadoObj.scaleX;
+		Objects[indice].scaleY = estadoObj.scaleY;
+		Objects[indice].scaleZ = estadoObj.scaleZ;		
+	//}
 };
 
 void CBlenderLite::guardarEstado(int indice){
-	if (estado == translacionVertex){
-		estadoVertex[0] = Objetos[objSelect].vertex[Objetos[indice].vertexGroupIndice[EditSelect][0]*3];
-		estadoVertex[1] = Objetos[objSelect].vertex[Objetos[indice].vertexGroupIndice[EditSelect][0]*3+2];	
-		estadoVertex[2] = Objetos[objSelect].vertex[Objetos[indice].vertexGroupIndice[EditSelect][0]*3+1];	
+	/*if (estado == translacionVertex){
+		estadoVertex[0] = Objects[objSelect].vertex[Objects[indice].vertexGroupIndice[EditSelect][0]*3];
+		estadoVertex[1] = Objects[objSelect].vertex[Objects[indice].vertexGroupIndice[EditSelect][0]*3+2];	
+		estadoVertex[2] = Objects[objSelect].vertex[Objects[indice].vertexGroupIndice[EditSelect][0]*3+1];	
 	}
-	else {
-		estadoObj.posX = Objetos[indice].posX;
-		estadoObj.posY = Objetos[indice].posY;
-		estadoObj.posZ = Objetos[indice].posZ;
-		estadoObj.rotX = Objetos[indice].rotX;
-		estadoObj.rotY = Objetos[indice].rotY;
-		estadoObj.rotZ = Objetos[indice].rotZ;
-		estadoObj.scaleX = Objetos[indice].scaleX;
-		estadoObj.scaleY = Objetos[indice].scaleY;
-		estadoObj.scaleZ = Objetos[indice].scaleZ;		
-	}
+	else {*/
+		estadoObj.posX = Objects[indice].posX;
+		estadoObj.posY = Objects[indice].posY;
+		estadoObj.posZ = Objects[indice].posZ;
+		estadoObj.rotX = Objects[indice].rotX;
+		estadoObj.rotY = Objects[indice].rotY;
+		estadoObj.rotZ = Objects[indice].rotZ;
+		estadoObj.scaleX = Objects[indice].scaleX;
+		estadoObj.scaleY = Objects[indice].scaleY;
+		estadoObj.scaleZ = Objects[indice].scaleZ;		
+	//}
 };
 
 //cambie el shader
-void CBlenderLite::SetShader(TInt valor){
+void CBlenderLite::SetShading(TInt valor){
 	view = valor;
     redibujar = true;	
 }
@@ -1386,66 +1411,66 @@ void CBlenderLite::InsertarValor(){
 	if (estado == translacion){
 		if (axisSelect == X){
 			buf->Des().Copy(_L("Mover en X"));
-			TInt valorX = DialogNumber((TInt)(Objetos[objSelect].posX-estadoObj.posX), -100000, 100000,buf);
-			Objetos[objSelect].posX = estadoObj.posX+valorX;			
+			TInt valorX = DialogNumber((TInt)(Objects[objSelect].posX-estadoObj.posX), -100000, 100000,buf);
+			Objects[objSelect].posX = estadoObj.posX+valorX;			
 		}
 		else if (axisSelect == Y){
 			buf->Des().Copy(_L("Mover en Y"));
-			TInt valorY = DialogNumber((TInt)(Objetos[objSelect].posY-estadoObj.posY), -100000, 100000,buf);
-			Objetos[objSelect].posY = estadoObj.posY+valorY;			
+			TInt valorY = DialogNumber((TInt)(Objects[objSelect].posY-estadoObj.posY), -100000, 100000,buf);
+			Objects[objSelect].posY = estadoObj.posY+valorY;			
 		}
 		else if (axisSelect == Z){
 			buf->Des().Copy(_L("Mover en Z"));
-			TInt valorZ = DialogNumber((TInt)(Objetos[objSelect].posZ-estadoObj.posZ), -100000, 100000,buf);
-			Objetos[objSelect].posZ = estadoObj.posZ+valorZ;			
+			TInt valorZ = DialogNumber((TInt)(Objects[objSelect].posZ-estadoObj.posZ), -100000, 100000,buf);
+			Objects[objSelect].posZ = estadoObj.posZ+valorZ;			
 		}
 	}
 	else if (estado == edicion){
-		if (axisSelect == X){
+		/*if (axisSelect == X){
 			buf->Des().Copy(_L("Posicion en X"));
-			TInt valorX = DialogNumber((TInt)Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][0]*3], -1000000, 1000000,buf);
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
-				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3] = valorX;
+			TInt valorX = DialogNumber((TInt)Objects[objSelect].vertex[Objects[objSelect].vertexGroupIndice[EditSelect][0]*3], -1000000, 1000000,buf);
+			for(int g=0; g < Objects[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
+				Objects[objSelect].vertex[Objects[objSelect].vertexGroupIndice[EditSelect][g]*3] = valorX;
 			}
 		}
 		else if (axisSelect == Y){
 			buf->Des().Copy(_L("Posicion en Y"));
-			TInt valorY = DialogNumber((TInt)Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][0]*3+2], -1000000, 1000000,buf);
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
-				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+2] = valorY;
+			TInt valorY = DialogNumber((TInt)Objects[objSelect].vertex[Objects[objSelect].vertexGroupIndice[EditSelect][0]*3+2], -1000000, 1000000,buf);
+			for(int g=0; g < Objects[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
+				Objects[objSelect].vertex[Objects[objSelect].vertexGroupIndice[EditSelect][g]*3+2] = valorY;
 			}
 		}
 		else if (axisSelect == Z){
 			buf->Des().Copy(_L("Posicion en Z"));
-			TInt valorZ = DialogNumber((TInt)Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][0]*3+1], -1000000, 1000000,buf);
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
-				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+1] = valorZ;
+			TInt valorZ = DialogNumber((TInt)Objects[objSelect].vertex[Objects[objSelect].vertexGroupIndice[EditSelect][0]*3+1], -1000000, 1000000,buf);
+			for(int g=0; g < Objects[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
+				Objects[objSelect].vertex[Objects[objSelect].vertexGroupIndice[EditSelect][g]*3+1] = valorZ;
 			}
-		}	
+		}*/	
 	}
 	else if (estado == translacionVertex){
-		if (axisSelect == X){
-			buf->Des().Copy(_L("Posicion en X")); //(Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][0]*3]-
-			TInt valorX = DialogNumber((TInt)(Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][0]*3]-estadoVertex[0]), -1000000, 1000000,buf);
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
-				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3] = valorX+estadoVertex[0]; //)*1;
+		/*if (axisSelect == X){
+			buf->Des().Copy(_L("Posicion en X")); //(Objects[objSelect].vertex[Objects[objSelect].vertexGroupIndice[EditSelect][0]*3]-
+			TInt valorX = DialogNumber((TInt)(Objects[objSelect].vertex[Objects[objSelect].vertexGroupIndice[EditSelect][0]*3]-estadoVertex[0]), -1000000, 1000000,buf);
+			for(int g=0; g < Objects[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
+				Objects[objSelect].vertex[Objects[objSelect].vertexGroupIndice[EditSelect][g]*3] = valorX+estadoVertex[0]; //)*1;
 			}
 		}
 		else if (axisSelect == Y){
 			buf->Des().Copy(_L("Posicion en Y"));
-			TInt valorY = DialogNumber((TInt)(Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][0]*3+2]-estadoVertex[1]), -1000000, 1000000,buf);
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
-				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+2] = valorY+estadoVertex[1];
+			TInt valorY = DialogNumber((TInt)(Objects[objSelect].vertex[Objects[objSelect].vertexGroupIndice[EditSelect][0]*3+2]-estadoVertex[1]), -1000000, 1000000,buf);
+			for(int g=0; g < Objects[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
+				Objects[objSelect].vertex[Objects[objSelect].vertexGroupIndice[EditSelect][g]*3+2] = valorY+estadoVertex[1];
 			}
 		}
 		else if (axisSelect == Z){
 			buf->Des().Copy(_L("Posicion en Z"));
-			TInt valorZ = DialogNumber((TInt)(Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][0]*3+1]-estadoVertex[2]), -1000000, 1000000,buf);
-			for(int g=0; g < Objetos[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
-				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroupIndice[EditSelect][g]*3+1] = valorZ+estadoVertex[2];
+			TInt valorZ = DialogNumber((TInt)(Objects[objSelect].vertex[Objects[objSelect].vertexGroupIndice[EditSelect][0]*3+1]-estadoVertex[2]), -1000000, 1000000,buf);
+			for(int g=0; g < Objects[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
+				Objects[objSelect].vertex[Objects[objSelect].vertexGroupIndice[EditSelect][g]*3+1] = valorZ+estadoVertex[2];
 			}
 		}	
-		Aceptar();
+		Aceptar();*/
 	}	
 	//CleanupStack::PopAndDestroy(buf);
 	redibujar = true;	
@@ -1455,13 +1480,13 @@ void CBlenderLite::TecladoNumerico(TInt numero){
 	if (estado == translacion || estado == rotacion || estado == escala ){
 		if (numero == 10){ //invertir
 			if (axisSelect == X){
-				Objetos[objSelect].posX = estadoObj.posX-(Objetos[objSelect].posX-estadoObj.posX);					
+				Objects[objSelect].posX = estadoObj.posX-(Objects[objSelect].posX-estadoObj.posX);					
 			}	
 			else if (axisSelect == Y){
-				Objetos[objSelect].posY = estadoObj.posY-(Objetos[objSelect].posY-estadoObj.posY);					
+				Objects[objSelect].posY = estadoObj.posY-(Objects[objSelect].posY-estadoObj.posY);					
 			}	
 			else if (axisSelect == Z){
-				Objetos[objSelect].posZ = estadoObj.posZ-(Objetos[objSelect].posZ-estadoObj.posZ);					
+				Objects[objSelect].posZ = estadoObj.posZ-(Objects[objSelect].posZ-estadoObj.posZ);					
 			}		
 		}
 		else {
@@ -1481,13 +1506,13 @@ void CBlenderLite::TecladoNumerico(TInt numero){
 	else if (numero == 2){SetRotacion();}
 	else if (numero == 3){SetEscala();}
 	else if (numero == 4){
-		SetShader(0);	
+		SetShading(0);	
 	}
 	else if (numero == 5){
-		SetShader(1);
+		SetShading(1);
 	}
 	else if (numero == 6){
-		SetShader(2);
+		SetShading(2);
 	}
 };
 
@@ -1496,44 +1521,47 @@ void CBlenderLite::Borrar(){
 		Cancelar();
 	}
 	else if (estado == navegacion){
-		if (Objetos.Count() < 1){return;}
+		if (Objects.Count() < 1){return;}
 		//pregunta de confirmacion
-		_LIT(KStaticErrorMessage, "¿Eliminar el Objeto?");
+		_LIT(KStaticErrorMessage, "Delete Object?");
 		if (!DialogAlert(KStaticErrorMessage)){return;}
 		Cancelar();
-		//estado = navegacion;
-		//libera la memoria de los punteros primero		
 
-		// Obtener el objeto Mesh seleccionado
-		Mesh* mesh = &Objetos[objSelect];
+		//libera la memoria de los punteros primero	
+		// Obtener el objeto seleccionado
+		Object& obj = Objects[objSelect];
 
 		// Liberar memoria de los punteros del objeto seleccionado
-		delete[] mesh->vertex;
-		delete[] mesh->normals;
-		delete[] mesh->faces;
-		delete[] mesh->edges;
-		delete[] mesh->uv;
-		delete[] mesh->vertexGroup;
-		delete[] mesh->vertexGroupIndiceSize;
-		for (TInt j = 0; j < mesh->vertexGroupSize; ++j) {
-			delete[] mesh->vertexGroupIndice[j];
+		if (obj.type == mesh){
+			Mesh& pMesh = Meshes[obj.Id];
+			//primero se borran los objetos a los que apunta el mesh
+			delete[] pMesh.vertex;
+			delete[] pMesh.normals;
+			delete[] pMesh.uv;
+			delete[] pMesh.faces;
+			delete[] pMesh.vertexGroup;
+			delete[] pMesh.vertexGroupIndiceSize;
+			//for(int f=0; f < pMesh.vertexGroupSize; f++){
+			//	delete[] pMesh.vertexGroupIndice[f];
+			//}
+			//delete[] vertexGroupIndice;
+
+			//delete[]GLushort** vertexGroupIndice;
+			//ahora se borra el mesh
+			Meshes.Remove(obj.Id);
 		}
-		delete[] mesh->vertexGroupIndice;
 
-		// Limpiar NewFaces y liberar memoria
-		mesh->NewFaces.Reset();
-
-		Objetos.Remove(objSelect);
-		if (Objetos.Count()-1 < objSelect){
-			objSelect = Objetos.Count()-1;		
+		Objects.Remove(objSelect);
+		if (Objects.Count()-1 < objSelect){
+			objSelect = Objects.Count()-1;		
 		}
 	}
 	else if (estado == edicion){
-		if (Objetos[objSelect].vertexGroupSize < 1){return;}
+		/*if (Objects[objSelect].vertexGroupSize < 1){return;}
 		//pregunta de confirmacion
 		_LIT(KStaticErrorMessage, "¿Eliminar Vertice?");
 		if (!DialogAlert(KStaticErrorMessage)){return;}
-		Mesh& obj = Objetos[objSelect];
+		Mesh& obj = Objects[objSelect];
 		//busca las caras que contengan algun vertices del grupo de vertices
 		RArray<GLushort> faces;
 		for(int f=0; f < obj.facesSize/3; f++){
@@ -1565,9 +1593,16 @@ void CBlenderLite::Borrar(){
 		edges.Close();
 		if (obj.vertexGroupSize < EditSelect+1){
 			EditSelect = obj.vertexGroupSize-1;			
-		}
+		}*/
 	}
     redibujar = true;	
+}
+
+void CBlenderLite::CursorToSelect(){
+	Cursor3DposX = Objects[objSelect].posX;
+	Cursor3DposY = Objects[objSelect].posY;
+	Cursor3DposZ = Objects[objSelect].posZ;
+	redibujar = true;
 }
 
 void CBlenderLite::AddObject( TInt tipo ){
@@ -1575,58 +1610,86 @@ void CBlenderLite::AddObject( TInt tipo ){
 	Object obj;
 	obj.type = tipo;
 	obj.visible = true;
-	obj.posX = obj.posY = obj.posZ = obj.rotX = obj.rotY = obj.rotZ = 0;
+	obj.posX = Cursor3DposX;
+	obj.posY = Cursor3DposY;
+	obj.posZ = Cursor3DposZ;
+	obj.rotX = obj.rotY = obj.rotZ = 0;
 	obj.scaleX = obj.scaleY = obj.scaleZ = 45000;
     
 	Objects.Append(obj);
+	objSelect = Objects.Count()-1;
     redibujar = true;
 }
 
 void CBlenderLite::AddMesh( int modelo ){
 	Cancelar();
-	Mesh obj;
+	//creamos la mesh primero
+	Object obj;	
+	obj.type = mesh;
 	obj.visible = true;
-	obj.posX = obj.posY = obj.posZ = obj.rotX = obj.rotY = obj.rotZ = 0;
-	obj.specular[0] = obj.specular[1] = obj.specular[2] = obj.specular[3] = 0.3;
-	obj.diffuse[0] = obj.diffuse[1] = obj.diffuse[2] = obj.diffuse[3] = 1.0;
-	obj.emission[0] = obj.emission[1] = obj.emission[2] = obj.emission[3] = 0.0;
-	obj.smooth = true;
-	obj.textura = false;
-	obj.transparencia = false;
-	obj.interpolacion = lineal;
+	obj.posX = Cursor3DposX;
+	obj.posY = Cursor3DposY;
+	obj.posZ = Cursor3DposZ;
+	obj.rotX = obj.rotY = obj.rotZ = 0;
+	obj.scaleX = obj.scaleY = obj.scaleZ = 45000;
 	
-    if (modelo == cubo){ 
-    	obj.vertexSize = obj.normalsSize = 24 * 3;
-		obj.facesSize = 12 * 3;
-		obj.edgesSize = 12 * 6;
-		obj.uvSize = 24 * 2;
-		obj.texturaID = 1;
-		obj.scaleX = obj.scaleY = obj.scaleZ = 45000;		
+	Mesh tempMesh;
+	if (modelo == cubo){ 
+    	tempMesh.vertexSize = 24;
+		tempMesh.facesSize = 12;
+		//tempMesh.materialsSize = 1;
+		tempMesh.material = 1;
 
-		obj.vertex = new GLshort[24 * 3];
-		obj.normals = new GLbyte[24 * 3];
-		obj.faces = new GLushort[12 * 3];
-		obj.edges = new GLushort[12 * 6];
-		obj.uv = new GLbyte[24 * 2];
-		for (int i = 0; i < 24*3; i++) {
-			obj.vertex[i] = CuboVertices[i];
-			obj.normals[i] = CuboNormals[i];
+		tempMesh.vertex = new GLshort[tempMesh.vertexSize*3];
+		tempMesh.normals = new GLbyte[tempMesh.vertexSize*3];
+		tempMesh.uv = new GLbyte[tempMesh.vertexSize*2];
+		tempMesh.faces = new GLushort[tempMesh.facesSize*3];
+
+		for (int i = 0; i < tempMesh.vertexSize*3; i++) {
+			tempMesh.vertex[i] = CuboVertices[i];
+			tempMesh.normals[i] = CuboNormals[i];
 		}
-		for (int i = 0; i < 24*2; i++) {
-			//obj.uv[i] = CuboUV[i];
-			obj.uv[i] = CuboNormals[i];
+		for (int i = 0; i < tempMesh.vertexSize*2; i++) {
+			tempMesh.uv[i] = CuboUV[i];
+			//tempMesh.uv[i] = CuboNormals[i];
 		}
-		for (int i = 0; i < 12*3; i++) {
-			obj.faces[i] = CuboTriangles[i];
+		for (int i = 0; i < tempMesh.facesSize*3; i++) {
+			tempMesh.faces[i] = CuboTriangles[i];
 		}
 	}	
+	else if (modelo == monkey){  
+    	tempMesh.vertexSize = MonkeyVertexSize;
+		tempMesh.facesSize = MonkeyFaceSize;	
+		tempMesh.material = 1;
+		obj.rotZ = 180;
+		tempMesh.vertex = new GLshort[MonkeyVertexSize*3];
+		tempMesh.normals = new GLbyte[MonkeyVertexSize*3];
+		for(int a=0; a < MonkeyVertexSize*3; a++){
+			tempMesh.vertex[a] = MonkeyVertex[a];	
+			tempMesh.normals[a] = MonkeyNormal[a];			
+		}
+		tempMesh.faces = new GLushort[MonkeyFaceSize*3];
+		for(int a=0; a < MonkeyFaceSize*3; a++){
+			tempMesh.faces[a] = MonkeyFace[a];			
+		}
+		//tempMesh.edges = new GLushort[tempMesh.edgesSize];
+		tempMesh.uv = new GLbyte[MonkeyVertexSize*2];
+		for(int a=0; a < MonkeyVertexSize*2; a++){
+			tempMesh.uv[a] = MonkeyUV[a];			
+		}
+	}
+	Meshes.Append(tempMesh);	
+
+	//creamos el objeto y le asignamos la mesh
+	
+    /*
     else if (modelo == vertice){
     	obj.vertexSize = 1 * 3;
     	obj.normalsSize = 1 * 3;
 		obj.facesSize = 0 * 3;
 		obj.edgesSize = 0 * 6;
 		obj.uvSize = 1 * 2;
-		obj.texturaID = 1;
+		obj.textureID = 1;
 		obj.scaleX = 65000;
 		obj.scaleY = 65000;
 		obj.scaleZ = 65000;		
@@ -1641,48 +1704,50 @@ void CBlenderLite::AddMesh( int modelo ){
 		obj.normals[2] = 1;
 		obj.uv[0] = obj.uv[0] = 0;
     }
-    else if (modelo == suzanne){  
-    	obj.vertexSize = SuzzaneVertexSize;
-    	obj.normalsSize = SuzzaneNormalSize;
-		obj.facesSize = SuzzaneFaceSize;
-		obj.edgesSize = SuzzaneFaceSize*2;
-		obj.uvSize = SuzzaneUVSize;  	
-		obj.vertex = new GLshort[SuzzaneVertexSize];
-		obj.texturaID = 1;
+    else if (modelo == monkey){  
+    	obj.vertexSize = MonkeyVertexSize;
+    	obj.normalsSize = MonkeyNormalSize;
+		obj.facesSize = MonkeyFaceSize;
+		obj.edgesSize = MonkeyFaceSize*2;
+		obj.uvSize = MonkeyUVSize;  	
+		obj.vertex = new GLshort[MonkeyVertexSize];
+		obj.textureID = 1;
 		obj.scaleX = 45000;
 		obj.scaleY = 45000;
 		obj.scaleZ = 45000;	
 		obj.rotZ = 180;
-		for(int a=0; a < SuzzaneVertexSize; a++){
-			obj.vertex[a] = SuzzaneVertex[a];	
-			//obj.vertex.Append(SuzzaneVertex[a]);		
+		for(int a=0; a < MonkeyVertexSize; a++){
+			obj.vertex[a] = MonkeyVertex[a];	
+			//obj.vertex.Append(MonkeyVertex[a]);		
 		}
-		obj.normals = new GLbyte[SuzzaneNormalSize];
-		for(int a=0; a < SuzzaneNormalSize; a++){
-			obj.normals[a] = SuzzaneNormal[a];			
+		obj.normals = new GLbyte[MonkeyNormalSize];
+		for(int a=0; a < MonkeyNormalSize; a++){
+			obj.normals[a] = MonkeyNormal[a];			
 		}
-		obj.faces = new GLushort[SuzzaneFaceSize];
-		for(int a=0; a < SuzzaneFaceSize; a++){
-			obj.faces[a] = SuzzaneFace[a];			
+		obj.faces = new GLushort[MonkeyFaceSize];
+		for(int a=0; a < MonkeyFaceSize; a++){
+			obj.faces[a] = MonkeyFace[a];			
 		}
 		obj.edges = new GLushort[obj.edgesSize];
-		obj.uv = new GLbyte[SuzzaneUVSize];
-		for(int a=0; a < SuzzaneUVSize; a++){
-			obj.uv[a] = SuzzaneUV[a];			
+		obj.uv = new GLbyte[MonkeyUVSize];
+		for(int a=0; a < MonkeyUVSize; a++){
+			obj.uv[a] = MonkeyUV[a];			
 		}
 	}	   
-	else {return;} 
+	else {return;} */
     
-	Objetos.Append(obj);	
-	objSelect = Objetos.Count()-1;
-	Objetos[objSelect].AgruparVertices();
-	Objetos[objSelect].RecalcularBordes();
+	//Objects[objSelect].RecalcularBordes();
+	
+	obj.Id = Meshes.Count()-1;	
+	Meshes[obj.Id].AgruparVertices();
+	Objects.Append(obj);	
+	objSelect = Objects.Count()-1;
     redibujar = true;
 }
 
 void CBlenderLite::Extruir(){
-	if (estado == edicion && Objetos[objSelect].vertexGroupSize > 0){
-		Mesh& obj = Objetos[objSelect];
+	/*if (estado == edicion && Objects[objSelect].vertexGroupSize > 0){
+		Object& obj = Objects[objSelect];
 		//primero crea los array temporales y les suma el espacio del nuevo vertice
 		GLshort* TempVertex = new GLshort[obj.vertexSize+3];
 		GLbyte* TempNormals = new GLbyte[obj.normalsSize+3];
@@ -1772,22 +1837,28 @@ void CBlenderLite::Extruir(){
 		delete[] TempVertexGroupIndicesSize;
 		delete[] TempVertexGroupIndices;
 		redibujar = true;
-	}	
+	}	*/
 }
 
 void CBlenderLite::ActivarTextura(){
 	//si no hay objetos
-	if (Objetos.Count() < 1){return;}
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[objSelect];
+	//si no es un mesh
+	if (obj.type != mesh){return;}	
+	Mesh& pMesh = Meshes[obj.Id];
+	Material& mat = Materials[pMesh.material];
+
 	Cancelar();
 	//activa o desactiva las texturas
 	HBufC* buf = HBufC::NewLC( 20 );
 	buf->Des().Copy(_L("Activar Textura?"));
 	if (DialogAlert(buf)){	
-		Objetos[objSelect].textura = true;
+		mat.textura = true;
 		
 	}
 	else {
-		Objetos[objSelect].textura = false;	
+		mat.textura = false;	
 	}
 	//CleanupStack::PopAndDestroy(buf);	
     redibujar = true;
@@ -1795,16 +1866,22 @@ void CBlenderLite::ActivarTextura(){
 
 void CBlenderLite::SetTransparencia(){
 	//si no hay objetos
-	if (Objetos.Count() < 1){return;}
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[objSelect];
+	//si no es un mesh
+	if (obj.type != mesh){return;}	
+	Mesh& pMesh = Meshes[obj.Id];
+	Material& mat = Materials[pMesh.material];
+
 	Cancelar();
 	//activa o desactiva las Transparencias
 	HBufC* buf = HBufC::NewLC( 22 );
 	buf->Des().Copy(_L("Activar Transparencia?"));
 	if (DialogAlert(buf)){	
-		Objetos[objSelect].transparencia = true;
+		mat.transparent = true;
 	}
 	else {
-		Objetos[objSelect].transparencia = false;	
+		mat.transparent = false;	
 	}
 	//CleanupStack::PopAndDestroy(buf);	
     redibujar = true;
@@ -1812,16 +1889,22 @@ void CBlenderLite::SetTransparencia(){
 
 void CBlenderLite::SetInterpolation(){
 	//si no hay objetos
-	if (Objetos.Count() < 1){return;}
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[objSelect];
+	//si no es un mesh
+	if (obj.type != mesh){return;}	
+	Mesh& pMesh = Meshes[obj.Id];
+	Material& mat = Materials[pMesh.material];
+
 	Cancelar();
 	//activa o desactiva las Transparencias
 	HBufC* buf = HBufC::NewLC( 21 );
 	buf->Des().Copy(_L("Interpolacion Lineal?"));
 	if (DialogAlert(buf)){	
-		Objetos[objSelect].interpolacion = lineal;
+		mat.interpolacion = lineal;
 	}
 	else {
-		Objetos[objSelect].interpolacion = closest;	
+		mat.interpolacion = closest;	
 	}
 	//CleanupStack::PopAndDestroy(buf);	
     redibujar = true;
@@ -1829,27 +1912,54 @@ void CBlenderLite::SetInterpolation(){
 
 void CBlenderLite::SetTexture(){
 	//si no hay objetos
-	if (Objetos.Count() < 1){return;}
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[objSelect];
+	//si no es un mesh
+	if (obj.type != mesh){return;}	
+	Mesh& pMesh = Meshes[obj.Id];
+	Material& mat = Materials[pMesh.material];
+
 	Cancelar();
 	HBufC* buf = HBufC::NewLC( 30 );
 	buf->Des().Copy(_L("ID de Textura (0-4)"));	
-	TInt texturaID = DialogNumber(0, 0, 100, buf);
-	Objetos[objSelect].textura = true;
-	Objetos[objSelect].texturaID = texturaID;
-	/*if ( texturaID == 0 ){
-		Objetos[objSelect].texturaID = iBaseColor.iID;
-	}	
-	else if ( texturaID == 1 ){
-		Objetos[objSelect].texturaID = iColorGridTextura.iID;
-	}*/
-	//CleanupStack::PopAndDestroy(buf);
+	TInt textureID = DialogNumber(0, 0, 100, buf);
+	mat.textura = true;
+	mat.textureID = textureID;
+	CleanupStack::PopAndDestroy(buf);
     redibujar = true;
 }
 
+void CBlenderLite::SetMaterial(){
+	//si no hay objetos
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[objSelect];
+	//si no es un mesh
+	if (obj.type != mesh){return;}	
+	Mesh& pMesh = Meshes[obj.Id];
+
+	Cancelar();
+	HBufC* noteBuf = HBufC::NewLC(30);
+	_LIT(KFormatString, "ID Material 1 to %d");
+	noteBuf->Des().Format(KFormatString, Materials.Count());
+	TInt MaterialID = DialogNumber(0, 0, 100, noteBuf);
+	if (MaterialID > Materials.Count() || 1 > MaterialID){		
+		noteBuf->Des().Copy(_L("Indice invalido"));	
+		MensajeError(noteBuf);
+	}
+	else {
+		pMesh.material = MaterialID-1;
+		CleanupStack::PopAndDestroy(noteBuf);
+	}
+    redibujar = true;
+}
 
 void CBlenderLite::SetEditMode(){
 	//si no hay objetos
-	if (Objetos.Count() < 1){return;}
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[objSelect];
+	//si no es un mesh
+	if (obj.type != mesh){return;}	
+	
 	Cancelar();
 	if ( estado != edicion ){
 		EditSelect = 0;
@@ -1861,81 +1971,121 @@ void CBlenderLite::SetEditMode(){
     redibujar = true;
 }
 
-void CBlenderLite::SetSmooth(){
+void CBlenderLite::EnfocarObject(){
 	//si no hay objetos
-	if (Objetos.Count() < 1){return;}
-	Cancelar();
-	if ( Objetos[objSelect].smooth ){
-    	Objetos[objSelect].smooth = false;
-	}	
-    else {
-    	Objetos[objSelect].smooth = true;
-	}
-    redibujar = true;
-}
-
-void CBlenderLite::EnfocarObjeto(){
-	//si no hay objetos
-	if (Objetos.Count() < 1){return;}
+	/*if (Objects.Count() < 1){return;}
 	HBufC* buf = HBufC::NewLC( 25 );
 	buf->Des().Copy(_L("Posicion X de Camara"));
 	posX = DialogNumber((TInt)posX, -100000, 100000, buf);
 	CleanupStack::PopAndDestroy(buf);
-    redibujar = true;
-	//posX = Objetos[objSelect].posX;
-	//posY = Objetos[objSelect].posY;
-	//posZ = Objetos[objSelect].posZ;
+    redibujar = true;*/
+	//posX = Objects[objSelect].posX;
+	//posY = Objects[objSelect].posY;
+	//posZ = Objects[objSelect].posZ;
 }
 
-void CBlenderLite::SetSpecular(){
+
+void CBlenderLite::DuplicatedObject(){	
+	//si no hay objetos
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[objSelect];
+	//si no es un mesh
+	if (obj.type != mesh){return;}	
+	Mesh& tempMesh = Meshes[obj.Id];
+	Meshes.Append(tempMesh);
+	
+	Objects.Append(obj);	
+	objSelect = Objects.Count()-1;
+	Objects[objSelect].Id = Meshes.Count()-1;
+    redibujar = true;
+}
+
+void CBlenderLite::DuplicatedLinked(){
+	//si no hay objetos
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[objSelect];
+	//si no es un mesh
+	if (obj.type != mesh){return;}	
+	Objects.Append(obj);	
+	objSelect = Objects.Count()-1;
+    redibujar = true;
+}
+
+void CBlenderLite::SetSpecular(){	
+	//si no hay objetos
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[objSelect];
+	//si no es un mesh
+	if (obj.type != mesh){return;}	
+	Mesh& pMesh = Meshes[obj.Id];
+	Material& mat = Materials[pMesh.material];
+
+	Cancelar();
+
 	HBufC* buf = HBufC::NewLC( 25 );
 	buf->Des().Copy(_L("Valor Specular (0 - 100)"));
-	TInt valor = DialogNumber((TInt)(Objetos[objSelect].specular[0]*100.f), 0, 100, buf);
+	TInt valor = DialogNumber((TInt)(mat.specular[0]*100.f), 0, 100, buf);
 	GLfloat resultado = valor/100.0f;
 
-	Objetos[objSelect].specular[0] = resultado;
-	Objetos[objSelect].specular[1] = resultado;
-	Objetos[objSelect].specular[2] = resultado;
-	Objetos[objSelect].specular[3] = resultado;
+	mat.specular[0] = resultado;
+	mat.specular[1] = resultado;
+	mat.specular[2] = resultado;
+	mat.specular[3] = resultado;
 	CleanupStack::PopAndDestroy(buf);
-    redibujar = true;	
+    redibujar = true;
 }
 
 void CBlenderLite::SetEmission(){
+	//si no hay objetos
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[objSelect];
+	//si no es un mesh
+	if (obj.type != mesh){return;}	
+	Mesh& pMesh = Meshes[obj.Id];
+	Material& mat = Materials[pMesh.material];
+	
 	HBufC* buf = HBufC::NewLC( 30 );
 	
 	buf->Des().Copy(_L("Emission Roja (0 - 100)"));
-	TInt valor = DialogNumber((TInt)(Objetos[objSelect].emission[0]*100.f), 0, 100, buf);
-	Objetos[objSelect].emission[0] = valor/100.0f;
+	TInt valor = DialogNumber((TInt)(mat.emission[0]*100.f), 0, 100, buf);
+	mat.emission[0] = valor/100.0f;
     redibujar = true;
 
 	buf->Des().Copy(_L("Emission Verde (0 - 100)"));
-    valor = DialogNumber((TInt)(Objetos[objSelect].emission[1]*100.f), 0, 100, buf);
-    Objetos[objSelect].emission[1] = valor/100.0f;
+    valor = DialogNumber((TInt)(mat.emission[1]*100.f), 0, 100, buf);
+    mat.emission[1] = valor/100.0f;
 	redibujar = true;	
 
 	buf->Des().Copy(_L("Emission Verde (0 - 100)"));
-    valor = DialogNumber((TInt)(Objetos[objSelect].emission[2]*100.f), 0, 100, buf);
-    Objetos[objSelect].emission[2] = valor/100.0f;
+    valor = DialogNumber((TInt)(mat.emission[2]*100.f), 0, 100, buf);
+    mat.emission[2] = valor/100.0f;
 	CleanupStack::PopAndDestroy(buf);
-	redibujar = true;	
+	redibujar = true;
 }
 
 void CBlenderLite::SetDiffuse(){
+	//si no hay objetos
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[objSelect];
+	//si no es un mesh
+	if (obj.type != mesh){return;}	
+	Mesh& pMesh = Meshes[obj.Id];
+	Material& mat = Materials[pMesh.material];
+
 	HBufC* buf = HBufC::NewLC( 25 );
 	buf->Des().Copy(_L("Rojo (0 - 100)"));
-	TInt valorR = DialogNumber((TInt)(Objetos[objSelect].diffuse[0]*100.f), 0, 100, buf);
-	Objetos[objSelect].diffuse[0] = (GLfloat)valorR/100.0f;
+	TInt valorR = DialogNumber((TInt)(mat.diffuse[0]*100.f), 0, 100, buf);
+	mat.diffuse[0] = (GLfloat)valorR/100.0f;
     redibujar = true;	
 	buf->Des().Copy(_L("Verde (0 - 100)"));
-	TInt valorG = DialogNumber((TInt)(Objetos[objSelect].diffuse[1]*100.f), 0, 100, buf);
-	Objetos[objSelect].diffuse[1] = (GLfloat)valorG/100.0f;
+	TInt valorG = DialogNumber((TInt)(mat.diffuse[1]*100.f), 0, 100, buf);
+	mat.diffuse[1] = (GLfloat)valorG/100.0f;
     redibujar = true;	
 	buf->Des().Copy(_L("Azul (0 - 100)"));
-	TInt valorB = DialogNumber((TInt)(Objetos[objSelect].diffuse[2]*100.f), 0, 100, buf);
-	Objetos[objSelect].diffuse[2] = (GLfloat)valorB/100.0f;
+	TInt valorB = DialogNumber((TInt)(mat.diffuse[2]*100.f), 0, 100, buf);
+	mat.diffuse[2] = (GLfloat)valorB/100.0f;
 	CleanupStack::PopAndDestroy(buf);
-    redibujar = true;	
+    redibujar = true;
 }
 
 void CBlenderLite::SetPerspectiva(TBool redibuja ){
@@ -1997,7 +2147,7 @@ enum{
 };
 
 void CBlenderLite::AddModificador(TInt opcion){
-	Mesh& obj = Objetos[objSelect];
+	/*Mesh& obj = Objects[objSelect];
 	if (opcion == mirror){
 		//primero crea los array temporales y les suma el espacio del nuevo vertice
 		TInt copias = 2;
@@ -2028,12 +2178,12 @@ void CBlenderLite::AddModificador(TInt opcion){
 			TempVertexGroupIndicesSize[a] = TempVertexGroupIndicesSize[a+obj.vertexGroupSize] = obj.vertexGroupIndiceSize[a];
 			TempVertexGroupIndices[a] = TempVertexGroupIndices[a+obj.vertexGroupSize] = new GLushort[obj.vertexGroupIndiceSize[a]];
 			TempVertexGroup[a] = obj.vertexGroup[a];
-			TempVertexGroup[a+obj.vertexGroupSize] = obj.vertexSize/3+obj.vertexGroup[a];
+			TempVertexGroup[a+obj.vertexGroupSize] = obj.vertexSize/3+obj.vertexGroup[a];*/
 			/*for(TInt s=0; s < obj.vertexGroupIndiceSize[a]; s++){
 				TempVertexGroupIndices[a][s] = obj.vertexGroupIndice[a][s];
 				TempVertexGroupIndices[a+obj.vertexGroupSize][s] = obj.vertexSize/3+obj.vertexGroupIndice[a][s];			
 			}*/
-		}
+		/*}
 		TempVertexGroupIndices[0][0] = 11;
 		TempVertexGroupIndices[1][0] = 22;
 		TempVertexGroupIndices[2][0] = 33;
@@ -2075,7 +2225,7 @@ void CBlenderLite::AddModificador(TInt opcion){
 		TempVertexGroupIndices[0][0] = 11;
 		TempVertexGroupIndices[1][0] = 22;
 		TempVertexGroupIndices[2][0] = 33;
-		TempVertexGroupIndices[3][0] = 44;
+		TempVertexGroupIndices[3][0] = 44;*/
 		/*HBufC* noteBuf = HBufC::NewLC(30); //TInt::Length(obj.vertexGroupSize)
 		_LIT(KFormatString, "indices %d %d %d %d");
 		noteBuf->Des().Format(KFormatString,  
@@ -2085,16 +2235,16 @@ void CBlenderLite::AddModificador(TInt opcion){
 				TempVertexGroupIndices[3][0]);
 		Mensaje(noteBuf);*/
 		//libera memoria
-		delete[] TempVertex;
+		/*delete[] TempVertex;
 		delete[] TempNormals;
 		delete[] TempEdges;
 		delete[] TempUv;
 		delete[] TempVertexGroup;
 		delete[] TempVertexGroupIndicesSize;
-		delete[] TempVertexGroupIndices;
+		delete[] TempVertexGroupIndices;*/
 		//CleanupStack::PopAndDestroy(noteBuf);
-	}
-	redibujar = true;
+	//}
+	/*redibujar = true;*/
 }
 
 void CBlenderLite::SetViewpoint(TInt opcion){
@@ -2114,31 +2264,31 @@ void CBlenderLite::SetViewpoint(TInt opcion){
 }
 
 void CBlenderLite::InfoObject(TInt opciones){
-	if (opciones == 1){
+	/*if (opciones == 1){
 		HBufC* noteBuf = HBufC::NewLC(30); //TInt::Length(obj.vertexGroupSize)
 		_LIT(KFormatString, "size %d Indices %d");
-		noteBuf->Des().Format(KFormatString,  Objetos[objSelect].vertexGroupIndiceSize[EditSelect],
-				              Objetos[objSelect].vertexGroupIndice[EditSelect][0]);
+		noteBuf->Des().Format(KFormatString,  Objects[objSelect].vertexGroupIndiceSize[EditSelect],
+				              Objects[objSelect].vertexGroupIndice[EditSelect][0]);
 				                                                                 //,
-				              //Objetos[objSelect].vertexGroupIndice[EditSelect][1],
-				              //Objetos[objSelect].vertexGroupIndice[EditSelect][2]);
+				              //Objects[objSelect].vertexGroupIndice[EditSelect][1],
+				              //Objects[objSelect].vertexGroupIndice[EditSelect][2]);
 		Mensaje(noteBuf);	
 		CleanupStack::PopAndDestroy(noteBuf);
 	}
 	else if (opciones == 1){ //cantidad de vertices
 		HBufC* noteBuf = HBufC::NewLC(30); //TInt::Length(obj.vertexGroupSize)
 		_LIT(KFormatString, "obj: %d Vertices: %d");
-		noteBuf->Des().Format(KFormatString, objSelect+1, Objetos[objSelect].vertexSize/3);
+		noteBuf->Des().Format(KFormatString, objSelect+1, Objects[objSelect].vertexSize/3);
 		Mensaje(noteBuf);	
 		CleanupStack::PopAndDestroy(noteBuf);	
 	}	
 	else if (opciones == 2){ //cantidad de vertices
 		HBufC* noteBuf = HBufC::NewLC(35); //TInt::Length(obj.vertexGroupSize)
 		_LIT(KFormatString, "VertexGroup: %d group: %d");
-		noteBuf->Des().Format(KFormatString, Objetos[objSelect].vertexGroupSize, Objetos[objSelect].vertexGroupIndiceSize[EditSelect]);
+		noteBuf->Des().Format(KFormatString, Objects[objSelect].vertexGroupSize, Objects[objSelect].vertexGroupIndiceSize[EditSelect]);
 		Mensaje(noteBuf);	
 		CleanupStack::PopAndDestroy(noteBuf);	
-	}	
+	}	*/
 }; 
 
 
@@ -2329,17 +2479,15 @@ void CBlenderLite::ImportOBJ(){
 		}		
 		//crea el objeto
 		Cancelar();
-		Mesh obj;
+		Object obj;
 		obj.visible = true;
-		obj.posX = obj.posY = obj.posZ = 0;
+		obj.posX = Cursor3DposX;
+		obj.posY = Cursor3DposY;
+		obj.posZ = Cursor3DposZ;
 		obj.rotX = obj.rotY = obj.rotZ = 0;
-		obj.specular[0] = obj.specular[1] = obj.specular[2] = obj.specular[3] = 0.3;
-		obj.diffuse[0] = obj.diffuse[1] = obj.diffuse[2] = obj.diffuse[3] = 1.0;
-		obj.emission[0] = obj.emission[1] = obj.emission[2] = obj.emission[3] = 0.0;
-		obj.smooth = true;
-		obj.textura = false;
-		obj.transparencia = false;
-		obj.interpolacion = lineal; //interpolacion lineal
+		obj.rotX = obj.rotY = obj.rotZ = 0;
+
+		Mesh tempMesh;
 
 		TInt vertices = 0;
 		TInt caras = 0;
@@ -2560,7 +2708,7 @@ void CBlenderLite::ImportOBJ(){
 							}
 
 							// Actualiza la posición inicial para el próximo token
-							startPos += tokenLength + 1; // Suma 1 para omitir la barra diagonal
+							startPos += tokenLength + 1; // Suma 1 para omitir la barra diagonal*/
 
 							/*HBufC* noteBuf = HBufC::NewLC(100);
 							_LIT(KFormatString, "f: %d ct: %d st: %S num: %d");
@@ -2621,11 +2769,11 @@ void CBlenderLite::ImportOBJ(){
 		DialogAlert(noteBuf);*/
 
 		// cuantos vertices tiene
-		/*HBufC* noteBuf = HBufC::NewLC(100); //TInt::Length(obj.vertexGroupSize)
+		HBufC* noteBuf = HBufC::NewLC(100); //TInt::Length(obj.vertexGroupSize)
 		_LIT(KFormatString, "Vertices: %d Caras: %d Normales %d UVs %d");
 		noteBuf->Des().Format(KFormatString, vertices, caras, normales, textura);
 		DialogAlert(noteBuf);
-		//Mensaje(noteBuf);*/
+		//Mensaje(noteBuf);
 
 		// Cerrar el archivo
 		rFile.Close();
@@ -2634,45 +2782,42 @@ void CBlenderLite::ImportOBJ(){
 		CleanupStack::PopAndDestroy(&rFile);
 		CleanupStack::PopAndDestroy(&fsSession);
 
-		obj.vertexSize = vertices*3;
-		obj.normalsSize = vertices*3;
-		obj.facesSize = caras*3;
-		obj.edgesSize = caras*6;
-		obj.uvSize = vertices*2; //UV  	
-		obj.texturaID = 1; //defecto
+		tempMesh.vertexSize = vertices;
+		tempMesh.facesSize = caras;
+		tempMesh.material = 0;
 		obj.scaleX = 65000;
 		obj.scaleY = 65000;
 		obj.scaleZ = 65000;
 
-		obj.edges = new GLushort[obj.edgesSize];
-		obj.normals = new GLbyte[obj.normalsSize];
-		obj.vertex = new GLshort[obj.vertexSize];
-		obj.uv = new GLbyte[obj.uvSize];
-		obj.faces = new GLushort[obj.facesSize];
+		//obj.edges = new GLushort[obj.edgesSize];
+		tempMesh.normals = new GLbyte[tempMesh.vertexSize*3];
+		tempMesh.vertex = new GLshort[tempMesh.vertexSize*3];
+		tempMesh.uv = new GLbyte[tempMesh.vertexSize*2];
+		tempMesh.faces = new GLushort[tempMesh.facesSize*3];
 		
-		for(TInt v=0; v < obj.vertexSize; v++){
-			obj.vertex[v] = ListVertices[v];
+		for(TInt v=0; v < tempMesh.vertexSize*3; v++){
+			tempMesh.vertex[v] = ListVertices[v];
 		}
 		for(TInt a=0; a < caras; a++){
 			for(TInt f=0; f < 3; f++){
 				TInt indice = a*9+f*3;
-				obj.faces[a*3+f] = ListCaras[indice];
-				/*for(TInt v=0; v < 3; v++){
+				tempMesh.faces[a*3+f] = ListCaras[indice];
+				for(TInt v=0; v < 3; v++){
 					//a*9 es que ListCaras tiene 9 valores por cara, 3 vertices, 3 normales y 3 UV
 					//f*3 es para ir por las distintas "/" 1/1/1
 					//obj.vertex[ListCaras[a*9+f*3]*3+v] = ListVertices[ListCaras[a*9+f*3]*3+v];
-					HBufC* noteBuf = HBufC::NewLC(100);
+					/*HBufC* noteBuf = HBufC::NewLC(100);
 					_LIT(KFormatString, "face %d v%d-%d: %d valor: %d");
 					noteBuf->Des().Format(KFormatString, a+1, f+1, v+1, ListCaras[a*9+f*3]+1, ListVertices[ListCaras[a*9+f*3]*3+v]);
-					DialogAlert(noteBuf);
-				}*/
+					DialogAlert(noteBuf);*/
+				}
 				/*HBufC* noteBuf = HBufC::NewLC(100);
 				_LIT(KFormatString, "face %d v%d: %d, Vt: %d %d %d");
 				noteBuf->Des().Format(KFormatString, a+1, f+1, ListCaras[a*9+f*3]+1, ListVertices[ListCaras[a*9+f*3]+0],ListVertices[ListCaras[a*9+f*3]+1],ListVertices[ListCaras[a*9+f*3]+2]);
 				DialogAlert(noteBuf);*/
 
 				for(TInt uv=0; uv < 2; uv++){
-					obj.uv[ListCaras[indice]*2+uv] = ListUVs[ListCaras[indice+1]*2+uv];
+					tempMesh.uv[ListCaras[indice]*2+uv] = ListUVs[ListCaras[indice+1]*2+uv];
 				}
 				/*HBufC* noteBuf = HBufC::NewLC(100);
 				_LIT(KFormatString, "face %d v%d: %d, UV: %d %d");
@@ -2680,14 +2825,14 @@ void CBlenderLite::ImportOBJ(){
 				DialogAlert(noteBuf);*/
 
 				for(TInt vn=0; vn < 3; vn++){
-					obj.normals[ListCaras[indice]*3+vn] = ListNormals[ListCaras[indice+1]*3+vn];
+					tempMesh.normals[ListCaras[indice]*3+vn] = ListNormals[ListCaras[indice+1]*3+vn];
 				}
 				/*HBufC* noteBuf = HBufC::NewLC(100);
 				_LIT(KFormatString, "face %d v%d: %d, VN: %d %d %d");
 				noteBuf->Des().Format(KFormatString, a+1, f+1, ListCaras[a*9+f*3]+1, obj.uv[ListCaras[a*9+f*3]*3], obj.uv[ListCaras[a*9+f*3]*3+1], obj.uv[ListCaras[a*9+f*3]*3+2]);
 				DialogAlert(noteBuf);*/
 			}			
-		}	
+	    }	
 
 		//libero memoria		
 		delete[] ListVertices;	
@@ -2695,10 +2840,10 @@ void CBlenderLite::ImportOBJ(){
 		delete[] ListNormals;
 		delete[] ListUVs;
 		
-		Objetos.Append(obj);
-		objSelect = Objetos.Count()-1;
-		Objetos[objSelect].AgruparVertices();
-		Objetos[objSelect].RecalcularBordes();
+		Objects.Append(obj);
+		objSelect = Objects.Count()-1;
+		//Objects[objSelect].AgruparVertices();
+		//Objects[objSelect].RecalcularBordes();
 
 		redibujar = true;
     }	
@@ -2735,46 +2880,46 @@ void CBlenderLite::SetOrigen( TInt opcion ){
 	}
 	//a la geometria
 	else if (opcion == 0){
-		if (tipoSelect == vertexSelect){
+		/*if (tipoSelect == vertexSelect){
 			//guarda el centro de la geometria
 			GLshort NuevoOrigen[3] = {0,0,0};
-			for(TInt i = 0; i < Objetos[objSelect].vertexGroupSize; i++) {
-			    NuevoOrigen[0] += Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[i]*3];
-			    NuevoOrigen[1] += Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[i]*3+1];
-			    NuevoOrigen[2] += Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[i]*3+2];
+			for(TInt i = 0; i < Objects[objSelect].vertexGroupSize; i++) {
+			    NuevoOrigen[0] += Objects[objSelect].vertex[Objects[objSelect].vertexGroup[i]*3];
+			    NuevoOrigen[1] += Objects[objSelect].vertex[Objects[objSelect].vertexGroup[i]*3+1];
+			    NuevoOrigen[2] += Objects[objSelect].vertex[Objects[objSelect].vertexGroup[i]*3+2];
 			}
-			NuevoOrigen[0] /= Objetos[objSelect].vertexGroupSize;
-			NuevoOrigen[1] /= Objetos[objSelect].vertexGroupSize;
-			NuevoOrigen[2] /= Objetos[objSelect].vertexGroupSize;
+			NuevoOrigen[0] /= Objects[objSelect].vertexGroupSize;
+			NuevoOrigen[1] /= Objects[objSelect].vertexGroupSize;
+			NuevoOrigen[2] /= Objects[objSelect].vertexGroupSize;
 
-			for(TInt i = 0; i < Objetos[objSelect].vertexSize/3; i++) {
-				Objetos[objSelect].vertex[i*3] -= NuevoOrigen[0];
-				Objetos[objSelect].vertex[i*3+1] -= NuevoOrigen[1];
-				Objetos[objSelect].vertex[i*3+2] -= NuevoOrigen[2];
+			for(TInt i = 0; i < Objects[objSelect].vertexSize/3; i++) {
+				Objects[objSelect].vertex[i*3] -= NuevoOrigen[0];
+				Objects[objSelect].vertex[i*3+1] -= NuevoOrigen[1];
+				Objects[objSelect].vertex[i*3+2] -= NuevoOrigen[2];
 			}			
-			Objetos[objSelect].posX += NuevoOrigen[0]*Objetos[objSelect].scaleX/65000;
-			Objetos[objSelect].posY += NuevoOrigen[2]*Objetos[objSelect].scaleY/65000;
-			Objetos[objSelect].posZ += NuevoOrigen[1]*Objetos[objSelect].scaleZ/65000;
-		}	
+			Objects[objSelect].posX += NuevoOrigen[0]*Objects[objSelect].scaleX/65000;
+			Objects[objSelect].posY += NuevoOrigen[2]*Objects[objSelect].scaleY/65000;
+			Objects[objSelect].posZ += NuevoOrigen[1]*Objects[objSelect].scaleZ/65000;
+		}	*/
 	}	
 	//al vertice seleccionado
 	else if (opcion == 1){
-		if (tipoSelect == vertexSelect){
+		/*if (tipoSelect == vertexSelect){
 			//guarda el valor del vertice seleccionado
 			GLshort NuevoOrigen[3] = {
-				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[EditSelect]*3],
-				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[EditSelect]*3+1],
-				Objetos[objSelect].vertex[Objetos[objSelect].vertexGroup[EditSelect]*3+2]
+				Objects[objSelect].vertex[Objects[objSelect].vertexGroup[EditSelect]*3],
+				Objects[objSelect].vertex[Objects[objSelect].vertexGroup[EditSelect]*3+1],
+				Objects[objSelect].vertex[Objects[objSelect].vertexGroup[EditSelect]*3+2]
 			};
-			for(TInt i = 0; i < Objetos[objSelect].vertexSize/3; i++) {
-				Objetos[objSelect].vertex[i*3] -= NuevoOrigen[0];
-				Objetos[objSelect].vertex[i*3+1] -= NuevoOrigen[1];
-				Objetos[objSelect].vertex[i*3+2] -= NuevoOrigen[2];
+			for(TInt i = 0; i < Objects[objSelect].vertexSize/3; i++) {
+				Objects[objSelect].vertex[i*3] -= NuevoOrigen[0];
+				Objects[objSelect].vertex[i*3+1] -= NuevoOrigen[1];
+				Objects[objSelect].vertex[i*3+2] -= NuevoOrigen[2];
 			}
-			Objetos[objSelect].posX += NuevoOrigen[0]*Objetos[objSelect].scaleX/65000;
-			Objetos[objSelect].posY += NuevoOrigen[2]*Objetos[objSelect].scaleY/65000;
-			Objetos[objSelect].posZ += NuevoOrigen[1]*Objetos[objSelect].scaleZ/65000;
-		}//, edgeSelect, faceSelect  EditSelect		
+			Objects[objSelect].posX += NuevoOrigen[0]*Objects[objSelect].scaleX/65000;
+			Objects[objSelect].posY += NuevoOrigen[2]*Objects[objSelect].scaleY/65000;
+			Objects[objSelect].posZ += NuevoOrigen[1]*Objects[objSelect].scaleZ/65000;
+		}//, edgeSelect, faceSelect  EditSelect		*/
 	}	
     redibujar = true;
 }

@@ -1,12 +1,6 @@
-// MACROS
-#define MATERIAL_MAX 1
-#define SuzzaneVertexModel    2210
-#define SuzzaneFacesModel       4330
-
-/** Vertices for the Model object. */
-static const TInt SuzzaneVertexSize = 2210 * 3;
-//TFixedArray<GLshort, 2210 * 3> SuzzaneVertex =[	
-static const GLshort SuzzaneVertex[SuzzaneVertexSize]={
+static const TInt MonkeyVertexSize = 2210;
+//TFixedArray<GLshort, 2210 * 3> MonkeyVertex =[	
+static const GLshort MonkeyVertex[MonkeyVertexSize* 3]={
     0, 1542, 2612,
     0, 1256, 2853,
     0, -2324, 2618,
@@ -2219,9 +2213,8 @@ static const GLshort SuzzaneVertex[SuzzaneVertexSize]={
     83, -3060, 2348
 };
 
-/* Define normals for the cube */
-static const TInt SuzzaneNormalSize = 2210 * 3;
-static const GLbyte SuzzaneNormal[SuzzaneNormalSize]={
+// Define normals for the cube
+static const GLbyte MonkeyNormal[MonkeyVertexSize *3 ]={
     0,122,34,
     0,-8,127,
     0,-6,127,
@@ -4434,9 +4427,9 @@ static const GLbyte SuzzaneNormal[SuzzaneNormalSize]={
     -28,103,68
 };
 
-/** Indices to the Model object vertices. */
-static const TInt SuzzaneFaceSize = 4330 * 3;
-static const GLushort SuzzaneFace[SuzzaneFaceSize]={
+// Indices to the Model object vertices. 
+static const TInt MonkeyFaceSize = 4330;
+static const GLushort MonkeyFace[MonkeyFaceSize * 3]={
     108,1611,511,
     512,513,1611,
     1611,24,510,
@@ -8769,9 +8762,8 @@ static const GLushort SuzzaneFace[SuzzaneFaceSize]={
     2209,767,150
 };
 
-/* textura UV */
-static const TInt SuzzaneUVSize = 2308 * 2;
-static const GLbyte SuzzaneUV[SuzzaneUVSize] ={
+// textura UV 
+static const GLbyte MonkeyUV[MonkeyVertexSize * 2] ={
     5,-29,
     5,-41,
     4,-103,

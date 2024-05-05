@@ -2,42 +2,126 @@
 typedef enum { mesh, camera, light, empty, armature, curve };
 typedef GLshort Edge[2];
 
-class Object { //clase Mesh
+class Object {
 	public:
 		TInt type;
 		TBool visible;
 		GLfloat posX; GLfloat posY; GLfloat posZ;
 		GLfloat rotX; GLfloat rotY; GLfloat rotZ;
 		GLfixed scaleX; GLfixed scaleY; GLfixed scaleZ;
+		TInt Id;
 };
 
-class Mesh { //clase Mesh
+class Material { 
 	public:
-		TInt type;
-		TBool visible;
 		TBool textura;
-		TBool smooth;
-		TBool transparencia;
-		GLfloat posX; GLfloat posY; GLfloat posZ;
-		GLfloat rotX; GLfloat rotY; GLfloat rotZ;
-		GLfixed scaleX; GLfixed scaleY; GLfixed scaleZ;
-		TInt vertexSize;
-		TInt vertexGroupSize;
-		TInt normalsSize;
-		TInt facesSize;
-		TInt edgesSize;
-		TInt uvSize;
-		TInt interpolacion;		
-		GLuint texturaID;
+		TBool transparent;
+		TInt interpolacion;
+		GLuint textureID;
 		GLfloat diffuse[4];		
 		GLfloat specular[4];	
-		GLfloat emission[4];	
+		GLfloat emission[4];
+};
 
+class Mesh { 
+	public:
+		TInt vertexSize;
 		GLshort* vertex;
 		GLbyte* normals;
-		GLushort* faces;
-		GLushort* edges;
 		GLbyte* uv;
+		//TInt materialsSize;
+		//TInt* materials;
+		TInt material;
+		TInt facesSize;
+   		GLushort* faces;
+
+		//grupo de vertices
+   		TInt vertexGroupSize;
+		GLushort* vertexGroup;
+		TInt* vertexGroupIndiceSize;
+		GLushort** vertexGroupIndice;
+
+		void Mesh::AgruparVertices() {
+			//agrupar vertices
+		    GLshort* TempVertexPos = new GLshort[vertexSize];
+		    GLushort* TempVertexIndice = new GLushort[vertexSize];
+		    TInt* TempVertexIndiceGroupSize = new TInt[vertexSize];
+		    GLushort** TempVertexIndiceGroup = new GLushort*[vertexSize];
+			for(TInt a=0; a < vertexSize; a++){
+				TempVertexPos[a] = 0;//obj.vertex[a];
+				//TempVertexIndiceGroup[a] = new GLushort[obj.vertexSize/3];
+				TempVertexIndiceGroup[a] = new GLushort[5]; //lo ideal seria el maximo posible. pero problemas de memoria
+			}	
+		    vertexGroupSize = 0;
+		    bool iguales = false;
+			for(TInt a=0; a < vertexSize/3; a++){
+				iguales = false;
+				//busca copias
+				for(TInt s=0; s < vertexGroupSize; s++){
+					if (TempVertexPos[s*3] == vertex[a*3] &&
+						TempVertexPos[s*3+1] == vertex[a*3+1] &&
+						TempVertexPos[s*3+2] == vertex[a*3+2]){
+						iguales = true;
+						//aumenta el tama�o del array y le agrega el indice que coincide
+						//GLushort* temp = new GLushort[TempVertexIndiceGroupSize[s]+1];
+						//for(int t=0; t < TempVertexIndiceGroupSize[s]; t++){
+						//	temp[t] = TempVertexIndiceGroup[s][t];			
+						//}	
+						//temp[TempVertexIndiceGroupSize[s]] = a;	
+						//TempVertexIndiceGroupSize[s]++;
+						//TempVertexIndiceGroup[s] = new GLushort[TempVertexIndiceGroupSize[s]]; //agrega el primer indice
+						//for(int t=0; t < TempVertexIndiceGroupSize[s]; t++){
+						//	TempVertexIndiceGroup[s][t] = temp[t];			
+						//}
+						//delete[] temp;
+						TempVertexIndiceGroup[s][TempVertexIndiceGroupSize[s]] = a;
+						TempVertexIndiceGroupSize[s]++;
+						break;
+					}			
+				};
+				//si no se encontro el vertice. lo guarda y aumenta el size
+				if (!iguales){
+					TempVertexPos[vertexGroupSize*3] = vertex[a*3];
+					TempVertexPos[vertexGroupSize*3+1] = vertex[a*3+1];
+					TempVertexPos[vertexGroupSize*3+2] = vertex[a*3+2];
+					TempVertexIndice[vertexGroupSize] = a;	
+					
+					//TempVertexIndiceGroup[obj.vertexGroupSize] = new GLushort[1]; //agrega el primer indice
+					TempVertexIndiceGroupSize[vertexGroupSize] = 1; //arranca en uno
+					TempVertexIndiceGroup[vertexGroupSize][0] = a;
+					vertexGroupSize++;
+				}
+			}
+			//copia los indices de los vertices a dibujar
+			vertexGroup = new GLushort[vertexGroupSize];
+			for(TInt a=0; a < vertexGroupSize; a++){
+				vertexGroup[a] = TempVertexIndice[a];
+			}	
+			vertexGroupIndice = new GLushort*[vertexGroupSize];
+			vertexGroupIndiceSize = new TInt[vertexGroupSize];
+			for(TInt a=0; a < vertexGroupSize; a++){
+				vertexGroupIndiceSize[a] = TempVertexIndiceGroupSize[a];
+				vertexGroupIndice[a] = new GLushort[vertexGroupIndiceSize[a]];
+				for(TInt i=0; i < vertexGroupIndiceSize[a]; i++){
+					vertexGroupIndice[a][i] = TempVertexIndiceGroup[a][i];	
+				}
+			}	
+
+			// Liberar memoria de TempVertexPos, TempVertexIndice y TempVertexIndiceGroup
+			delete[] TempVertexPos;
+			delete[] TempVertexIndice;
+
+			// Liberar memoria de TempVertexIndiceGroup y sus elementos
+			for (TInt k = 0; k < vertexSize; ++k) {
+				delete[] TempVertexIndiceGroup[k];
+			}
+			delete[] TempVertexIndiceGroup;
+		}
+};
+
+/*
+class Mesh { //clase Mesh
+	public:	
 		GLushort* vertexGroup;
 		TInt* vertexGroupIndiceSize;
 		GLushort** vertexGroupIndice;
@@ -305,7 +389,7 @@ class Mesh { //clase Mesh
 				edges[i*6+4] = faces[i+2]; edges[i*6+5] = faces[i];
 			}
 			Edge* TempEdgesVertex = new Edge[edgesSize];
-			TInt uniqueEdgeCount = 0;
+			TInt uniqueEdgeCount = 0;*/
 			/*Edge edge1 = { 0, 0 };
 			Edge edge2 = { 0, 0 };
 			Edge edge3 = { 0, 0 };
@@ -334,6 +418,6 @@ class Mesh { //clase Mesh
 			delete edge1;
 			delete edge2;
 			delete edge3;*/
-			delete[] TempEdgesVertex;	
+			/*delete[] TempEdgesVertex;	
 		}
-};
+};*/

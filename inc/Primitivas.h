@@ -1,9 +1,9 @@
 //constantes
-const TInt CuboVertexSize = 24 * 3;
-const TInt CuboNormalsSize = 24 * 3;
-const TInt CuboFacesSize = 12 * 3;
-const TInt CuboEdgesSize = 12 * 6;
-const TInt CuboUvSize = 24 * 2;
+#define CuboVertexSize 24 * 3
+#define CuboNormalsSize 24 * 3
+#define CuboFacesSize 12 * 3
+#define CuboEdgesSize 12 * 6
+#define CuboUvSize 24 * 2
 
 /* Define normals for the cube */
 static const GLbyte CuboNormals[CuboNormalsSize] = {

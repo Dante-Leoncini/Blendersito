@@ -57,23 +57,25 @@ enum{
 	edicion
 };
 
+enum {Solid, MaterialPreview, Wireframe, Rendered};
+
 void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPane ){
 	//oculta el SetOrigen si no esta en modo edicion
     if (aResourceId == R_BLENDERLITE_MENU ) {
         if (iAppContainer->iBlenderLite->estado == edicion) {
             aMenuPane->SetItemDimmed(EBlenderLiteOrigenSetOrigen, EFalse);
             aMenuPane->SetItemDimmed(EBlenderLiteSeleccionar, EFalse);
-            aMenuPane->SetItemDimmed(EBlenderLiteEditarObjeto, ETrue);
+            aMenuPane->SetItemDimmed(EViewportObject, ETrue);
             aMenuPane->SetItemDimmed(EViewportAdd, ETrue);
-            aMenuPane->SetItemDimmed(EBlenderLiteImportOBJ, ETrue);
+            aMenuPane->SetItemDimmed(EImportOBJ, ETrue);
             aMenuPane->SetItemDimmed(EBlenderLiteWidescreen, ETrue);
             
         } else {
             aMenuPane->SetItemDimmed(EBlenderLiteOrigenSetOrigen, ETrue);
             aMenuPane->SetItemDimmed(EBlenderLiteSeleccionar, ETrue);
-            aMenuPane->SetItemDimmed(EBlenderLiteEditarObjeto, EFalse);
+            aMenuPane->SetItemDimmed(EViewportObject, EFalse);
             aMenuPane->SetItemDimmed(EViewportAdd, EFalse);
-            aMenuPane->SetItemDimmed(EBlenderLiteImportOBJ, EFalse);
+            aMenuPane->SetItemDimmed(EImportOBJ, EFalse);
             aMenuPane->SetItemDimmed(EBlenderLiteWidescreen, EFalse);
         }
         // Texto para setear la pantalla ancha
@@ -128,7 +130,7 @@ void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
         else {
             aMenuPane->SetItemTextL( EViewportSetOrigins, R_SHOWORIGIN  );
         }    
-    }    
+    }  
 }
 
 // ----------------------------------------------------
@@ -253,7 +255,7 @@ enum{
     camara,
     cad,
     luz,
-    suzanne,
+    monkey,
     claude,
     marcus,
     vertice
@@ -313,12 +315,15 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
         case EViewportSet3DCursor:
             iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->show3DCursor);
             break; 
-        case EBlenderLiteImportOBJ:
+        case EImportOBJ:
             iAppContainer->iBlenderLite->ImportOBJ();
             break; 
         case EBlenderLiteWidescreen:
             iAppContainer->SetWidescreen();
             break;    
+        case EViewportCursorToSelect:
+            iAppContainer->iBlenderLite->CursorToSelect();
+            break;
         case EAddCamera:            
             iAppContainer->iBlenderLite->AddObject(camera);
             break;   
@@ -332,17 +337,17 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             iAppContainer->iBlenderLite->AddMesh(cubo);
             break;  
         case EAddMonkey:
-            iAppContainer->iBlenderLite->AddMesh(suzanne);
+            iAppContainer->iBlenderLite->AddMesh(monkey);
             break;  
         case EAddVertex:
             iAppContainer->iBlenderLite->AddMesh(vertice);
-            break;  
-        case EBlenderLiteSetSpecular:
-            iAppContainer->iBlenderLite->SetSpecular();
-            break;  
-        case EBlenderLiteSetSmooth:
-            iAppContainer->iBlenderLite->SetSmooth();
             break; 
+        case ESetMaterial:
+            iAppContainer->iBlenderLite->SetMaterial();
+            break;  
+        case ESetSpecular:
+            iAppContainer->iBlenderLite->SetSpecular();
+            break;   
         case EBlenderLiteEditarMesh:
             iAppContainer->iBlenderLite->SetEditMode();
             break;  
@@ -354,23 +359,29 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             break;   
         case EBlenderLiteSetRotacion:
             iAppContainer->iBlenderLite->SetRotacion();
-            break;    
-        case EBlenderLiteSetDiffuse:
+            break;     
+        case EDuplicatedObject:
+            iAppContainer->iBlenderLite->DuplicatedObject();
+            break;       
+        case EDuplicatedLinked:
+            iAppContainer->iBlenderLite->DuplicatedLinked();
+            break; 
+        case ESetDiffuse:
             iAppContainer->iBlenderLite->SetDiffuse();
             break;   
-        case EBlenderLiteSetEmission:
+        case ESetEmission:
             iAppContainer->iBlenderLite->SetEmission();
             break;  
-        case EBlenderLiteSetTexture:
+        case ESetTexture:
             iAppContainer->iBlenderLite->SetTexture();
             break;  
-        case EBlenderLiteActivarTextura:
+        case ESetActiveTexture:
             iAppContainer->iBlenderLite->ActivarTextura();
             break; 
-        case EBlenderLiteSetInterpolacion:
+        case ESetInterpolation:
             iAppContainer->iBlenderLite->SetInterpolation();
             break; 
-        case EBlenderLiteSetTransparencia:
+        case ESetTransparent:
             iAppContainer->iBlenderLite->SetTransparencia();
             break; 
         case EBlenderLiteInfoObject:
@@ -392,17 +403,20 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             iAppContainer->iBlenderLite->SetViewpoint(right);
             break;
         case EBlenderLiteObjFocus:
-            iAppContainer->iBlenderLite->EnfocarObjeto();
+            iAppContainer->iBlenderLite->EnfocarObject();
             break; 
         case EBlenderLiteViewMaterial:
-            iAppContainer->iBlenderLite->SetShader(0);
+            iAppContainer->iBlenderLite->SetShading(MaterialPreview);
             break; 
         case EBlenderLiteViewSolid:
-            iAppContainer->iBlenderLite->SetShader(1);
+            iAppContainer->iBlenderLite->SetShading(Solid);
             break; 
         case EBlenderLiteViewWireframe:
-            iAppContainer->iBlenderLite->SetShader(2);
+            iAppContainer->iBlenderLite->SetShading(Wireframe);
             break; 
+        /*case EBlenderLiteViewRendered:
+            iAppContainer->iBlenderLite->SetShading(Rendered);
+            break; */
         case EBlenderLiteSetTipoVertex:
             iAppContainer->iBlenderLite->SetTipoSelect(vertexSelect);
             break; 
@@ -421,7 +435,7 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
         case EBlenderLiteOrigenToCursor:
             iAppContainer->iBlenderLite->SetOrigen(2);
             break; 
-        case EBlenderLiteCambiarObjeto:
+        case EBlenderLiteCambiarObject:
             iAppContainer->iBlenderLite->changeSelect();
             break; 
         case EBlenderLiteModificadorArray:
@@ -433,7 +447,7 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
         case EBlenderLiteModificadorScrew:
             iAppContainer->iBlenderLite->AddModificador(screw);
             break; 
-        case EBlenderLiteNewTexture:
+        case ENewTexture:
             iAppContainer->iBlenderLite->NewTexture();
             break; 
             

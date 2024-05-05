@@ -100,18 +100,21 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void SetEje( TInt eje );     
         void AddMesh( TInt modelo );
         void AddObject( TInt tipo );
-        void SetTexture(); //int texturaID 
+        void SetTexture(); //int textureID 
+        void SetMaterial();
+        void DuplicatedObject();
+        void DuplicatedLinked();
         void ActivarTextura();
         void SetInterpolation();
         void SetTransparencia();
         void SetSpecular();
-        void SetSmooth();
         void SetDiffuse();
         void SetEmission();
         void SetEditMode();
         void Extruir();
         void SetPerspectiva( TBool redibuja = true );
-        void EnfocarObjeto();
+        void EnfocarObject();
+        void CursorToSelect();
         void Borrar();
         void changeSelect();
         void SetMouse();
@@ -141,7 +144,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void Tab();
         
         //cambiar el shader en el viewport
-        void SetShader( TInt valor );
+        void SetShading( TInt valor );
         
 
         /**

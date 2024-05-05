@@ -84,15 +84,15 @@ RESOURCE MENU_PANE r_blenderlite_menu
 			},	
 			MENU_ITEM
 			{
-				command = EBlenderLiteEditarObjeto;
-				cascade = r_blenderlite_editarObjeto_menu;
-				txt = STRING_r_blenderlite_EditarObjeto;
+				command = EViewportObject;
+				cascade = r_viewport_object_menu;
+				txt = STRING_r_Object;
 			},			
 	    	MENU_ITEM
 	        {
-	            command = EBlenderLiteEditarMaterial;
-	            cascade = r_blenderlite_editarMaterial_menu;
-	            txt = STRING_r_blenderlite_editarMaterial;
+	            command = EMaterial;
+	            cascade = r_Material_menu;
+	            txt = STRING_r_Material;
 	            //flags = EEikMenuItemSeparatorAfter; //no da error pero no veo cambios
 	        },		
 			MENU_ITEM
@@ -121,8 +121,8 @@ RESOURCE MENU_PANE r_blenderlite_menu
             },		
         	MENU_ITEM
             {
-                command = EBlenderLiteImportOBJ;
-                txt = STRING_r_blenderlite_ImportOBJ;
+                command = EImportOBJ;
+                txt = STRING_r_ImportOBJ;
             },            
         	MENU_ITEM
             {
@@ -134,7 +134,7 @@ RESOURCE MENU_PANE r_blenderlite_menu
                 command = EBlenderLiteModificadores;
                 cascade = r_viewport_overley_menu;
                 txt = STRING_r_Overlay;
-            }            
+            }    
         };
 }
 
@@ -254,47 +254,47 @@ RESOURCE MENU_PANE r_blenderlite_vista3D_menu{
 
 //----------------------------------------------------
 //
-//    r_blenderlite_editarMaterial_menu
+//    r_Material_menu
 //
 //----------------------------------------------------
 //
-RESOURCE MENU_PANE r_blenderlite_editarMaterial_menu{
+RESOURCE MENU_PANE r_Material_menu{
 	items = {
+        MENU_ITEM {
+            command = ESetMaterial;
+            txt = STRING_r_setMaterial;
+        },  
 		MENU_ITEM {
-			command = EBlenderLiteSetDiffuse;
-			txt = STRING_r_blenderlite_setDiffuse;
+			command = ESetDiffuse;
+			txt = STRING_r_setDiffuse;
 		},
         MENU_ITEM {
-            command = EBlenderLiteSetSpecular;
-            txt = STRING_r_blenderlite_setSpecular;
+            command = ESetSpecular;
+            txt = STRING_r_setSpecular;
         },
         MENU_ITEM {
-            command = EBlenderLiteSetEmission;
-            txt = STRING_r_blenderlite_setEmission;
+            command = ESetEmission;
+            txt = STRING_r_setEmission;
         },
         MENU_ITEM {
-            command = EBlenderLiteSetTexture;
-            txt = STRING_r_blenderlite_setTexture;
+            command = ESetTexture;
+            txt = STRING_r_setTexture;
         },  
         MENU_ITEM {
-            command = EBlenderLiteActivarTextura;
-            txt = STRING_r_blenderlite_activarTextura;
+            command = ESetActiveTexture;
+            txt = STRING_r_activeTexture;
         },  
         MENU_ITEM {
-            command = EBlenderLiteSetSmooth;
-            txt = STRING_r_blenderlite_setSmooth;
+            command = ESetInterpolation;
+            txt = STRING_r_setInterpolation;
         },  
         MENU_ITEM {
-            command = EBlenderLiteSetInterpolacion;
-            txt = STRING_r_blenderlite_setInterpolacion;
+            command = ESetTransparent;
+            txt = STRING_r_setTransparent;
         },  
         MENU_ITEM {
-            command = EBlenderLiteSetTransparencia;
-            txt = STRING_r_blenderlite_setTransparencia;
-        },  
-        MENU_ITEM {
-            command = EBlenderLiteNewTexture;
-            txt = STRING_r_blenderlite_newTexture;
+            command = ENewTexture;
+            txt = STRING_r_newTexture;
         }                   
     };
 }
@@ -348,11 +348,11 @@ RESOURCE MENU_PANE r_viewport_overley_menu{
 
 //----------------------------------------------------
 //
-//    r_blenderlite_editarObjeto_menu
+//    r_viewport_object_menu
 //
 //----------------------------------------------------
 //
-RESOURCE MENU_PANE r_blenderlite_editarObjeto_menu{
+RESOURCE MENU_PANE r_viewport_object_menu{
 	items = {
 		MENU_ITEM
 		{
@@ -378,14 +378,46 @@ RESOURCE MENU_PANE r_blenderlite_editarObjeto_menu{
 		},	
 		MENU_ITEM
 		{
-			command = EBlenderLiteCambiarObjeto;
-			txt = STRING_r_blenderlite_CambiarObjeto;
+			command = EBlenderLiteCambiarObject;
+			txt = STRING_r_blenderlite_CambiarObject;
 		},	
 		MENU_ITEM
 		{
 			command = EBlenderLiteInfoObject;
-			txt = STRING_r_blenderlite_InfoObjeto;
-		}	
+			txt = STRING_r_blenderlite_InfoObject;
+        },   
+        MENU_ITEM
+        {
+            command = EViewportCursorToSelect; //EViewportObjectSnap;
+            //cascade = r_viewport_object_snap_menu;
+            txt = STRING_r_cursor_to_selected; //STRING_r_Snap;
+        },	
+		MENU_ITEM
+		{
+			command = EDuplicatedObject;
+			txt = STRING_r_DuplicatedObject;
+        }, 
+		MENU_ITEM
+		{
+			command = EDuplicatedLinked;
+			txt = STRING_r_DuplicatedLinked;
+        } 
+    };
+}
+
+//----------------------------------------------------
+//
+//    r_viewport_object_snap_menu
+//
+//----------------------------------------------------
+//
+RESOURCE MENU_PANE r_viewport_object_snap_menu{
+	items = {
+		MENU_ITEM
+		{
+			command = EViewportCursorToSelect;
+			txt = STRING_r_cursor_to_selected;
+        }
     };
 }
 
@@ -435,49 +467,27 @@ RESOURCE MENU_PANE r_blenderlite_editarOrigen_menu{
     };
 }
 
-
-//rls_string STRING_r_blenderlite_EditarObjeto     "Editar Objeto"
-//rls_string STRING_r_blenderlite_CambiarEscala    "Cambiar Escala"
-//rls_string STRING_r_blenderlite_CambiarPosicion  "Cambiar Posicion"
-//rls_string STRING_r_blenderlite_CambiarRotacion  "Cambiar Rotacion"
 //----------------------------------------------------
 //
 //    resources for the menu item texts
 //
 //----------------------------------------------------
 //
-//RESOURCE TBUF256 r_Add{buf = STRING_r_Add;}
-//RESOURCE TBUF256 r_AddCube{buf = STRING_r_AddCube;}
-//RESOURCE TBUF256 r_AddVertex{buf = STRING_r_AddVertex;}
-//RESOURCE TBUF256 r_AddEmpty{buf = STRING_r_AddEmpty;}
-//RESOURCE TBUF256 r_AddCamera{buf = STRING_r_AddCamera;}
-//RESOURCE TBUF256 r_AddLight{buf = STRING_r_AddLight;}
-//RESOURCE TBUF256 r_AddMonkey{buf = STRING_r_AddMonkey;}
 
 RESOURCE TBUF256 r_blenderlite_topView{buf = STRING_r_blenderlite_topView;}
 RESOURCE TBUF256 r_blenderlite_frontView{buf = STRING_r_blenderlite_frontView;}
 RESOURCE TBUF256 r_blenderlite_rightView{buf = STRING_r_blenderlite_rightView;}
 RESOURCE TBUF256 r_blenderlite_perspectiva{buf = STRING_r_blenderlite_perspectiva;}
 RESOURCE TBUF256 r_blenderlite_ObjFocus{buf = STRING_r_blenderlite_ObjFocus;}
-RESOURCE TBUF256 r_blenderlite_CambiarObjeto{buf = STRING_r_blenderlite_CambiarObjeto;}
+RESOURCE TBUF256 r_blenderlite_CambiarObject{buf = STRING_r_blenderlite_CambiarObject;}
 RESOURCE TBUF256 r_blenderlite_SetNavegacion{buf = STRING_r_blenderlite_SetNavegacion;}
 
-RESOURCE TBUF256 r_blenderlite_BorrarObjeto{buf = STRING_r_blenderlite_BorrarObjeto;}
-
-RESOURCE TBUF256 r_blenderlite_editarMaterial{buf = STRING_r_blenderlite_editarMaterial;}
-RESOURCE TBUF256 r_blenderlite_setSpecular{buf = STRING_r_blenderlite_setSpecular;}
-RESOURCE TBUF256 r_blenderlite_setEmission{buf = STRING_r_blenderlite_setEmission;}
-RESOURCE TBUF256 r_blenderlite_setSmooth{buf = STRING_r_blenderlite_setSmooth;}
-RESOURCE TBUF256 r_blenderlite_setDiffuse{buf = STRING_r_blenderlite_setDiffuse;}
-RESOURCE TBUF256 r_blenderlite_setTexture{buf = STRING_r_blenderlite_setTexture;}
-RESOURCE TBUF256 r_blenderlite_activarTextura{buf = STRING_r_blenderlite_activarTextura;}
-RESOURCE TBUF256 r_blenderlite_setInterpolacion{buf = STRING_r_blenderlite_setInterpolacion;}
-RESOURCE TBUF256 r_blenderlite_setTransparencia{buf = STRING_r_blenderlite_setTransparencia;}
+RESOURCE TBUF256 r_blenderlite_BorrarObject{buf = STRING_r_blenderlite_BorrarObject;}
 
 RESOURCE TBUF256 r_blenderlite_EditarMesh{buf = STRING_r_blenderlite_EditarMesh;}
 
-RESOURCE TBUF256 r_blenderlite_EditarObjeto{buf = STRING_r_blenderlite_EditarObjeto;}
-RESOURCE TBUF256 r_blenderlite_InfoObjeto{buf = STRING_r_blenderlite_InfoObjeto;}
+RESOURCE TBUF256 r_blenderlite_EditarObject{buf = STRING_r_blenderlite_EditarObject;}
+RESOURCE TBUF256 r_blenderlite_InfoObject{buf = STRING_r_blenderlite_InfoObject;}
 RESOURCE TBUF256 r_blenderlite_CambiarEscala{buf = STRING_r_blenderlite_CambiarEscala;}
 RESOURCE TBUF256 r_blenderlite_CambiarPosicion{buf = STRING_r_blenderlite_CambiarPosicion;}
 RESOURCE TBUF256 r_blenderlite_CambiarRotacion{buf = STRING_r_blenderlite_CambiarRotacion;}

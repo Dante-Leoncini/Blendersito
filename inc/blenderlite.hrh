@@ -16,23 +16,22 @@ enum TBlenderLiteMenuCommands
     EBlenderLiteRightView,
     EBlenderLitePerspectiva,
     EBlenderLiteObjFocus,
-    EBlenderLiteCambiarObjeto,
+    EBlenderLiteCambiarObject,
     EBlenderLiteNavegacion,
     EBlenderLiteBorrar,
     
-    EBlenderLiteEditarMaterial,
-    EBlenderLiteSetTexture,
-    EBlenderLiteSetSmooth,
-    EBlenderLiteSetTextura,
-    EBlenderLiteActivarTextura,
-    EBlenderLiteSetEmission,
-    EBlenderLiteSetSpecular,
-    EBlenderLiteSetDiffuse,
-    EBlenderLiteSetInterpolacion,
-    EBlenderLiteSetTransparencia, 
+    EMaterial,
+    ESetMaterial,
+    ESetTexture,
+    ESetActiveTexture,
+    ESetEmission,
+    ESetSpecular,
+    ESetDiffuse,
+    ESetInterpolation,
+    ESetTransparent, 
     
     EBlenderLiteEditarMesh,
-    EBlenderLiteEditarObjeto,
+    EViewportObject,
     EBlenderLiteInfoObject,
     EBlenderLiteSetEscala,
     EBlenderLiteSetPosicion,
@@ -59,8 +58,8 @@ enum TBlenderLiteMenuCommands
     EBlenderLiteModificadorScrew,
 
     EBlenderLiteWidescreen,
-    EBlenderLiteImportOBJ,
-    EBlenderLiteNewTexture,
+    EImportOBJ,
+    ENewTexture,
 
     EBlenderLiteProgressNote,
     EBlenderLiteWaitNote,
@@ -80,7 +79,13 @@ enum TBlenderLiteMenuCommands
     EAddLight,
     EAddMonkey,
     EAddVertex,
-    EAddEmpty
+    EAddEmpty,
+
+    EDuplicatedObject,
+    EDuplicatedLinked,               
+
+    EViewportObjectSnap,
+    EViewportCursorToSelect
 };
 
 enum TAknExNoteNoteControlIds {
