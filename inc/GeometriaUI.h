@@ -95,10 +95,9 @@ static const GLushort Cursor3DEdges[Cursor3DEdgesSize]={
 	10,11
 };
 
-static const TInt SpriteVertexSize = 4 * 3;
-static const TInt SpriteNormalsSize = 4 * 3;
-static const TInt SpriteFacesSize = 2 * 3;
-static const TInt SpriteUvSize = 4 * 2;
+static const TInt SpriteVertexSize = 16 * 3;
+static const TInt SpriteFacesSize = 18 * 3;
+static const TInt SpriteUvSize = 16 * 2;
 
 /* Define vertice coordinates for the ground plane */
 //en el sentido del reloj empezando de la esquina superior izquierda
@@ -106,21 +105,48 @@ static GLshort SpriteVertices[SpriteVertexSize] = {
 	0,    0, 0,
 	256,    0, 0,
     256, -256, 0,
-    0, -256, 0
-};
-
-/* las normales de cada vertice */
-static const GLbyte SpriteNormal[SpriteNormalsSize]={
-    0,127,0,
-    0,127,0,
-    0,127,0,
-    0,127,0
+    0, -256, 0,
+    0, 0, 0,
+    0, 0, 0,
+    0, 0, 0,
+    0, 0, 0,
+    0, 0, 0,
+    0, 0, 0,
+    0, 0, 0,
+    0, 0, 0,
+    0, 0, 0,
+    0, 0, 0,
 };
 
 /** los dos triangulos */
 static const GLushort SpriteFaces[SpriteFacesSize]={
+    //1
 	0,1,2,
-	2,3,0
+	2,3,0,
+    //2
+	1,4,2,
+	2,5,4,
+    //3
+    4,5,6,
+    5,6,7,
+    //4
+    3,2,8,
+    8,2,9,
+    //5
+    2,9,5,
+    9,10,5,
+    //6
+    10,5,7,
+    10,11,7,
+    //7
+    8,12,9,
+    12,9,13,
+    //8
+    13,9,10,
+    13,10,14,
+    //9
+    14,10,11,
+    14,11,15
 };
 
 /* textura UV */
@@ -129,6 +155,18 @@ static GLbyte SpriteUV[SpriteUvSize] ={
     -128,  -128,
     127,   -128,
     127,    127,
-    -128,   127
+    -128,   127,
+    0,0,
+    0,0,
+    0, 0, 
+    0, 0, 
+    0, 0, 
+    0, 0, 
+    0, 0, 
+    0, 0, 
+    0, 0, 
+    0, 0, 
+    0, 0, 
+    0, 0 
 };
 //f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3 ...

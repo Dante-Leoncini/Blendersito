@@ -120,8 +120,13 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void SetMouse();
         void ToggleValue(bool& valueToUpdate);
         void InfoObject(TInt opciones);
-        void SetSprite(GLshort ancho, GLshort alto, GLshort origenX, GLshort origenY, GLshort U, GLshort V, GLshort x, GLshort y);
-        void DibujarRectangulo(GLshort ancho, GLshort alto, GLshort x, GLshort y);
+        void SetUvSprite(GLshort x, GLshort y, GLshort ancho, GLshort alto);
+        void SetSpriteSize(GLshort ancho, GLshort alto);
+        void DrawnRectangle();
+        void IconSelect(TBool activo);
+        void UiMoveTo(GLshort x, GLshort y);
+        void SetUvBordes(GLshort origenX, GLshort origenY, GLshort ancho, GLshort alto, GLshort top, GLshort right, GLshort bottom, GLshort left);
+        void DibujarRectanguloBordes(GLshort ancho, GLshort alto, GLshort top, GLshort right, GLshort bottom, GLshort left );
         void SetViewpoint(TInt opcion);
         void AddModificador(TInt opcion);
         void TecladoNumerico(TInt numero);
@@ -239,6 +244,12 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
 		TTexture iMouseTextura;
 		TTexture iLampTextura;
         TTexture iCursor3dTextura;
+
+        TTexture iShaderMaterialPreview;
+        TTexture iShaderRendered;
+        TTexture iShaderSolid;
+        TTexture iShaderWireframe;
+
 		/** Particle coordinates */
 		//GLfixed *iParticleCoords;
 		// Wait note dialog for indicating refresh operation

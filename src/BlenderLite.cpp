@@ -63,7 +63,7 @@ static const GLfloat colorBorde[4]  = { MATERIALCOLOR(0.68, 0.45, 0.13, 1.0) };
 //color borde Select
 //GLfloat colorBordeSelect[4] = { MATERIALCOLOR(0.94, 0.59, 0.17, 1.0) };
 //array de colores
-static const GLfloat ListaColores[8][4] = {
+static const GLfloat ListaColores[9][4] = {
 		{ MATERIALCOLOR(1.0, 1.0, 1.0, 1.0)     },   //blanco
 		{ MATERIALCOLOR(0.94, 0.59, 0.17, 1.0)  },   //naranja 	
 		{ MATERIALCOLOR(0.0, 0.0, 0.0, 1.0)     },   //negro
@@ -71,6 +71,8 @@ static const GLfloat ListaColores[8][4] = {
 		{ MATERIALCOLOR(0.94, 0.59, 0.17, 0.25f)},   //naranja transparente
 		{ MATERIALCOLOR(0.22, 0.22, 0.22, 1.0)  },    //cabezera de la barra de herramientas
 		{ MATERIALCOLOR(0.0, 0.0, 0.0, 0.25f)     },   //negroTransparente
+		{ MATERIALCOLOR(0.278, 0.447, 0.702, 1.0)     },   //azul de los iconos seleccionados
+		{ MATERIALCOLOR(0.757, 0.757, 0.757, 1.0)     },   //azul de los iconos seleccionados
 };
 
 enum{
@@ -80,7 +82,9 @@ enum{
 	gris,
 	naranjaFace,
 	headerColor,
-	negroTransparente
+	negroTransparente,
+	azulUI,
+	grisUI
 };
 int colorBordeSelect = 1;
 
@@ -290,14 +294,12 @@ void CBlenderLite::ConstructL( void ){
 
 	//debuger
 	//console = Console::NewL(_L("Consola"),TSize(KConsFullScreen, KConsFullScreen));
-	//Objects = new Mesh[cantObjects];
 	AddObject(camera);
 	Objects[0].posX = -800*6.8;
 	Objects[0].posY = -800*7.29;
 	Objects[0].posZ = 800*4.91;
-	//Objects[0].rotX = 45;
-	Objects[0].rotZ = -45.0;//-63.85 o 26.15;
-	Objects[0].rotY = -26.15;//63.85;
+	Objects[0].rotZ = -45.0;
+	Objects[0].rotY = -26.15;
 	Objects[0].scaleX = Objects[0].scaleY = Objects[0].scaleZ = 40000;
 
 	AddObject(light);
@@ -418,11 +420,21 @@ void CBlenderLite::AppInit( void ){
 	_LIT( KMouseTexture, "cursor.png" );	
 	_LIT( KLampTexture, "lamp.png" );		
 	_LIT( KCursor3dTextura, "cursor3d.png" );	
+	//iconos	
+	/*_LIT( KshaderMaterialPreview, "shader_MaterialPreview.png" );
+	_LIT( KshaderRendered, "shader_Rendered.png" );
+	_LIT( KshaderSolid, "shader_Solid.png" );
+	_LIT( KshaderWireframe, "shader_Wireframe.png" );*/
 	iTextureManager->RequestToLoad( KOriginTexture, &iOrigenTextura, false );
 	iTextureManager->RequestToLoad( KColorGridTexture, &iColorGridTextura, false );
 	iTextureManager->RequestToLoad( KMouseTexture, &iMouseTextura, false );
 	iTextureManager->RequestToLoad( KLampTexture, &iLampTextura, false );
 	iTextureManager->RequestToLoad( KCursor3dTextura, &iCursor3dTextura, false );
+	//iconos
+	//iTextureManager->RequestToLoad( KshaderMaterialPreview, &iShaderMaterialPreview, false );
+	//iTextureManager->RequestToLoad( KshaderRendered, &iShaderRendered, false );
+	//iTextureManager->RequestToLoad( KshaderSolid, &iShaderSolid, false );
+	//iTextureManager->RequestToLoad( KshaderWireframe, &iShaderWireframe, false );
 	
 	
 	//Start to load the textures.
@@ -750,19 +762,19 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	
     //dibuja los ejes de transformacion    
 	glDisable( GL_DEPTH_TEST );
-	if (estado != navegacion && estado != edicion){	
-		Object& obj = Objects[objSelect];		
-		Mesh& pMesh = Meshes[obj.Id];
+	if (estado == translacion || estado == translacionVertex || estado == rotacion || estado == escala){
+		Object& obj = Objects[objSelect];
 		glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
 		glLineWidth(2);	
 		glPushMatrix(); //guarda la matrix
 		glTranslatef( obj.posX, obj.posZ, obj.posY);
-		if (estado != translacion){
+		if (estado == rotacion || estado == escala){
 			glRotatef(obj.rotX, 1, 0, 0); //angulo, X Y Z
 			glRotatef(obj.rotY, 0, 0, 1); //angulo, X Y Z
 			glRotatef(obj.rotZ, 0, 1, 0); //angulo, X Y Z			
 		}
 		if (estado == translacionVertex){
+			Mesh& pMesh = Meshes[obj.Id];
 			glTranslatef(pMesh.vertex[pMesh.vertexGroup[EditSelect]*3]  *obj.scaleX/65000, 
 					     pMesh.vertex[pMesh.vertexGroup[EditSelect]*3+1]*obj.scaleY/65000, 
 					     pMesh.vertex[pMesh.vertexGroup[EditSelect]*3+2]*obj.scaleZ/65000
@@ -870,36 +882,85 @@ void CBlenderLite::dibujarUI(){
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	
     glVertexPointer( 3, GL_SHORT, 0, SpriteVertices );
-	glNormalPointer( GL_BYTE, 0, SpriteNormal );
 	glTexCoordPointer( 2, GL_BYTE, 0, SpriteUV ); //SpriteUvSize
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	//glBindTexture( GL_TEXTURE_2D, iColorGridTextura.iID ); //selecciona la textura
-	//SetSprite(255,255,0,0);
 
 	//header	
 	glDisable( GL_TEXTURE_2D ); // Permite usar texturas
 	glColor4f(ListaColores[headerColor][0],ListaColores[headerColor][1],ListaColores[headerColor][2],0.8f);
-	DibujarRectangulo(iScreenWidth,24, 0,0);
+	SetSpriteSize(iScreenWidth,24);
+	DrawnRectangle();
 	
 	glEnable( GL_TEXTURE_2D ); // Permite usar texturas
 	glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);	
 	glBindTexture( GL_TEXTURE_2D, iMouseTextura.iID ); 
 
 	//que editor esta abierto
-	SetSprite(14,14,113*2,49*2,28,28,5,-5);
+	glPushMatrix();
+	UiMoveTo(5,5);
+	SetUvSprite(113*2,49*2,28,28);
+	SetSpriteSize(14,14);
+	DrawnRectangle();
 
 	//icono de modo objeto
-	if (estado != edicion){SetSprite(14,14,1*2,113*2,28,28,25,-5);}
+	UiMoveTo(25,0);
+	if (estado != edicion){
+		SetUvSprite(1*2,113*2,28,28);
+	}
 	//icono de edicion de mesh
-	else {SetSprite(14,14,1*2,97*2,28,28,25,-5);}
+	else {
+		SetUvSprite(1*2,97*2,28,28);
+	}
+	DrawnRectangle();
+
 	//icono de overlay
-	if (showOverlays){SetSprite(14,14,32*2,80*2,28,28,45,-5);}
-	else {SetSprite(14,14,32*2,96*2,28,28,45,-5);}
+	UiMoveTo(23,-2);
+	IconSelect(showOverlays);
+	UiMoveTo(2,2);
+	SetUvSprite(33*2,81*2,28,28);
+	DrawnRectangle();
+
+	//grupo de shaders ancho, alto,
+	UiMoveTo(23,-3);
+	SetUvBordes(1*2,56*2, 8*2,9*2, 4*2,4*2,5*2,4*2 );	
+	DibujarRectanguloBordes(79,21, 4,4,5,4 );
+
+	//wireframe
+	UiMoveTo(1,1);
+	IconSelect(view == Wireframe);
+	UiMoveTo(2,2);
+	SetUvSprite(65*2,113*2,28,28);
+	SetSpriteSize(14,14);
+	DrawnRectangle();
+
+	//solid
+	UiMoveTo(18,-2);
+	IconSelect(view == Solid);
+	UiMoveTo(2,2);
+	SetUvSprite(81*2,113*2,28,28);
+	DrawnRectangle();
+
+	//material preview
+	UiMoveTo(18,-2);
+	IconSelect(view == MaterialPreview);
+	UiMoveTo(2,2);
+	SetUvSprite(97*2,113*2,28,28);
+	DrawnRectangle(); 
+
+	//Rendered
+	UiMoveTo(18,-2);
+	IconSelect(view == Rendered);
+	UiMoveTo(2,2);
+	SetUvSprite(113*2,113*2,28,28);
+	DrawnRectangle();
+	glPopMatrix(); //reinicia la matrix a donde se guardo	
 
 	//dibuja el mouse por arriba de todo
 	if (mouseVisible){
-		SetSprite(10,17,1,1,20,32,mouseX,mouseY);
+		UiMoveTo(mouseX,mouseY);
+		SetUvSprite(1,1,20,23);
+		SetSpriteSize(10,17);
+		DrawnRectangle();
 	}
 
 	//resetea la perspectiva	
@@ -907,33 +968,66 @@ void CBlenderLite::dibujarUI(){
 	SetPerspectiva(false);
 }
 
-void CBlenderLite::SetSprite(GLshort ancho, GLshort alto, GLshort origenX, GLshort origenY, GLshort U, GLshort V, GLshort x, GLshort y){
-	glPushMatrix(); //guarda la matrix
-	glTranslatef( x, y, 0);
-	//cambia el tamaño
-	SpriteVertices[3] = SpriteVertices[6] = ancho+1;
-	SpriteVertices[7] = SpriteVertices[10] = -(alto+1);
-	//recalcula uv
-	SpriteUV[0] = (GLbyte)(-128+origenX);
-	SpriteUV[1] = (GLbyte)(-128+origenY);
-	SpriteUV[2] = (GLbyte)(-128+U+origenX);
-	SpriteUV[3] = (GLbyte)(-128+origenY);
-	SpriteUV[4] = (GLbyte)(-128+U+origenX);
-	SpriteUV[5] = (GLbyte)(-128+V+origenY);
-	SpriteUV[6] = (GLbyte)(-128+origenX);
-	SpriteUV[7] = (GLbyte)(-128+V+origenY);
-	glDrawElements( GL_TRIANGLES, SpriteFacesSize, GL_UNSIGNED_SHORT, SpriteFaces );
-	glPopMatrix(); //reinicia la matrix a donde se guardo	
+void CBlenderLite::SetUvSprite(GLshort x, GLshort y, GLshort ancho, GLshort alto){
+	SpriteUV[0] = SpriteUV[6] = (GLbyte)(-128+x);
+	SpriteUV[2] = SpriteUV[4] = (GLbyte)(-128+x+ancho);
+	SpriteUV[1] = SpriteUV[3] = (GLbyte)(-128+y);
+	SpriteUV[5] = SpriteUV[7] = (GLbyte)(-128+y+alto);
 }
 
-void CBlenderLite::DibujarRectangulo(GLshort ancho, GLshort alto, GLshort x, GLshort y){
-	glPushMatrix(); //guarda la matrix
-	glTranslatef( x, y, 0);
-	//cambia el tamaño
+void CBlenderLite::SetSpriteSize(GLshort ancho, GLshort alto){
 	SpriteVertices[3] = SpriteVertices[6] = ancho+1;
 	SpriteVertices[7] = SpriteVertices[10] = -(alto+1);
-	glDrawElements( GL_TRIANGLES, SpriteFacesSize, GL_UNSIGNED_SHORT, SpriteFaces );
-	glPopMatrix(); //reinicia la matrix a donde se guardo	
+}
+
+void CBlenderLite::DrawnRectangle(){
+	glDrawElements( GL_TRIANGLES, 2*3, GL_UNSIGNED_SHORT, SpriteFaces );
+}
+
+void CBlenderLite::IconSelect(TBool activo){
+	if (activo){
+		glDisable( GL_TEXTURE_2D );
+		glColor4f(ListaColores[azulUI][0],ListaColores[azulUI][1],ListaColores[azulUI][2],ListaColores[azulUI][3]);	
+		SetSpriteSize(18,18);
+		DrawnRectangle();
+		SetSpriteSize(14,14);
+		glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);	
+		glEnable( GL_TEXTURE_2D );
+	}
+	else {
+		glColor4f(ListaColores[grisUI][0],ListaColores[grisUI][1],ListaColores[grisUI][2],ListaColores[grisUI][3]);
+	}
+}
+
+void CBlenderLite::UiMoveTo(GLshort x, GLshort y){
+	glTranslatef( x, -y, 0);
+}
+
+void CBlenderLite::SetUvBordes(GLshort origenX, GLshort origenY, GLshort ancho, GLshort alto, GLshort top, GLshort right, GLshort bottom, GLshort left){
+	//Filas en X
+	SpriteUV[0]  = SpriteUV[6]  = SpriteUV[16] = SpriteUV[24] = (GLbyte)(-128+origenX);
+	SpriteUV[2]  = SpriteUV[4]  = SpriteUV[18] = SpriteUV[26] = (GLbyte)(-128+origenX+left);
+	SpriteUV[8]  = SpriteUV[10] = SpriteUV[20] = SpriteUV[28] = (GLbyte)(-128+origenX+ancho-right);	
+	SpriteUV[12] = SpriteUV[14] = SpriteUV[22] = SpriteUV[30] = (GLbyte)(-128+origenX+ancho);
+	//fila en Y
+	SpriteUV[1]  = SpriteUV[3]  = SpriteUV[9]  = SpriteUV[13] =(GLbyte)(-128+origenY);
+	SpriteUV[7]  = SpriteUV[5]  = SpriteUV[11] = SpriteUV[15] =(GLbyte)(-128+origenY+top);
+	SpriteUV[17] = SpriteUV[19] = SpriteUV[21] = SpriteUV[23] =(GLbyte)(-128+origenY+alto-bottom);
+	SpriteUV[25] = SpriteUV[27] = SpriteUV[29] = SpriteUV[31] =(GLbyte)(-128+origenY+alto);
+}
+
+void CBlenderLite::DibujarRectanguloBordes(GLshort ancho, GLshort alto, GLshort top, GLshort right, GLshort bottom, GLshort left ){
+	//cambia el tamaño
+	//Posicion en X
+	SpriteVertices[3]  = SpriteVertices[6]  = SpriteVertices[27] = SpriteVertices[39] = left+1;
+	SpriteVertices[12] = SpriteVertices[15] = SpriteVertices[30] = SpriteVertices[42] = ancho-right+1;
+	SpriteVertices[18] = SpriteVertices[21] = SpriteVertices[33] = SpriteVertices[45] = ancho+1;	
+	//Posicion en Y
+	SpriteVertices[10] = SpriteVertices[7]  = SpriteVertices[16] = SpriteVertices[22] = -(top+1);
+	SpriteVertices[25] = SpriteVertices[28] = SpriteVertices[31] = SpriteVertices[34] = -(alto-bottom+1);
+	SpriteVertices[37] = SpriteVertices[40] = SpriteVertices[43] = SpriteVertices[46] = -(alto+1);
+
+	glDrawElements( GL_TRIANGLES, 18*3, GL_UNSIGNED_SHORT, SpriteFaces );
 }
 
 void CBlenderLite::SetMouse(){
@@ -1237,24 +1331,29 @@ void CBlenderLite::SetEscala(){
 void CBlenderLite::SetPosicion(){
 	//si no hay objetos
 	if (Objects.Count() < 1){return;}
-	else if (estado == navegacion){
+
+	if (estado == navegacion){
 		guardarEstado(objSelect);
 		estado = translacion;
+		if (axisSelect > 2){axisSelect = X;}
 		colorBordeSelect = 0;
 	}
 	else if (estado == edicion){
-		if (tipoSelect == vertexSelect){
-			estado = translacionVertex;
-			guardarEstado(objSelect);	
+		switch (tipoSelect) {
+			case vertexSelect:
+				estado = translacionVertex;
+				break;
+			case edgeSelect:
+				estado = translacionEdge;
+				break;
+			case faceSelect:
+				estado = translacionFace;
+				break;
+			default:
+				// Manejar cualquier otro caso aquí si es necesario
+				break;
 		}
-		else if (tipoSelect == edgeSelect){
-			estado = translacionEdge;
-			guardarEstado(objSelect);				
-		}
-		else if (tipoSelect == faceSelect){
-			estado = translacionFace;
-			guardarEstado(objSelect);				
-		}
+		guardarEstado(objSelect);
 	}	
 	else if (axisSelect+1 > 2){axisSelect = X;}
 	else {axisSelect++;}
@@ -1269,22 +1368,26 @@ void CBlenderLite::SetEje(int eje){
 };
 
 void CBlenderLite::Cancelar(){
-	if (estado != navegacion && estado != edicion){
+	if (estado == translacionVertex){
 		ReestablecerEstado(objSelect);
-		colorBordeSelect = 1;
-	}
-	else if (estado == translacionVertex){
 		estado = edicion;		
 	}
 	else if (estado == translacion || estado == rotacion || estado == escala){
+		ReestablecerEstado(objSelect);
 		estado = navegacion;	
 	}
     redibujar = true;
 };
 
-void CBlenderLite::Aceptar(){
-	if (estado == navegacion && Objects[objSelect].type == mesh){
-		estado = edicion;	
+void CBlenderLite::Aceptar(){	
+	//si no hay objetos
+	if (Objects.Count() < 1){return;}	
+
+	Object& obj = Objects[objSelect];	
+
+	if ( estado == navegacion && obj.type == mesh ){
+		estado = edicion;
+		EditSelect = 0;
 		colorBordeSelect = 1;	
 	}
 	else if (estado == edicion){
@@ -1316,43 +1419,49 @@ void CBlenderLite::Tab(){
 
 
 void CBlenderLite::ReestablecerEstado(int indice){
-	/*if (estado == translacionVertex){
-		 for(int g=0; g < Objects[objSelect].vertexGroupIndiceSize[EditSelect]; g++){
-			Objects[objSelect].vertex[Objects[objSelect].vertexGroupIndice[EditSelect][g]*3] = estadoVertex[0];
-			Objects[objSelect].vertex[Objects[objSelect].vertexGroupIndice[EditSelect][g]*3+2] = estadoVertex[1];	
-			Objects[objSelect].vertex[Objects[objSelect].vertexGroupIndice[EditSelect][g]*3+1] = estadoVertex[2];	
+	Object& obj = Objects[indice];
+	Mesh& pMesh = Meshes[obj.Id];
+
+	if (estado == translacionVertex){
+		 for(int g=0; g < pMesh.vertexGroupIndiceSize[EditSelect]; g++){
+			pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][g]*3] = estadoVertex[0];
+			pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][g]*3+2] = estadoVertex[1];	
+			pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][g]*3+1] = estadoVertex[2];	
 		}
 	}
-	else {*/
-		Objects[indice].posX = estadoObj.posX;
-		Objects[indice].posY = estadoObj.posY;
-		Objects[indice].posZ = estadoObj.posZ;
-		Objects[indice].rotX = estadoObj.rotX;
-		Objects[indice].rotY = estadoObj.rotY;
-		Objects[indice].rotZ = estadoObj.rotZ;
-		Objects[indice].scaleX = estadoObj.scaleX;
-		Objects[indice].scaleY = estadoObj.scaleY;
-		Objects[indice].scaleZ = estadoObj.scaleZ;		
-	//}
+	else {
+		obj.posX = estadoObj.posX;
+		obj.posY = estadoObj.posY;
+		obj.posZ = estadoObj.posZ;
+		obj.rotX = estadoObj.rotX;
+		obj.rotY = estadoObj.rotY;
+		obj.rotZ = estadoObj.rotZ;
+		obj.scaleX = estadoObj.scaleX;
+		obj.scaleY = estadoObj.scaleY;
+		obj.scaleZ = estadoObj.scaleZ;		
+	}
 };
 
-void CBlenderLite::guardarEstado(int indice){
-	/*if (estado == translacionVertex){
-		estadoVertex[0] = Objects[objSelect].vertex[Objects[indice].vertexGroupIndice[EditSelect][0]*3];
-		estadoVertex[1] = Objects[objSelect].vertex[Objects[indice].vertexGroupIndice[EditSelect][0]*3+2];	
-		estadoVertex[2] = Objects[objSelect].vertex[Objects[indice].vertexGroupIndice[EditSelect][0]*3+1];	
+void CBlenderLite::guardarEstado(int indice){	
+	Object& obj = Objects[indice];
+
+	if (estado == translacionVertex){
+		Mesh& pMesh = Meshes[obj.Id];
+		estadoVertex[0] = pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][0]*3];
+		estadoVertex[1] = pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][0]*3+2];	
+		estadoVertex[2] = pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][0]*3+1];	
 	}
-	else {*/
-		estadoObj.posX = Objects[indice].posX;
-		estadoObj.posY = Objects[indice].posY;
-		estadoObj.posZ = Objects[indice].posZ;
-		estadoObj.rotX = Objects[indice].rotX;
-		estadoObj.rotY = Objects[indice].rotY;
-		estadoObj.rotZ = Objects[indice].rotZ;
-		estadoObj.scaleX = Objects[indice].scaleX;
-		estadoObj.scaleY = Objects[indice].scaleY;
-		estadoObj.scaleZ = Objects[indice].scaleZ;		
-	//}
+	else {
+		estadoObj.posX = obj.posX;
+		estadoObj.posY = obj.posY;
+		estadoObj.posZ = obj.posZ;
+		estadoObj.rotX = obj.rotX;
+		estadoObj.rotY = obj.rotY;
+		estadoObj.rotZ = obj.rotZ;
+		estadoObj.scaleX = obj.scaleX;
+		estadoObj.scaleY = obj.scaleY;
+		estadoObj.scaleZ = obj.scaleZ;		
+	}
 };
 
 //cambie el shader
@@ -1523,8 +1632,10 @@ void CBlenderLite::Borrar(){
 	else if (estado == navegacion){
 		if (Objects.Count() < 1){return;}
 		//pregunta de confirmacion
+		HBufC* noteBuf = HBufC::NewLC(100);
 		_LIT(KStaticErrorMessage, "Delete Object?");
-		if (!DialogAlert(KStaticErrorMessage)){return;}
+		noteBuf->Des().Format(KStaticErrorMessage);
+		if (!DialogAlert(noteBuf)){return;}
 		Cancelar();
 
 		//libera la memoria de los punteros primero	
@@ -1533,28 +1644,44 @@ void CBlenderLite::Borrar(){
 
 		// Liberar memoria de los punteros del objeto seleccionado
 		if (obj.type == mesh){
-			Mesh& pMesh = Meshes[obj.Id];
-			//primero se borran los objetos a los que apunta el mesh
-			delete[] pMesh.vertex;
-			delete[] pMesh.normals;
-			delete[] pMesh.uv;
-			delete[] pMesh.faces;
-			delete[] pMesh.vertexGroup;
-			delete[] pMesh.vertexGroupIndiceSize;
-			//for(int f=0; f < pMesh.vertexGroupSize; f++){
-			//	delete[] pMesh.vertexGroupIndice[f];
-			//}
-			//delete[] vertexGroupIndice;
+			TInt links = 0;
+			TInt id = obj.Id;
+			
+			for(int o=0; o < Objects.Count(); o++){
+				if (Objects[o].type == mesh && Objects[o].Id == id){links++;};				
+			}
 
-			//delete[]GLushort** vertexGroupIndice;
-			//ahora se borra el mesh
-			Meshes.Remove(obj.Id);
+			//si solo hay un objeto linkeado. borra la malla para ahorrar memoria			
+			/*HBufC* noteBuf = HBufC::NewLC(100);
+			_LIT(KFormatString, "hay %d objetos linkeados a la malla 3d (%d)");
+			noteBuf->Des().Format(KFormatString, links, Meshes.Count());
+			DialogAlert(noteBuf);*/
+			if (links < 2){	
+				for(int o=0; o < Objects.Count(); o++){
+					if (Objects[o].type == mesh && Objects[o].Id > id){
+						Objects[o].Id--;
+					};				
+				}
+				Mesh& pMesh = Meshes[id];
+				//primero se borran los objetos a los que apunta el mesh
+				delete[] pMesh.vertex;
+				delete[] pMesh.normals;
+				delete[] pMesh.uv;
+				delete[] pMesh.faces;
+				delete[] pMesh.vertexGroup;
+				delete[] pMesh.vertexGroupIndiceSize;
+				for(int f=0; f < pMesh.vertexGroupSize; f++){
+					delete[] pMesh.vertexGroupIndice[f];
+				}
+				delete[] pMesh.vertexGroupIndice;
+				//ahora se borra el mesh
+				Meshes.Remove(obj.Id);
+			}
 		}
 
 		Objects.Remove(objSelect);
-		if (Objects.Count()-1 < objSelect){
-			objSelect = Objects.Count()-1;		
-		}
+		objSelect = Objects.Count()-1;		
+		colorBordeSelect = 1;	
 	}
 	else if (estado == edicion){
 		/*if (Objects[objSelect].vertexGroupSize < 1){return;}
@@ -1606,7 +1733,7 @@ void CBlenderLite::CursorToSelect(){
 }
 
 void CBlenderLite::AddObject( TInt tipo ){
-	Cancelar();
+	//Cancelar();
 	Object obj;
 	obj.type = tipo;
 	obj.visible = true;
@@ -1615,14 +1742,14 @@ void CBlenderLite::AddObject( TInt tipo ){
 	obj.posZ = Cursor3DposZ;
 	obj.rotX = obj.rotY = obj.rotZ = 0;
 	obj.scaleX = obj.scaleY = obj.scaleZ = 45000;
-    
+	obj.Id = -0;
 	Objects.Append(obj);
 	objSelect = Objects.Count()-1;
     redibujar = true;
 }
 
 void CBlenderLite::AddMesh( int modelo ){
-	Cancelar();
+	//Cancelar();
 	//creamos la mesh primero
 	Object obj;	
 	obj.type = mesh;
@@ -1632,6 +1759,7 @@ void CBlenderLite::AddMesh( int modelo ){
 	obj.posZ = Cursor3DposZ;
 	obj.rotX = obj.rotY = obj.rotZ = 0;
 	obj.scaleX = obj.scaleY = obj.scaleZ = 45000;
+	obj.Id = 0;
 	
 	Mesh tempMesh;
 	if (modelo == cubo){ 
@@ -1678,67 +1806,16 @@ void CBlenderLite::AddMesh( int modelo ){
 			tempMesh.uv[a] = MonkeyUV[a];			
 		}
 	}
+	else {
+		return;
+	}
 	Meshes.Append(tempMesh);	
 
 	//creamos el objeto y le asignamos la mesh
-	
-    /*
-    else if (modelo == vertice){
-    	obj.vertexSize = 1 * 3;
-    	obj.normalsSize = 1 * 3;
-		obj.facesSize = 0 * 3;
-		obj.edgesSize = 0 * 6;
-		obj.uvSize = 1 * 2;
-		obj.textureID = 1;
-		obj.scaleX = 65000;
-		obj.scaleY = 65000;
-		obj.scaleZ = 65000;		
-
-		obj.vertex = new GLshort[1 * 3];
-		obj.normals = new GLbyte[1 * 3];
-		obj.faces = new GLushort[0 * 3];
-		obj.edges = new GLushort[0 * 6];
-		obj.uv = new GLbyte[1 * 2];
-		obj.vertex[0] = obj.vertex[1] = obj.vertex[2] = 0;
-		obj.normals[0] = obj.normals[1] = 0;
-		obj.normals[2] = 1;
-		obj.uv[0] = obj.uv[0] = 0;
-    }
-    else if (modelo == monkey){  
-    	obj.vertexSize = MonkeyVertexSize;
-    	obj.normalsSize = MonkeyNormalSize;
-		obj.facesSize = MonkeyFaceSize;
-		obj.edgesSize = MonkeyFaceSize*2;
-		obj.uvSize = MonkeyUVSize;  	
-		obj.vertex = new GLshort[MonkeyVertexSize];
-		obj.textureID = 1;
-		obj.scaleX = 45000;
-		obj.scaleY = 45000;
-		obj.scaleZ = 45000;	
-		obj.rotZ = 180;
-		for(int a=0; a < MonkeyVertexSize; a++){
-			obj.vertex[a] = MonkeyVertex[a];	
-			//obj.vertex.Append(MonkeyVertex[a]);		
-		}
-		obj.normals = new GLbyte[MonkeyNormalSize];
-		for(int a=0; a < MonkeyNormalSize; a++){
-			obj.normals[a] = MonkeyNormal[a];			
-		}
-		obj.faces = new GLushort[MonkeyFaceSize];
-		for(int a=0; a < MonkeyFaceSize; a++){
-			obj.faces[a] = MonkeyFace[a];			
-		}
-		obj.edges = new GLushort[obj.edgesSize];
-		obj.uv = new GLbyte[MonkeyUVSize];
-		for(int a=0; a < MonkeyUVSize; a++){
-			obj.uv[a] = MonkeyUV[a];			
-		}
-	}	   
-	else {return;} */
     
 	//Objects[objSelect].RecalcularBordes();
 	
-	obj.Id = Meshes.Count()-1;	
+	obj.Id = Meshes.Count()-1;
 	Meshes[obj.Id].AgruparVertices();
 	Objects.Append(obj);	
 	objSelect = Objects.Count()-1;
@@ -1990,13 +2067,38 @@ void CBlenderLite::DuplicatedObject(){
 	if (Objects.Count() < 1){return;}	
 	Object& obj = Objects[objSelect];
 	//si no es un mesh
-	if (obj.type != mesh){return;}	
-	Mesh& tempMesh = Meshes[obj.Id];
-	Meshes.Append(tempMesh);
-	
-	Objects.Append(obj);	
-	objSelect = Objects.Count()-1;
-	Objects[objSelect].Id = Meshes.Count()-1;
+	if (obj.type == mesh){
+		Mesh& tempMesh = Meshes[obj.Id];
+		Meshes.Append(tempMesh);
+		//ahora apunta a la nueva malla
+		Mesh& tempMesh2 = Meshes[Meshes.Count()-1];
+
+		//los punteros apuntan a la misma memoria que el mesh original. hay que cambiarlo
+		tempMesh2.vertex = new GLshort[tempMesh2.vertexSize*3];
+		tempMesh2.normals = new GLbyte[tempMesh2.vertexSize*3];
+		tempMesh2.uv = new GLbyte[tempMesh2.vertexSize*2];
+		tempMesh2.faces = new GLushort[tempMesh2.facesSize*3];
+		
+		for(TInt a=0; a < tempMesh2.vertexSize*3; a++){
+			tempMesh2.vertex[a] = tempMesh.vertex[a];
+			tempMesh2.normals[a] = tempMesh.normals[a];
+		}
+		for(TInt a=0; a < tempMesh2.vertexSize*2; a++){
+			tempMesh2.uv[a] = tempMesh.uv[a];
+		}
+		for(TInt a=0; a < tempMesh2.facesSize*3; a++){
+			tempMesh2.faces[a] = tempMesh.faces[a];
+		}
+		tempMesh2.AgruparVertices();	
+		Objects.Append(obj);	
+		objSelect = Objects.Count()-1;
+		Objects[objSelect].Id = Meshes.Count()-1;
+	}
+	else {
+		Objects.Append(obj);	
+		objSelect = Objects.Count()-1;
+	}
+
     redibujar = true;
 }
 
@@ -2004,8 +2106,6 @@ void CBlenderLite::DuplicatedLinked(){
 	//si no hay objetos
 	if (Objects.Count() < 1){return;}	
 	Object& obj = Objects[objSelect];
-	//si no es un mesh
-	if (obj.type != mesh){return;}	
 	Objects.Append(obj);	
 	objSelect = Objects.Count()-1;
     redibujar = true;
@@ -2840,8 +2940,8 @@ void CBlenderLite::ImportOBJ(){
 		delete[] ListNormals;
 		delete[] ListUVs;
 		
-		Objects.Append(obj);
-		objSelect = Objects.Count()-1;
+		//Objects.Append(obj);
+		//objSelect = Objects.Count()-1;
 		//Objects[objSelect].AgruparVertices();
 		//Objects[objSelect].RecalcularBordes();
 

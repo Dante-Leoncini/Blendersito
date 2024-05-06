@@ -115,39 +115,39 @@ static const GLshort CuboVertices[CuboVertexSize] = {
 };
 
 static const GLbyte CuboUV[CuboUvSize] = {
-	/* top, whole texture nasa_hubble.h */
+	//derecha ok
 	-128,-128,
 	127,-128,
 	127,127,
 	-128,127,
 
-	/* front, spiral with tail */
-	-128,127,
-	127,127,
+	//atras ok
+	-128,-128,
+	127,-128,
 	127,127,
 	-128,127,
 
-	/* right, red nebulae */
+	//top ok
 	127,127,
-	127,127,
-	127,127,
-	127,127,
-
-	/* left, plasma cloud */
 	-128,127,
+	-128,-128,
+	127,-128,
+
+	//abajo ok
 	127,127,
+	-128,127,
+	-128,-128,
+	127,-128,
+
+	//frente
+	127,127,
+	-128,127,
+	-128,-128,
+	127,-128,
+
+	//izquierda
 	127,-128,
 	-128,-128,
-
-	/* back, 2 spirals */
+	-128,127,
 	127,127,
-	127,127,
-	127,-128,
-	127,-128,
-
-	/* bottom, whole texture ogles.jpg */
-	127,127,
-	127,-128,
-	-128,-128,
-	-128,127
 };
