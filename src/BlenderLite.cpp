@@ -277,20 +277,12 @@ void CBlenderLite::ConstructL( void ){
 	showOrigins = true;
 
 	//tiene que haber un material por defecto siempre
-	Material mat;	
-	mat.specular[0] = mat.specular[1] = mat.specular[2] = mat.specular[3] = 0.3;
-	mat.diffuse[0] = mat.diffuse[1] = mat.diffuse[2] = mat.diffuse[3] = 1.0;
-	mat.emission[0] = mat.emission[1] = mat.emission[2] = mat.emission[3] = 0.0;
-	mat.textura = false;
-	mat.transparent = false;
-	mat.interpolacion = lineal;
-	mat.textureID = 1;
-	Materials.Append(mat);
+	NewMaterial();
 
 	//material para pruebas	
-	mat.textureID = 2;
-	mat.textura = true;
-	Materials.Append(mat);
+	NewMaterial();
+	Materials[1].textureID = 2;
+	Materials[1].textura = true;
 
 	//debuger
 	//console = Console::NewL(_L("Consola"),TSize(KConsFullScreen, KConsFullScreen));
@@ -308,8 +300,20 @@ void CBlenderLite::ConstructL( void ){
 	Objects[1].posZ = 4500;
 	//AddMesh(monkey);
 	AddMesh(cubo);
+	Meshes[0].material = 1;
 }
 
+void CBlenderLite::NewMaterial(){
+	Material mat;	
+	mat.specular[0] = mat.specular[1] = mat.specular[2] = mat.specular[3] = 0.3;
+	mat.diffuse[0] = mat.diffuse[1] = mat.diffuse[2] = mat.diffuse[3] = 1.0;
+	mat.emission[0] = mat.emission[1] = mat.emission[2] = mat.emission[3] = 0.0;
+	mat.textura = false;
+	mat.transparent = false;
+	mat.interpolacion = lineal;
+	mat.textureID = 0;
+	Materials.Append(mat);
+}
 
 // -----------------------------------------------------------------------------
 // CBlenderLite::NewL
@@ -1766,7 +1770,7 @@ void CBlenderLite::AddMesh( int modelo ){
     	tempMesh.vertexSize = 24;
 		tempMesh.facesSize = 12;
 		//tempMesh.materialsSize = 1;
-		tempMesh.material = 1;
+		tempMesh.material = 0;
 
 		tempMesh.vertex = new GLshort[tempMesh.vertexSize*3];
 		tempMesh.normals = new GLbyte[tempMesh.vertexSize*3];
@@ -1788,7 +1792,7 @@ void CBlenderLite::AddMesh( int modelo ){
 	else if (modelo == monkey){  
     	tempMesh.vertexSize = MonkeyVertexSize;
 		tempMesh.facesSize = MonkeyFaceSize;	
-		tempMesh.material = 1;
+		tempMesh.material = 0;
 		obj.rotZ = 180;
 		tempMesh.vertex = new GLshort[MonkeyVertexSize*3];
 		tempMesh.normals = new GLbyte[MonkeyVertexSize*3];
@@ -2560,7 +2564,7 @@ void CBlenderLite::LoadFile(const TFileName& aFileName,
 }
 
 void CBlenderLite::ImportOBJ(){    
-    _LIT(KTitle, "Importar Modelo OBJ");
+    _LIT(KTitle, "Import Wavefront (.obj)");
     TFileName file(KNullDesC);
     if (AknCommonDialogs::RunSelectDlgLD(file, R_BLENDERLITE_SELECT_DIALOG, KTitle)){		
     	RFs fsSession;	
@@ -2585,34 +2589,120 @@ void CBlenderLite::ImportOBJ(){
 		obj.posY = Cursor3DposY;
 		obj.posZ = Cursor3DposZ;
 		obj.rotX = obj.rotY = obj.rotZ = 0;
-		obj.rotX = obj.rotY = obj.rotZ = 0;
-
-		Mesh tempMesh;
-
-		TInt vertices = 0;
-		TInt caras = 0;
-		TInt normales = 0;
-		TInt textura = 0;			
-		TInt pos = 0;			
-
-		TBool continuarLeyendo = ETrue; // Variable para controlar la lectura del archivo
-		TBuf8<512> lineBuf;
-		TBuf8<512> tempBuf; // Búfer temporal para almacenar parte de una línea si es necesario
+		obj.rotX = obj.rotY = obj.rotZ = 0;	
+		obj.scaleX = 65000;
+		obj.scaleY = 65000;
+		obj.scaleZ = 65000;
+		obj.Id = 0;		
 		
 		//los obj tienen una lista de normales. a veces las normales se pueden repetir y esa es la logica
 		//tambien se puede repetir coordenadas de texturas asi que en vez de tener los uv y normals vertice por vertices.. tienen un listado
-		GLshort* ListVertices = new GLshort[0];
+
+		RArray<GLshort> ListVertices;
+		//GLshort* ListVertices = new GLshort[0];
 		GLbyte* ListNormals = new GLbyte[0];
 		GLbyte* ListUVs = new GLbyte[0];
 		TInt* ListCaras = new TInt[0];
+		//TInt vertices = 0;
+		TInt caras = 0;
+		TInt normales = 0;
+		TInt textura = 0;
+		TInt materiales = 0;
+
+		TBool continuarLeyendo = ETrue; // Variable para controlar la lectura del archivo
+		TBuf8<2048> buffer;
+		TInt pos = 0;
+		TInt lineas = 0;
+		TInt64 startPos = 0; // Variable para mantener la posición de lectura en el archivo
+		while (continuarLeyendo) {
+			// Leer una línea del archivo desde la posición actual
+			err = rFile.Read(startPos, buffer, buffer.MaxLength());
+			if (err != KErrNone) {
+				// Manejar error al leer
+				_LIT(KFormatString, "Error al leer linea");
+				HBufC* noteBuf = HBufC::NewLC(100);
+				noteBuf->Des().Format(KFormatString);
+				MensajeError(noteBuf);
+				continuarLeyendo = EFalse; // Salir del bucle
+				break;
+			}
+			// Procesar la línea hasta que no haya más caracteres en buffer
+			while ((pos = buffer.Locate('\n')) != KErrNotFound || (pos = buffer.Locate('\r')) != KErrNotFound) {
+				TPtrC8 line = buffer.Left(pos);
+			
+				// Contador para almacenar la cantidad de "strings" separados por espacios
+				TInt contador = 0;
+				if (line.Length() > 0) {
+					if (line.Left(2) == _L8("v ")) {
+						contador = 0;		
+						ListVertices.ReserveL(ListVertices.Count() +3); // Reservar espacio para los elementos
+
+						TLex8 lex(line.Mid(2));  // Inicializa TLex con la subcadena a partir del tercer carácter
+						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
+						while (!lex.Eos() && contador < 8) {		
+							TPtrC8 currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador					
+							TLex8 testLex(currentString);// Crear un nuevo objeto TLex para la prueba
+							
+							// Convertir el string en un número TInt
+							TReal number = 0.0;
+							TInt err = testLex.Val(number, '.');
+							if (err == KErrNone && contador < 3) {
+								number = number*1000;								
+								GLshort glNumber = static_cast<GLshort>(number); // Conversión a GLbyte
+								//temVertices[vertices*3+contador] = glNumber;
+								ListVertices.Append(glNumber);
+							}
+							else {
+								ListVertices.Append(0);
+								//temVertices[vertices*3+contador] = 0;
+							}
+
+							// Avanzar al siguiente "string" que no sea espacio en blanco
+							lex.SkipSpace();
+
+							// Incrementar el contador para llevar la cuenta de los strings procesados
+							contador++;
+						}
+						//delete[] ListVertices;
+						//ListVertices = temVertices;
+						//vertices++;
+					}
+					else if (line.Left(3) == _L8("vn ")) {
+						normales++;
+						}
+					else if (line.Left(3) == _L8("vt ")) {
+						textura++;
+						}
+					else if (line.Left(2) == _L8("f ")) {
+						caras++;
+						}
+					else if (line.Left(7) == _L8("usemtl ")) {
+						materiales++;
+						}
+				}
+
+				// Actualizar la posición de inicio para la próxima lectura
+				startPos += pos + 1;
+
+				// Eliminar la parte de la línea ya procesada y el carácter de salto de línea
+				buffer.Delete(0, pos + 1);
+				buffer.TrimLeft(); // Eliminar espacios en blanco iniciales
+				lineas++;
+			}
+			continuarLeyendo = (buffer.Length() > 0);
+		}
 
 		// Leer línea por línea
-		//while (rFile.Read(lineBuf) == KErrNone) {
-		while (continuarLeyendo) {
+		/*while (continuarLeyendo) {
 			// Leer una línea del archivo
 			err = rFile.Read(lineBuf);
 			if (err != KErrNone) {
+				_LIT(KFormatString, "Error al leer linea");
+				HBufC* noteBuf = HBufC::NewLC(100);
+				noteBuf->Des().Format(KFormatString);
+				MensajeError(noteBuf); 
 				// Error al leer o final del archivo, salir del bucle
+				continuarLeyendo = false;
 				break;
 			}
 
@@ -2622,23 +2712,20 @@ void CBlenderLite::ImportOBJ(){
 
 			// Procesar la línea hasta que no haya más saltos de línea o se llegue al final del archivo
 			while ((pos = lineBuf.Locate('\n')) != KErrNotFound || (pos = lineBuf.Locate('\r')) != KErrNotFound) {
-				//lineas++;
 				// Obtener la línea hasta el salto de línea
 				TPtrC8 line = lineBuf.Left(pos);
 
 				// Convertir a descriptor de 16 bits si es necesario
-				HBufC* line16 = HBufC::NewLC(line.Length());
+				HBufC* line16 = HBufC::NewLC(line.Length()+100);
 				line16->Des().Copy(line);
 
 				//es para revisar linea por linea
 				//DialogAlert(line16);
 
-				// Revisar si empieza con "v " vertices, caras y normales
-
 				// Contador para almacenar la cantidad de "strings" separados por espacios
 				TInt contador = 0;
 				if (line16->Left(2) == _L("v ")) {
-					contador = 0;						
+					/*contador = 0;						
 					//copia los vertices temporalmente
 					GLshort* temVertices = new GLshort[vertices*3];
 					for(TInt a=0; a < vertices*3; a++){
@@ -2658,11 +2745,6 @@ void CBlenderLite::ImportOBJ(){
 							number = number*1000;								
 							GLshort glNumber = static_cast<GLshort>(number); // Conversión a GLbyte
 							temVertices[vertices*3+contador] = glNumber;
-
-							/*HBufC* noteBuf = HBufC::NewLC(100);
-							_LIT(KFormatString, "vertice: %d-%d Valor: %d");
-							noteBuf->Des().Format(KFormatString, vertices+1, contador+1, temVertices[vertices*3+contador]);
-							DialogAlert(noteBuf);*/
 						}
 						else {
 							temVertices[vertices*3+contador] = 0;
@@ -2675,12 +2757,12 @@ void CBlenderLite::ImportOBJ(){
 						contador++;
 					}
 					delete[] ListVertices;
-					ListVertices = temVertices;
-					vertices++;
+					ListVertices = temVertices;*/
+					/*vertices++;
 				}
 				//orientacion de las normales
 				else if (line16->Left(3) == _L("vn ")){
-					contador = 0;
+					/*contador = 0;
 					//copia los vertices temporalmente
 					GLbyte* temNormales = new GLbyte[normales*3];
 					for(TInt a=0; a < normales*3; a++){
@@ -2710,12 +2792,12 @@ void CBlenderLite::ImportOBJ(){
 						contador++;
 					}						
 					delete[] ListNormals;
-					ListNormals = temNormales;
-					normales++;
+					ListNormals = temNormales;*/
+					/*normales++;
 				}
 				//coordenadas UV para texturas
 				else if (line16->Left(3) == _L("vt ")){						
-					contador = 0;
+					/*contador = 0;
 					//copia los vertices temporalmente
 					GLbyte* temUVs = new GLbyte[textura*2];
 					for(int a=0; a < textura*2; a++){
@@ -2739,34 +2821,20 @@ void CBlenderLite::ImportOBJ(){
 							else if (number < -128.0){number = -128.0;}
 							GLbyte glNumber = static_cast<GLbyte>(number); // Conversión a GLbyte
 							temUVs[textura*2+contador] = glNumber;
-
-							/*HBufC* noteBuf = HBufC::NewLC(100);
-							_LIT(KFormatString, "tex: %d c: %d st: %S TReal: %f GLbyte %d");
-							noteBuf->Des().Format(KFormatString, textura+1, contador, &currentString, number, temUVs[textura*2+contador]);
-							DialogAlert(noteBuf);*/
 						}
 						else {
 							temUVs[textura*2+contador] = 0;
 						}
 						contador++;
 						lex.SkipSpace();
-					}
-					
+					}					
 					delete[] ListUVs;
-					ListUVs = temUVs;
-
-					/*TBuf<128> unicodeLine;  // Buffer para almacenar la versión Unicode de 'line'
-					unicodeLine.Copy(line);
-					HBufC* noteBuf = HBufC::NewLC(100);
-					_LIT(KFormatString, "tex: %d st: %S UV: %d, %d");
-					noteBuf->Des().Format(KFormatString, textura+1, &unicodeLine, ListUVs[textura*2], ListUVs[textura*2+1]);
-					DialogAlert(noteBuf);*/
-
-					textura++;
+					ListUVs = temUVs;*/
+					/*textura++;
 				}
 				//las caras
 				else if (line16->Left(2) == _L("f ")){
-					contador = 0;
+					/*contador = 0;
 					TInt conTBarras = 0;
 					//copia los vertices temporalmente
 					TInt* temCaras = new TInt[(caras+1)*9];
@@ -2808,86 +2876,47 @@ void CBlenderLite::ImportOBJ(){
 							}
 
 							// Actualiza la posición inicial para el próximo token
-							startPos += tokenLength + 1; // Suma 1 para omitir la barra diagonal*/
-
-							/*HBufC* noteBuf = HBufC::NewLC(100);
-							_LIT(KFormatString, "f: %d ct: %d st: %S num: %d");
-							noteBuf->Des().Format(KFormatString, contador, conTBarras, &currentString, temCaras[caras*9+contador*3+conTBarras]);
-							DialogAlert(noteBuf);*/
-
+							startPos += tokenLength + 1; // Suma 1 para omitir la barra diagonal
 							conTBarras++;
 						}	
-
-						/*HBufC* noteBuf = HBufC::NewLC(100);
-						_LIT(KFormatString, "f: %d st: %S v: %d n: %d uv: %d");
-						noteBuf->Des().Format(KFormatString, (contador+1), &currentString, temCaras[caras*9+contador*3+0]+1, temCaras[caras*9+contador*3+1]+1, temCaras[caras*9+contador*3+2]+1);
-						DialogAlert(noteBuf);*/					
-
 						lex.SkipSpace();
 						contador++;
 					}
 					
 					delete[] ListCaras;
-					ListCaras = temCaras;
-
-					/*HBufC* noteBuf = HBufC::NewLC(100);
-					_LIT(KFormatString, "face: %d v: %d, %d, %d");
-					noteBuf->Des().Format(KFormatString, caras+1, ListCaras[caras*9]+1, ListCaras[caras*9+3]+1, ListCaras[caras*9+6]+1);
-					DialogAlert(noteBuf);	*/				
-					caras++;
+					ListCaras = temCaras;*/				
+					/*caras++;
 				}
-
 				// Eliminar la parte de la línea ya procesada y el carácter de salto de línea
 				lineBuf.Delete(0, pos + 1);
-
 				// Eliminar también los espacios en blanco iniciales
 				lineBuf.TrimLeft();
 			}	
-
-			/*if (caras > 1){
-				HBufC* noteBuf = HBufC::NewLC(100);
-				_LIT(KFormatString, "v: %d, %d, %d, %d, %d, %d");
-				noteBuf->Des().Format(KFormatString, ListCaras[0]+1, ListCaras[3]+1, ListCaras[6]+1, ListCaras[9]+1, ListCaras[12]+1, ListCaras[15]+1);
-				DialogAlert(noteBuf);
-			}*/				
-
 			// Almacenar el contenido restante de lineBuf en tempBuf para la próxima iteración
 			tempBuf.Copy(lineBuf);
-
 			// Verificar si quedan más caracteres en la línea actual
 			continuarLeyendo = (lineBuf.Length() > 0);   
-		}
-
-		/*HBufC* noteBuf = HBufC::NewLC(100);
-		_LIT(KFormatString, "v: %d, %d, %d, %d, %d, %d");
-		noteBuf->Des().Format(KFormatString, ListCaras[0]+1, ListCaras[3]+1, ListCaras[6]+1, ListCaras[9]+1, ListCaras[12]+1, ListCaras[15]+1);
-		DialogAlert(noteBuf);*/
-
-		/*HBufC* noteBuf = HBufC::NewLC(75); //TInt::Length(obj.vertexGroupSize)
-		_LIT(KFormatString, "Termino de leer");
-		noteBuf->Des().Format(KFormatString);
-		DialogAlert(noteBuf);*/
+		}*/
 
 		// cuantos vertices tiene
-		HBufC* noteBuf = HBufC::NewLC(100); //TInt::Length(obj.vertexGroupSize)
-		_LIT(KFormatString, "Vertices: %d Caras: %d Normales %d UVs %d");
-		noteBuf->Des().Format(KFormatString, vertices, caras, normales, textura);
+		HBufC* noteBuf = HBufC::NewLC(180);
+		_LIT(KFormatString, "lpmm Vertices: %d Caras: %d Normales %d UVs %d, Materiales: %d");
+		noteBuf->Des().Format(KFormatString, ListVertices.Count()/3, caras, normales, textura, materiales);
 		DialogAlert(noteBuf);
-		//Mensaje(noteBuf);
+		
+		dfghdfgh
 
 		// Cerrar el archivo
 		rFile.Close();
 
 		//liberar memoria			
 		CleanupStack::PopAndDestroy(&rFile);
-		CleanupStack::PopAndDestroy(&fsSession);
+		//CleanupStack::PopAndDestroy(&fsSession);
 
+		/*Mesh tempMesh;
 		tempMesh.vertexSize = vertices;
 		tempMesh.facesSize = caras;
 		tempMesh.material = 0;
-		obj.scaleX = 65000;
-		obj.scaleY = 65000;
-		obj.scaleZ = 65000;
 
 		//obj.edges = new GLushort[obj.edgesSize];
 		tempMesh.normals = new GLbyte[tempMesh.vertexSize*3];
@@ -2905,44 +2934,28 @@ void CBlenderLite::ImportOBJ(){
 				for(TInt v=0; v < 3; v++){
 					//a*9 es que ListCaras tiene 9 valores por cara, 3 vertices, 3 normales y 3 UV
 					//f*3 es para ir por las distintas "/" 1/1/1
-					//obj.vertex[ListCaras[a*9+f*3]*3+v] = ListVertices[ListCaras[a*9+f*3]*3+v];
-					/*HBufC* noteBuf = HBufC::NewLC(100);
-					_LIT(KFormatString, "face %d v%d-%d: %d valor: %d");
-					noteBuf->Des().Format(KFormatString, a+1, f+1, v+1, ListCaras[a*9+f*3]+1, ListVertices[ListCaras[a*9+f*3]*3+v]);
-					DialogAlert(noteBuf);*/
+					tempMesh.vertex[ListCaras[a*9+f*3]*3+v] = ListVertices[ListCaras[a*9+f*3]*3+v];
 				}
-				/*HBufC* noteBuf = HBufC::NewLC(100);
-				_LIT(KFormatString, "face %d v%d: %d, Vt: %d %d %d");
-				noteBuf->Des().Format(KFormatString, a+1, f+1, ListCaras[a*9+f*3]+1, ListVertices[ListCaras[a*9+f*3]+0],ListVertices[ListCaras[a*9+f*3]+1],ListVertices[ListCaras[a*9+f*3]+2]);
-				DialogAlert(noteBuf);*/
-
 				for(TInt uv=0; uv < 2; uv++){
 					tempMesh.uv[ListCaras[indice]*2+uv] = ListUVs[ListCaras[indice+1]*2+uv];
 				}
-				/*HBufC* noteBuf = HBufC::NewLC(100);
-				_LIT(KFormatString, "face %d v%d: %d, UV: %d %d");
-				noteBuf->Des().Format(KFormatString, a+1, f+1, ListCaras[a*9+f*3]+1, obj.uv[ListCaras[a*9+f*3]*2], obj.uv[ListCaras[a*9+f*3]*2+1]);
-				DialogAlert(noteBuf);*/
-
 				for(TInt vn=0; vn < 3; vn++){
 					tempMesh.normals[ListCaras[indice]*3+vn] = ListNormals[ListCaras[indice+1]*3+vn];
 				}
-				/*HBufC* noteBuf = HBufC::NewLC(100);
-				_LIT(KFormatString, "face %d v%d: %d, VN: %d %d %d");
-				noteBuf->Des().Format(KFormatString, a+1, f+1, ListCaras[a*9+f*3]+1, obj.uv[ListCaras[a*9+f*3]*3], obj.uv[ListCaras[a*9+f*3]*3+1], obj.uv[ListCaras[a*9+f*3]*3+2]);
-				DialogAlert(noteBuf);*/
 			}			
-	    }	
+	    }*/
 
 		//libero memoria		
-		delete[] ListVertices;	
+		/*delete[] ListVertices;	
 		delete[] ListCaras;
 		delete[] ListNormals;
 		delete[] ListUVs;
 		
-		//Objects.Append(obj);
-		//objSelect = Objects.Count()-1;
-		//Objects[objSelect].AgruparVertices();
+		Meshes.Append(tempMesh);		
+		obj.Id = Meshes.Count()-1;
+		Objects.Append(obj);
+		objSelect = Objects.Count()-1;
+		Meshes[obj.Id].AgruparVertices();*/
 		//Objects[objSelect].RecalcularBordes();
 
 		redibujar = true;

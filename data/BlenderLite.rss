@@ -75,7 +75,12 @@ RESOURCE MENU_PANE r_blenderlite_exit
 RESOURCE MENU_PANE r_blenderlite_menu
 {
     items =
-        { 		
+        { 			
+        	//MENU_ITEM
+            //{
+            //    command = EImportOBJ;
+            //    txt = STRING_r_ImportOBJ;
+            //},  
 			MENU_ITEM
 			{
 				command = EBlenderLiteSeleccionar;
@@ -118,12 +123,7 @@ RESOURCE MENU_PANE r_blenderlite_menu
                 command = EBlenderLiteModificadores;
                 cascade = r_blenderlite_modificadores_menu;
                 txt = STRING_r_blenderlite_Modificadores;
-            },		
-        	MENU_ITEM
-            {
-                command = EImportOBJ;
-                txt = STRING_r_ImportOBJ;
-            },            
+            },	          
         	MENU_ITEM
             {
                 command = EBlenderLiteWidescreen;

@@ -99,6 +99,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void ReestablecerEstado( TInt indice );
         void SetEje( TInt eje );     
         void AddMesh( TInt modelo );
+        void NewMaterial();
         void AddObject( TInt tipo );
         void SetTexture(); //int textureID 
         void SetMaterial();
