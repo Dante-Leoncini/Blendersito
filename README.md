@@ -11,6 +11,9 @@ Novedades 8/5/2023:
 4) ahora los materiales no son parte del objeto. los objetos se pueden linkear a un material como se haria en el blender original,
 5) se esta trabajando en una UI.
 6) se agrego el cursor 3d. actualmente se puede hacer un snap al objeto seleccionado y al crear un objeto se crea donde esta el cursor 3d (planeo agregar mas funcionalidades a futuro)
+7) soporte de vertex color (hace falta desactivar la iluminacion y activarlo en el material)
+   
+![photo Example](https://github.com/Dante-Leoncini/Blendersito/blob/main/capturas/vertexcolor.png?raw=true)
 
 lo malo... se rompio el modo edicion, el agrupado de vertices y bordes en esta version. cuando este completo el importador, voy a retomar el editor de mallas 3d
 
