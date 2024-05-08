@@ -2,6 +2,20 @@
 Una version de Blender creada desde cero para Symbian s60v3 (puede llegar a andar en s60v5 o Symbian belle. pero no esta testeado ni programado para pantallas tactiles)
 En video se ve mas bonito: [Primera Demo en Video](https://youtu.be/dMe-Vit5OT0)
 
+Novedades 8/5/2023:
+1) Ya se puede importar archivos obj!
+![photo Example](https://github.com/Dante-Leoncini/Blendersito/blob/main/capturas/importObj.png?raw=true)
+
+2) tambien se agrego el soporte de luces, camaras y emptys.
+3) Ahora se puede duplicar mallas 3d linkeadas.
+4) ahora los materiales no son parte del objeto. los objetos se pueden linkear a un material como se haria en el blender original,
+5) se esta trabajando en una UI.
+6) se agrego el cursor 3d. actualmente se puede hacer un snap al objeto seleccionado y al crear un objeto se crea donde esta el cursor 3d (planeo agregar mas funcionalidades a futuro)
+
+lo malo... se rompio el modo edicion, el agrupado de vertices y bordes en esta version. cuando este completo el importador, voy a retomar el editor de mallas 3d
+
+![photo Example](https://github.com/Dante-Leoncini/Blendersito/blob/main/capturas/nuevaUI.png?raw=true)
+
 Actualmente permite:
 1) Crear y Eliminar multiples objetos: Suzanne, Cube, Claude y Vertice
 
