@@ -29,6 +29,10 @@ enum TBlenderLiteMenuCommands
     ESetDiffuse,
     ESetInterpolation,
     ESetTransparent, 
+    ESetSmooth,
+    ESetCulling,
+    ESetLighting,
+    ESetVertexColor,
     
     EBlenderLiteEditarMesh,
     EViewportObject,

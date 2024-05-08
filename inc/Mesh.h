@@ -16,6 +16,8 @@ class Material {
 	public:
 		TBool textura;
 		TBool transparent;
+		TBool color;
+		TBool lighting;
 		TInt interpolacion;
 		GLuint textureID;
 		GLfloat diffuse[4];		
@@ -25,8 +27,11 @@ class Material {
 
 class Mesh { 
 	public:
+		TBool smooth;
+		TBool culling;
 		TInt vertexSize;
 		GLshort* vertex;
+		GLubyte* vertexColor;
 		GLbyte* normals;
 		GLbyte* uv;
 		//TInt materialsSize;
@@ -40,6 +45,13 @@ class Mesh {
 		GLushort* vertexGroup;
 		TInt* vertexGroupIndiceSize;
 		GLushort** vertexGroupIndice;
+
+		void Mesh::AgruparVerticesVacio() {
+   			vertexGroupSize = 0;
+			vertexGroup = new GLushort[0];
+			vertexGroupIndiceSize = new TInt[0];
+			vertexGroupIndice = new GLushort*[0];
+		}
 
 		void Mesh::AgruparVertices() {
 			//agrupar vertices

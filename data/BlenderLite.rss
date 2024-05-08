@@ -265,6 +265,10 @@ RESOURCE MENU_PANE r_Material_menu{
             txt = STRING_r_setMaterial;
         },  
 		MENU_ITEM {
+			command = ESetSmooth;
+			txt = STRING_r_setSmooth;
+		},
+		MENU_ITEM {
 			command = ESetDiffuse;
 			txt = STRING_r_setDiffuse;
 		},
@@ -291,6 +295,18 @@ RESOURCE MENU_PANE r_Material_menu{
         MENU_ITEM {
             command = ESetTransparent;
             txt = STRING_r_setTransparent;
+        },  
+        MENU_ITEM {
+            command = ESetCulling;
+            txt = STRING_r_setCulling;
+        },   
+        MENU_ITEM {
+            command = ESetLighting;
+            txt = STRING_r_setLighting;
+        },    
+        MENU_ITEM {
+            command = ESetVertexColor;
+            txt = STRING_r_setVertexColor;
         },  
         MENU_ITEM {
             command = ENewTexture;

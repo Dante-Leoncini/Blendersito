@@ -300,7 +300,6 @@ void CBlenderLite::ConstructL( void ){
 	Objects[1].posZ = 4500;
 	//AddMesh(monkey);
 	AddMesh(cubo);
-	Meshes[0].material = 1;
 }
 
 void CBlenderLite::NewMaterial(){
@@ -309,6 +308,8 @@ void CBlenderLite::NewMaterial(){
 	mat.diffuse[0] = mat.diffuse[1] = mat.diffuse[2] = mat.diffuse[3] = 1.0;
 	mat.emission[0] = mat.emission[1] = mat.emission[2] = mat.emission[3] = 0.0;
 	mat.textura = false;
+	mat.color = false;
+	mat.lighting = true;
 	mat.transparent = false;
 	mat.interpolacion = lineal;
 	mat.textureID = 0;
@@ -513,17 +514,32 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 			glMaterialx( GL_FRONT_AND_BACK, GL_SHININESS,   12 << 16     );
 			glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[negro] );
 	
-			glEnable( GL_LIGHTING );
 			glDisable(GL_POLYGON_OFFSET_FILL);
 			// Set array pointers from mesh.
 			glVertexPointer( 3, GL_SHORT, 0, pMesh.vertex );
+			glColorPointer( 4, GL_UNSIGNED_BYTE, 0, pMesh.vertexColor );
 			glNormalPointer( GL_BYTE, 0, pMesh.normals );
 			//resetea las lienas a 1
 			glLineWidth(1);	
 	
-			glShadeModel( GL_SMOOTH );
-			//if (obj.smooth){glShadeModel( GL_SMOOTH );}
-			//else {glShadeModel( GL_FLAT );}
+			//glShadeModel( GL_SMOOTH );
+			if (pMesh.smooth){glShadeModel( GL_SMOOTH );}
+			else {glShadeModel( GL_FLAT );}
+
+			//si usa culling
+			if (pMesh.culling){glEnable( GL_CULL_FACE );}
+			else {glDisable( GL_CULL_FACE );}	
+
+			//vertex color
+			if (mat.color){
+				glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);
+				glEnableClientState( GL_COLOR_ARRAY );
+			}
+			else {glDisableClientState( GL_COLOR_ARRAY );}	 
+
+			//si tiene iluminacion	
+			if (mat.lighting){glEnable( GL_LIGHTING );}
+			else {glDisable( GL_LIGHTING );}	
 			
 			//modelo con textura
 			if (view == MaterialPreview){
@@ -555,6 +571,7 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 			}
 			//modelo sin textura
 			if (view == Solid){
+			    glDisableClientState( GL_COLOR_ARRAY );	  	
 				glDisable( GL_TEXTURE_2D );
 				glDisable(GL_BLEND);
 				glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  mat.diffuse   ); 
@@ -562,6 +579,7 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 			}
 			//wireframe view
 			else if(objSelect != o){    
+			    glDisableClientState( GL_COLOR_ARRAY );	  
 				glDisable( GL_LIGHTING );
 				glEnable(GL_COLOR_MATERIAL);
 				glColor4f(ListaColores[gris][0],ListaColores[gris][1],ListaColores[gris][2],ListaColores[gris][3]);
@@ -570,6 +588,7 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 			
 			//dibuja el borde seleccionado
 			if(objSelect == o && showOverlays && showOutlineSelect){
+			    glDisableClientState( GL_COLOR_ARRAY );	  
 				glDisable( GL_LIGHTING );
 				glEnable(GL_COLOR_MATERIAL);
 				glDisable( GL_TEXTURE_2D );  
@@ -1669,6 +1688,7 @@ void CBlenderLite::Borrar(){
 				Mesh& pMesh = Meshes[id];
 				//primero se borran los objetos a los que apunta el mesh
 				delete[] pMesh.vertex;
+				delete[] pMesh.vertexColor;
 				delete[] pMesh.normals;
 				delete[] pMesh.uv;
 				delete[] pMesh.faces;
@@ -1770,9 +1790,9 @@ void CBlenderLite::AddMesh( int modelo ){
     	tempMesh.vertexSize = 24;
 		tempMesh.facesSize = 12;
 		//tempMesh.materialsSize = 1;
-		tempMesh.material = 0;
 
 		tempMesh.vertex = new GLshort[tempMesh.vertexSize*3];
+		tempMesh.vertexColor = new GLubyte[tempMesh.vertexSize*4];
 		tempMesh.normals = new GLbyte[tempMesh.vertexSize*3];
 		tempMesh.uv = new GLbyte[tempMesh.vertexSize*2];
 		tempMesh.faces = new GLushort[tempMesh.facesSize*3];
@@ -1781,9 +1801,11 @@ void CBlenderLite::AddMesh( int modelo ){
 			tempMesh.vertex[i] = CuboVertices[i];
 			tempMesh.normals[i] = CuboNormals[i];
 		}
+		for (int i = 0; i < tempMesh.vertexSize*4; i++) {
+			tempMesh.vertexColor[i] = 255;
+		}
 		for (int i = 0; i < tempMesh.vertexSize*2; i++) {
 			tempMesh.uv[i] = CuboUV[i];
-			//tempMesh.uv[i] = CuboNormals[i];
 		}
 		for (int i = 0; i < tempMesh.facesSize*3; i++) {
 			tempMesh.faces[i] = CuboTriangles[i];
@@ -1792,14 +1814,17 @@ void CBlenderLite::AddMesh( int modelo ){
 	else if (modelo == monkey){  
     	tempMesh.vertexSize = MonkeyVertexSize;
 		tempMesh.facesSize = MonkeyFaceSize;	
-		tempMesh.material = 0;
 		obj.rotZ = 180;
 		tempMesh.vertex = new GLshort[MonkeyVertexSize*3];
+		tempMesh.vertexColor = new GLubyte[MonkeyVertexSize*4];
 		tempMesh.normals = new GLbyte[MonkeyVertexSize*3];
 		for(int a=0; a < MonkeyVertexSize*3; a++){
 			tempMesh.vertex[a] = MonkeyVertex[a];	
-			tempMesh.normals[a] = MonkeyNormal[a];			
+			tempMesh.normals[a] = MonkeyNormal[a];	
 		}
+		for(int a=0; a < MonkeyVertexSize*4; a++){
+			tempMesh.vertexColor[a] = 255;
+		}	
 		tempMesh.faces = new GLushort[MonkeyFaceSize*3];
 		for(int a=0; a < MonkeyFaceSize*3; a++){
 			tempMesh.faces[a] = MonkeyFace[a];			
@@ -1813,6 +1838,9 @@ void CBlenderLite::AddMesh( int modelo ){
 	else {
 		return;
 	}
+	tempMesh.smooth = true;
+	tempMesh.culling = true;
+	tempMesh.material = 0;
 	Meshes.Append(tempMesh);	
 
 	//creamos el objeto y le asignamos la mesh
@@ -1965,6 +1993,92 @@ void CBlenderLite::SetTransparencia(){
 		mat.transparent = false;	
 	}
 	//CleanupStack::PopAndDestroy(buf);	
+    redibujar = true;
+}
+
+void CBlenderLite::SetSmooth(){
+	//si no hay objetos
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[objSelect];
+	//si no es un mesh
+	if (obj.type != mesh){return;}	
+	Mesh& pMesh = Meshes[obj.Id];
+
+	Cancelar();
+	//activa o desactiva las Transparencias
+	HBufC* buf = HBufC::NewLC( 22 );
+	buf->Des().Copy(_L("Activar Smooth?"));
+	if (DialogAlert(buf)){	
+		pMesh.smooth = true;
+	}
+	else {
+		pMesh.smooth = false;	
+	}
+    redibujar = true;
+}
+
+void CBlenderLite::SetCulling(){
+	//si no hay objetos
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[objSelect];
+	//si no es un mesh
+	if (obj.type != mesh){return;}	
+	Mesh& pMesh = Meshes[obj.Id];
+
+	Cancelar();
+	//activa o desactiva las Transparencias
+	HBufC* buf = HBufC::NewLC( 22 );
+	buf->Des().Copy(_L("Activar Culling?"));
+	if (DialogAlert(buf)){	
+		pMesh.culling = true;
+	}
+	else {
+		pMesh.culling = false;	
+	}
+    redibujar = true;
+}
+
+void CBlenderLite::SetLighting(){
+	//si no hay objetos
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[objSelect];
+	//si no es un mesh
+	if (obj.type != mesh){return;}	
+	Mesh& pMesh = Meshes[obj.Id];
+	Material& mat = Materials[pMesh.material];
+
+	Cancelar();
+	//activa o desactiva las Transparencias
+	HBufC* buf = HBufC::NewLC( 30 );
+	buf->Des().Copy(_L("Activar Iluminacion?"));
+	if (DialogAlert(buf)){	
+		mat.lighting = true;
+	}
+	else {
+		mat.lighting = false;	
+	}
+    redibujar = true;
+}
+
+void CBlenderLite::SetVertexColor(){
+	//si no hay objetos
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[objSelect];
+	//si no es un mesh
+	if (obj.type != mesh){return;}	
+	Mesh& pMesh = Meshes[obj.Id];
+	Material& mat = Materials[pMesh.material];
+
+	Cancelar();
+	//activa o desactiva las Transparencias
+	HBufC* buf = HBufC::NewLC( 30 );
+	buf->Des().Copy(_L("Activar Vertex Color?"));
+	if (DialogAlert(buf)){	
+		mat.color = true;
+	}
+	else {
+		mat.color = false;	
+	}
     redibujar = true;
 }
 
@@ -2600,20 +2714,26 @@ void CBlenderLite::ImportOBJ(){
 		//tambien se puede repetir coordenadas de texturas asi que en vez de tener los uv y normals vertice por vertices.. tienen un listado
 
 		RArray<GLshort> ListVertices;
+		RArray<GLubyte> ListColors;
 		RArray<GLbyte> ListNormals;
 		RArray<GLbyte> ListUVs;
 		RArray<TInt> ListCaras;
-		TInt materiales = 0;
+		TInt materiales = 0;	
 
 		TBool continuarLeyendo = ETrue; // Variable para controlar la lectura del archivo
 		TBuf8<2048> buffer;
 		TInt pos = 0;
 		TInt lineas = 0;
 		TInt64 startPos = 0; // Variable para mantener la posición de lectura en el archivo
-		while (continuarLeyendo) {
+		TInt fileSize;
+		rFile.Size(fileSize);
+ 
+		//while (continuarLeyendo) {
+		while (startPos < fileSize) {
 			// Leer una línea del archivo desde la posición actual
 			err = rFile.Read(startPos, buffer, buffer.MaxLength());
 			if (err != KErrNone) {
+				//tarde o temprano va a fallar la lectura y va a parar
 				// Manejar error al leer
 				_LIT(KFormatString, "Error al leer linea");
 				HBufC* noteBuf = HBufC::NewLC(100);
@@ -2632,10 +2752,11 @@ void CBlenderLite::ImportOBJ(){
 					if (line.Left(2) == _L8("v ")) {
 						contador = 0;		
 						ListVertices.ReserveL(ListVertices.Count() +3); // Reservar espacio para los elementos
+						ListVertices.ReserveL(ListVertices.Count() +3); // Reservar espacio para los elementos
 
 						TLex8 lex(line.Mid(2));  // Inicializa TLex con la subcadena a partir del tercer carácter
 						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
-						while (!lex.Eos() && contador < 8) {		
+						while (!lex.Eos() && contador < 6) {		
 							TPtrC8 currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador					
 							TLex8 testLex(currentString);// Crear un nuevo objeto TLex para la prueba
 							
@@ -2649,12 +2770,27 @@ void CBlenderLite::ImportOBJ(){
 							}
 							else if (contador < 3){
 								ListVertices.Append(0);
+							}							
+							else if (contador < 6){
+								number = number*255.0;	
+								if (number > 255.0){number = 255.0;}	
+								GLshort glNumber = static_cast<GLubyte>(number); // Conversión a GLbyte
+								ListColors.Append(glNumber);
 							}
 
 							// Avanzar al siguiente "string" que no sea espacio en blanco
 							lex.SkipSpace();
 
 							// Incrementar el contador para llevar la cuenta de los strings procesados
+							contador++;
+						}
+						while (contador < 6) {		
+							if (contador < 3){
+								ListVertices.Append(0);
+							}							
+							else if (contador < 6){
+								ListColors.Append(255);
+							}
 							contador++;
 						}
 					}
@@ -2772,19 +2908,21 @@ void CBlenderLite::ImportOBJ(){
 				buffer.TrimLeft(); // Eliminar espacios en blanco iniciales
 				lineas++;
 			}
-			continuarLeyendo = (buffer.Length() > 0);
+			//continuarLeyendo = (buffer.Length() > 0);
 		}
 
 		Mesh tempMesh;
 		tempMesh.vertexSize = ListVertices.Count()/3;
 		tempMesh.facesSize = ListCaras.Count()/9;
 		tempMesh.material = 0;
+		tempMesh.smooth = true;
+		tempMesh.culling = true;
 		
 		// cuantos vertices tiene
-		HBufC* noteBuf = HBufC::NewLC(180);
-		_LIT(KFormatString, "Vertices: %d Caras: %d Normales %d UVs %d, Materiales: %d");
-		noteBuf->Des().Format(KFormatString, tempMesh.vertexSize, tempMesh.facesSize, ListNormals.Count()/3, ListUVs.Count()/2, materiales);
-		DialogAlert(noteBuf);
+		HBufC* noteBuf3 = HBufC::NewLC(180);
+		_LIT(KFormatString3, "Vertexs: %d Faces: %d Norm: %d UVs: %d, Mat: %d");
+		noteBuf3->Des().Format(KFormatString3, tempMesh.vertexSize, tempMesh.facesSize, ListNormals.Count()/3, ListUVs.Count()/2, materiales);
+		DialogAlert(noteBuf3);
 
 		// Cerrar el archivo
 		rFile.Close();
@@ -2795,18 +2933,26 @@ void CBlenderLite::ImportOBJ(){
 
 		//obj.edges = new GLushort[obj.edgesSize];
 		tempMesh.vertex = new GLshort[tempMesh.vertexSize*3];
+		tempMesh.vertexColor = new GLubyte[tempMesh.vertexSize*4];
 		tempMesh.normals = new GLbyte[tempMesh.vertexSize*3];
 		tempMesh.uv = new GLbyte[tempMesh.vertexSize*2];
 		tempMesh.faces = new GLushort[tempMesh.facesSize*3];
-		
+
 		//valores defecto
 		for(TInt v=0; v < tempMesh.vertexSize*3; v++){
 			tempMesh.vertex[v]  = ListVertices[v];
 			tempMesh.normals[v] = 0;			
+			tempMesh.vertexColor[v] = 255;	
 		}
 		for(TInt v=0; v < tempMesh.vertexSize*2; v++){
-			tempMesh.uv[v] = 0;			
+			tempMesh.uv[v] = 0;		
 		}
+		/*for(TInt v=0; v < ListColors.Count()/3; v++){
+			HBufC* noteBuf = HBufC::NewLC(180);
+			_LIT(KFormatString, "indice: %d, color: %d, %d, %d");
+			noteBuf->Des().Format(KFormatString, v+1, ListColors[v*3],ListColors[v*3+1],ListColors[v*3+2]);
+			DialogAlert(noteBuf);
+		}*/
 		
 		for(TInt a=0; a < tempMesh.facesSize; a++){
 			tempMesh.faces[a*3] = 0;
@@ -2816,15 +2962,12 @@ void CBlenderLite::ImportOBJ(){
 			for(TInt f=0; f < 3; f++){
 				TInt indice = a*9+f*3;
 				tempMesh.faces[a*3+f] = ListCaras[indice];
-				/*HBufC* noteBuf = HBufC::NewLC(180);
-				_LIT(KFormatString, "indice: %d, normal: %d, %d, %d");
-				noteBuf->Des().Format(KFormatString, ListCaras[indice+2], ListNormals[ListCaras[indice+2]*3],ListNormals[ListCaras[indice+2]*3+1],ListNormals[ListCaras[indice+2]*3+2]);
-				DialogAlert(noteBuf);*/
 				for(TInt v=0; v < 3; v++){
 					//a*9 es que ListCaras tiene 9 valores por cara, 3 vertices, 3 normales y 3 UV
 					//f*3 es para ir por las distintas "/" 1/1/1
-					tempMesh.vertex[ListCaras[indice]*3+v]  = ListVertices[ListCaras[indice]*3+v];
+					tempMesh.vertex[ListCaras[indice]*3+v]  = ListVertices[ListCaras[indice]*3+v];	
 					tempMesh.normals[ListCaras[indice]*3+v] = ListNormals[ListCaras[indice+2]*3+v];
+					tempMesh.vertexColor[ListCaras[indice]*4+v] = ListColors[ListCaras[indice]*3+v];
 				}
 				for(TInt uv=0; uv < 2; uv++){
 					tempMesh.uv[ListCaras[indice]*2+uv] = ListUVs[ListCaras[indice+1]*2+uv];
@@ -2834,15 +2977,21 @@ void CBlenderLite::ImportOBJ(){
 
 		//libero memoria		
 		ListVertices.Close();
+		ListColors.Close();
 		ListCaras.Close();
 		ListNormals.Close();
 		ListUVs.Close();	
 		
-		Meshes.Append(tempMesh);		
+		/*Meshes.Append(tempMesh);
+		HBufC* noteBuf = HBufC::NewLC(180);
+		_LIT(KFormatString, "se creo la malla 3d");
+		noteBuf->Des().Format(KFormatString);
+		DialogAlert(noteBuf);*/
+
 		obj.Id = Meshes.Count()-1;
 		Objects.Append(obj);
 		objSelect = Objects.Count()-1;
-		Meshes[obj.Id].AgruparVertices();
+		Meshes[obj.Id].AgruparVerticesVacio();
 		//Objects[objSelect].RecalcularBordes();
 
 		redibujar = true;

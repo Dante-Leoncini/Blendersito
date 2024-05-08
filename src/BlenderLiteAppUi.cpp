@@ -384,6 +384,18 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
         case ESetTransparent:
             iAppContainer->iBlenderLite->SetTransparencia();
             break; 
+        case ESetSmooth:
+            iAppContainer->iBlenderLite->SetSmooth();
+            break;  
+        case ESetCulling:
+            iAppContainer->iBlenderLite->SetCulling();
+            break;  
+        case ESetLighting:
+            iAppContainer->iBlenderLite->SetLighting();
+            break;  
+        case ESetVertexColor:
+            iAppContainer->iBlenderLite->SetVertexColor();
+            break;    
         case EBlenderLiteInfoObject:
             iAppContainer->iBlenderLite->InfoObject(1);
             break; 
