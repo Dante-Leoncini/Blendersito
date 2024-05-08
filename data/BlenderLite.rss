@@ -76,11 +76,11 @@ RESOURCE MENU_PANE r_blenderlite_menu
 {
     items =
         { 			
-        	//MENU_ITEM
-            //{
-            //    command = EImportOBJ;
-            //    txt = STRING_r_ImportOBJ;
-            //},  
+        	MENU_ITEM
+            {
+                command = EImportOBJ;
+                txt = STRING_r_ImportOBJ;
+            },  
 			MENU_ITEM
 			{
 				command = EBlenderLiteSeleccionar;

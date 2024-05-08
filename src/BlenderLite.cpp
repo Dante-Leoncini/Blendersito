@@ -2594,19 +2594,15 @@ void CBlenderLite::ImportOBJ(){
 		obj.scaleY = 65000;
 		obj.scaleZ = 65000;
 		obj.Id = 0;		
+		obj.type = mesh;
 		
 		//los obj tienen una lista de normales. a veces las normales se pueden repetir y esa es la logica
 		//tambien se puede repetir coordenadas de texturas asi que en vez de tener los uv y normals vertice por vertices.. tienen un listado
 
 		RArray<GLshort> ListVertices;
-		//GLshort* ListVertices = new GLshort[0];
-		GLbyte* ListNormals = new GLbyte[0];
-		GLbyte* ListUVs = new GLbyte[0];
-		TInt* ListCaras = new TInt[0];
-		//TInt vertices = 0;
-		TInt caras = 0;
-		TInt normales = 0;
-		TInt textura = 0;
+		RArray<GLbyte> ListNormals;
+		RArray<GLbyte> ListUVs;
+		RArray<TInt> ListCaras;
 		TInt materiales = 0;
 
 		TBool continuarLeyendo = ETrue; // Variable para controlar la lectura del archivo
@@ -2649,12 +2645,10 @@ void CBlenderLite::ImportOBJ(){
 							if (err == KErrNone && contador < 3) {
 								number = number*1000;								
 								GLshort glNumber = static_cast<GLshort>(number); // Conversión a GLbyte
-								//temVertices[vertices*3+contador] = glNumber;
 								ListVertices.Append(glNumber);
 							}
-							else {
+							else if (contador < 3){
 								ListVertices.Append(0);
-								//temVertices[vertices*3+contador] = 0;
 							}
 
 							// Avanzar al siguiente "string" que no sea espacio en blanco
@@ -2663,22 +2657,111 @@ void CBlenderLite::ImportOBJ(){
 							// Incrementar el contador para llevar la cuenta de los strings procesados
 							contador++;
 						}
-						//delete[] ListVertices;
-						//ListVertices = temVertices;
-						//vertices++;
 					}
 					else if (line.Left(3) == _L8("vn ")) {
-						normales++;
-						}
-					else if (line.Left(3) == _L8("vt ")) {
-						textura++;
-						}
+						contador = 0;
+						ListNormals.ReserveL(ListNormals.Count() +3); // Reservar espacio para los elementos
+
+						TLex8 lex(line.Mid(3));  // Inicializa TLex con la subcadena a partir del tercer carácter
+						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
+						while (!lex.Eos() && contador < 3) {							
+							TPtrC8 currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador
+							TLex8 testLex(currentString); // Crear un nuevo objeto TLex para la prueba
+							
+							TReal number = 0.0;
+							TInt err = testLex.Val(number, '.');
+							if (err == KErrNone) {
+								number = ((number +1)/2)* 255.0 - 128.0;
+								if (number > 127.0){number = 127.0;}
+								else if (number < -128.0){number = -128.0;}
+								GLbyte glNumber = static_cast<GLbyte>(number); // Conversión a GLbyte
+								ListNormals.Append(glNumber);
+							}
+							else if (contador < 3){
+								ListNormals.Append(0);
+							}
+							lex.SkipSpace();
+							contador++;
+						}				
+					}
+					else if (line.Left(3) == _L8("vt ")) {					
+						contador = 0;
+						ListUVs.ReserveL(ListUVs.Count() +2); // Reservar espacio para los elementos
+
+						TLex8 lex(line.Mid(3));  // Inicializa TLex con la subcadena a partir del tercer carácter
+						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
+						while (!lex.Eos() && contador < 2) {							
+							TPtrC8 currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador
+							TLex8 testLex(currentString); // Crear un nuevo objeto TLex para la prueba
+							
+							TReal number = 0.0;
+							TInt err = testLex.Val(number, '.');
+							if (err == KErrNone) {		
+								if (contador == 1) {
+									number = -number+1;
+								}			
+								number = number * 255.0 - 128.0;
+								if (number > 127.0){number = 127.0;}
+								else if (number < -128.0){number = -128.0;}
+								GLbyte glNumber = static_cast<GLbyte>(number); // Conversión a GLbyte
+								ListUVs.Append(glNumber);
+							}
+							else if (contador < 2){
+								ListUVs.Append(0);
+							}
+							contador++;
+							lex.SkipSpace();
+						}			
+					}
 					else if (line.Left(2) == _L8("f ")) {
-						caras++;
+						contador = 0;
+						ListCaras.ReserveL(ListCaras.Count() +9); // Reservar espacio para los elementos
+						TInt conTBarras = 0;
+
+						TLex8 lex(line.Mid(2));  // Inicializa TLex con la subcadena a partir del tercer carácter
+
+						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
+						while (!lex.Eos() && contador < 3) {				
+							TPtrC8 currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador
+
+							TInt startPos = 0; // Posición inicial
+							TInt tokenLength = 0; // Longitud del token
+							conTBarras = 0;
+
+							// Recorre la cadena hasta encontrar el final
+							while (startPos < currentString.Length()) {
+								// Busca la posición de la siguiente barra diagonal
+								TInt nextSlashPos = currentString.Mid(startPos).Locate('/');
+
+								// Si no se encuentra una barra diagonal, asume que es el último token
+								if (nextSlashPos == KErrNotFound) {
+									tokenLength = currentString.Length() - startPos;
+								} else {
+									tokenLength = nextSlashPos; // Longitud del token hasta la barra diagonal
+								}
+
+								// Extrae el token utilizando la posición y longitud calculadas
+								TPtrC8 token = currentString.Mid(startPos, tokenLength);
+								TLex8 testLex(token); // Crear un nuevo objeto TLex para la prueba
+
+								// Convertir el string en un número TInt
+								TInt number = 0;
+								TInt err = testLex.Val(number);
+								if (err == KErrNone && conTBarras < 3) {
+									ListCaras.Append(number-1);
+								}
+
+								// Actualiza la posición inicial para el próximo token
+								startPos += tokenLength + 1; // Suma 1 para omitir la barra diagonal
+								conTBarras++;
+							}	
+							lex.SkipSpace();
+							contador++;
 						}
+					}
 					else if (line.Left(7) == _L8("usemtl ")) {
 						materiales++;
-						}
+					}
 				}
 
 				// Actualizar la posición de inicio para la próxima lectura
@@ -2692,219 +2775,16 @@ void CBlenderLite::ImportOBJ(){
 			continuarLeyendo = (buffer.Length() > 0);
 		}
 
-		// Leer línea por línea
-		/*while (continuarLeyendo) {
-			// Leer una línea del archivo
-			err = rFile.Read(lineBuf);
-			if (err != KErrNone) {
-				_LIT(KFormatString, "Error al leer linea");
-				HBufC* noteBuf = HBufC::NewLC(100);
-				noteBuf->Des().Format(KFormatString);
-				MensajeError(noteBuf); 
-				// Error al leer o final del archivo, salir del bucle
-				continuarLeyendo = false;
-				break;
-			}
-
-			// Concatenar el contenido actual de lineBuf con el contenido anterior de tempBuf
-			tempBuf.Append(lineBuf);
-			lineBuf.Copy(tempBuf); // Copiar la combinación al búfer de línea para su procesamiento
-
-			// Procesar la línea hasta que no haya más saltos de línea o se llegue al final del archivo
-			while ((pos = lineBuf.Locate('\n')) != KErrNotFound || (pos = lineBuf.Locate('\r')) != KErrNotFound) {
-				// Obtener la línea hasta el salto de línea
-				TPtrC8 line = lineBuf.Left(pos);
-
-				// Convertir a descriptor de 16 bits si es necesario
-				HBufC* line16 = HBufC::NewLC(line.Length()+100);
-				line16->Des().Copy(line);
-
-				//es para revisar linea por linea
-				//DialogAlert(line16);
-
-				// Contador para almacenar la cantidad de "strings" separados por espacios
-				TInt contador = 0;
-				if (line16->Left(2) == _L("v ")) {
-					/*contador = 0;						
-					//copia los vertices temporalmente
-					GLshort* temVertices = new GLshort[vertices*3];
-					for(TInt a=0; a < vertices*3; a++){
-						temVertices[a] = ListVertices[a];
-					}
-
-					TLex lex(line16->Des().Mid(2));  // Inicializa TLex con la subcadena a partir del tercer carácter
-					// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
-					while (!lex.Eos() && contador < 8) {							
-						TPtrC currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador						
-						TLex testLex(currentString);// Crear un nuevo objeto TLex para la prueba
-						
-						// Convertir el string en un número TInt
-						TReal number = 0.0;
-						TInt err = testLex.Val(number, '.');
-						if (err == KErrNone && contador < 3) {
-							number = number*1000;								
-							GLshort glNumber = static_cast<GLshort>(number); // Conversión a GLbyte
-							temVertices[vertices*3+contador] = glNumber;
-						}
-						else {
-							temVertices[vertices*3+contador] = 0;
-						}
-
-						// Avanzar al siguiente "string" que no sea espacio en blanco
-						lex.SkipSpace();
-
-						// Incrementar el contador para llevar la cuenta de los strings procesados
-						contador++;
-					}
-					delete[] ListVertices;
-					ListVertices = temVertices;*/
-					/*vertices++;
-				}
-				//orientacion de las normales
-				else if (line16->Left(3) == _L("vn ")){
-					/*contador = 0;
-					//copia los vertices temporalmente
-					GLbyte* temNormales = new GLbyte[normales*3];
-					for(TInt a=0; a < normales*3; a++){
-						temNormales[a] = ListNormals[a];
-					}
-
-					TLex lex(line16->Des().Mid(3));  // Inicializa TLex con la subcadena a partir del tercer carácter
-
-					// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
-					while (!lex.Eos() && contador < 3) {							
-						TPtrC currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador
-						TLex testLex(currentString); // Crear un nuevo objeto TLex para la prueba
-						
-						TReal number = 0.0;
-						TInt err = testLex.Val(number, '.');
-						if (err == KErrNone) {
-							number = ((number +1)/2)* 255.0 - 128.0;
-							if (number > 127.0){number = 127.0;}
-							else if (number < -128.0){number = -128.0;}
-							GLbyte glNumber = static_cast<GLbyte>(number); // Conversión a GLbyte
-							temNormales[normales*3+contador] = glNumber;
-						}
-						else {
-							temNormales[normales*3+contador] = 0;
-						}
-						lex.SkipSpace();
-						contador++;
-					}						
-					delete[] ListNormals;
-					ListNormals = temNormales;*/
-					/*normales++;
-				}
-				//coordenadas UV para texturas
-				else if (line16->Left(3) == _L("vt ")){						
-					/*contador = 0;
-					//copia los vertices temporalmente
-					GLbyte* temUVs = new GLbyte[textura*2];
-					for(int a=0; a < textura*2; a++){
-						temUVs[a] = ListUVs[a];
-					}
-					TLex lex(line16->Des().Mid(3));  // Inicializa TLex con la subcadena a partir del tercer carácter
-					// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
-					while (!lex.Eos() && contador < 2) {							
-						TPtrC currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador
-						TLex testLex(currentString); // Crear un nuevo objeto TLex para la prueba
-						
-						TReal number = 0.0;
-						TInt err = testLex.Val(number, '.');
-						if (err == KErrNone) {		
-							// Invertir coordenadas X multiplicando por -1
-							if (contador == 0) {
-								number = -number+1;
-							}					
-							number = number * 255.0 - 128.0;
-							if (number > 127.0){number = 127.0;}
-							else if (number < -128.0){number = -128.0;}
-							GLbyte glNumber = static_cast<GLbyte>(number); // Conversión a GLbyte
-							temUVs[textura*2+contador] = glNumber;
-						}
-						else {
-							temUVs[textura*2+contador] = 0;
-						}
-						contador++;
-						lex.SkipSpace();
-					}					
-					delete[] ListUVs;
-					ListUVs = temUVs;*/
-					/*textura++;
-				}
-				//las caras
-				else if (line16->Left(2) == _L("f ")){
-					/*contador = 0;
-					TInt conTBarras = 0;
-					//copia los vertices temporalmente
-					TInt* temCaras = new TInt[(caras+1)*9];
-					for(TInt a=0; a < caras*9; a++){
-						temCaras[a] = ListCaras[a];
-					}
-
-					TLex lex(line16->Des().Mid(2));  // Inicializa TLex con la subcadena a partir del tercer carácter
-
-					// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
-					while (!lex.Eos() && contador < 3) {				
-						TPtrC currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador
-
-						TInt startPos = 0; // Posición inicial
-						TInt tokenLength = 0; // Longitud del token
-						conTBarras = 0;
-
-						// Recorre la cadena hasta encontrar el final
-						while (startPos < currentString.Length()) {
-							// Busca la posición de la siguiente barra diagonal
-							TInt nextSlashPos = currentString.Mid(startPos).Locate('/');
-
-							// Si no se encuentra una barra diagonal, asume que es el último token
-							if (nextSlashPos == KErrNotFound) {
-								tokenLength = currentString.Length() - startPos;
-							} else {
-								tokenLength = nextSlashPos; // Longitud del token hasta la barra diagonal
-							}
-
-							// Extrae el token utilizando la posición y longitud calculadas
-							TPtrC token = currentString.Mid(startPos, tokenLength);
-							TLex testLex(token); // Crear un nuevo objeto TLex para la prueba
-
-							// Convertir el string en un número TInt
-							TInt number = 0;
-							TInt err = testLex.Val(number);
-							if (err == KErrNone && conTBarras < 3) {
-								temCaras[caras*9+contador*3+conTBarras] = number-1;
-							}
-
-							// Actualiza la posición inicial para el próximo token
-							startPos += tokenLength + 1; // Suma 1 para omitir la barra diagonal
-							conTBarras++;
-						}	
-						lex.SkipSpace();
-						contador++;
-					}
-					
-					delete[] ListCaras;
-					ListCaras = temCaras;*/				
-					/*caras++;
-				}
-				// Eliminar la parte de la línea ya procesada y el carácter de salto de línea
-				lineBuf.Delete(0, pos + 1);
-				// Eliminar también los espacios en blanco iniciales
-				lineBuf.TrimLeft();
-			}	
-			// Almacenar el contenido restante de lineBuf en tempBuf para la próxima iteración
-			tempBuf.Copy(lineBuf);
-			// Verificar si quedan más caracteres en la línea actual
-			continuarLeyendo = (lineBuf.Length() > 0);   
-		}*/
-
+		Mesh tempMesh;
+		tempMesh.vertexSize = ListVertices.Count()/3;
+		tempMesh.facesSize = ListCaras.Count()/9;
+		tempMesh.material = 0;
+		
 		// cuantos vertices tiene
 		HBufC* noteBuf = HBufC::NewLC(180);
-		_LIT(KFormatString, "lpmm Vertices: %d Caras: %d Normales %d UVs %d, Materiales: %d");
-		noteBuf->Des().Format(KFormatString, ListVertices.Count()/3, caras, normales, textura, materiales);
+		_LIT(KFormatString, "Vertices: %d Caras: %d Normales %d UVs %d, Materiales: %d");
+		noteBuf->Des().Format(KFormatString, tempMesh.vertexSize, tempMesh.facesSize, ListNormals.Count()/3, ListUVs.Count()/2, materiales);
 		DialogAlert(noteBuf);
-		
-		dfghdfgh
 
 		// Cerrar el archivo
 		rFile.Close();
@@ -2913,49 +2793,56 @@ void CBlenderLite::ImportOBJ(){
 		CleanupStack::PopAndDestroy(&rFile);
 		//CleanupStack::PopAndDestroy(&fsSession);
 
-		/*Mesh tempMesh;
-		tempMesh.vertexSize = vertices;
-		tempMesh.facesSize = caras;
-		tempMesh.material = 0;
-
 		//obj.edges = new GLushort[obj.edgesSize];
-		tempMesh.normals = new GLbyte[tempMesh.vertexSize*3];
 		tempMesh.vertex = new GLshort[tempMesh.vertexSize*3];
+		tempMesh.normals = new GLbyte[tempMesh.vertexSize*3];
 		tempMesh.uv = new GLbyte[tempMesh.vertexSize*2];
 		tempMesh.faces = new GLushort[tempMesh.facesSize*3];
 		
+		//valores defecto
 		for(TInt v=0; v < tempMesh.vertexSize*3; v++){
-			tempMesh.vertex[v] = ListVertices[v];
+			tempMesh.vertex[v]  = ListVertices[v];
+			tempMesh.normals[v] = 0;			
 		}
-		for(TInt a=0; a < caras; a++){
+		for(TInt v=0; v < tempMesh.vertexSize*2; v++){
+			tempMesh.uv[v] = 0;			
+		}
+		
+		for(TInt a=0; a < tempMesh.facesSize; a++){
+			tempMesh.faces[a*3] = 0;
+			tempMesh.faces[a*3+1] = 0;
+			tempMesh.faces[a*3+2] = 0;
+			
 			for(TInt f=0; f < 3; f++){
 				TInt indice = a*9+f*3;
 				tempMesh.faces[a*3+f] = ListCaras[indice];
+				/*HBufC* noteBuf = HBufC::NewLC(180);
+				_LIT(KFormatString, "indice: %d, normal: %d, %d, %d");
+				noteBuf->Des().Format(KFormatString, ListCaras[indice+2], ListNormals[ListCaras[indice+2]*3],ListNormals[ListCaras[indice+2]*3+1],ListNormals[ListCaras[indice+2]*3+2]);
+				DialogAlert(noteBuf);*/
 				for(TInt v=0; v < 3; v++){
 					//a*9 es que ListCaras tiene 9 valores por cara, 3 vertices, 3 normales y 3 UV
 					//f*3 es para ir por las distintas "/" 1/1/1
-					tempMesh.vertex[ListCaras[a*9+f*3]*3+v] = ListVertices[ListCaras[a*9+f*3]*3+v];
+					tempMesh.vertex[ListCaras[indice]*3+v]  = ListVertices[ListCaras[indice]*3+v];
+					tempMesh.normals[ListCaras[indice]*3+v] = ListNormals[ListCaras[indice+2]*3+v];
 				}
 				for(TInt uv=0; uv < 2; uv++){
 					tempMesh.uv[ListCaras[indice]*2+uv] = ListUVs[ListCaras[indice+1]*2+uv];
 				}
-				for(TInt vn=0; vn < 3; vn++){
-					tempMesh.normals[ListCaras[indice]*3+vn] = ListNormals[ListCaras[indice+1]*3+vn];
-				}
-			}			
-	    }*/
+			}		
+	    }
 
 		//libero memoria		
-		/*delete[] ListVertices;	
-		delete[] ListCaras;
-		delete[] ListNormals;
-		delete[] ListUVs;
+		ListVertices.Close();
+		ListCaras.Close();
+		ListNormals.Close();
+		ListUVs.Close();	
 		
 		Meshes.Append(tempMesh);		
 		obj.Id = Meshes.Count()-1;
 		Objects.Append(obj);
 		objSelect = Objects.Count()-1;
-		Meshes[obj.Id].AgruparVertices();*/
+		Meshes[obj.Id].AgruparVertices();
 		//Objects[objSelect].RecalcularBordes();
 
 		redibujar = true;
