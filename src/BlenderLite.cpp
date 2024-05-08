@@ -2982,11 +2982,11 @@ void CBlenderLite::ImportOBJ(){
 		ListNormals.Close();
 		ListUVs.Close();	
 		
-		/*Meshes.Append(tempMesh);
+		Meshes.Append(tempMesh);
 		HBufC* noteBuf = HBufC::NewLC(180);
 		_LIT(KFormatString, "se creo la malla 3d");
 		noteBuf->Des().Format(KFormatString);
-		DialogAlert(noteBuf);*/
+		DialogAlert(noteBuf);
 
 		obj.Id = Meshes.Count()-1;
 		Objects.Append(obj);
