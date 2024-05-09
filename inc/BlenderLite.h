@@ -243,12 +243,14 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         //el alto de la pantalla dividida a la mitad
         GLfloat iScreenHeightSplit;
 		/** Texturas */
-		TTexture iBaseColor;  	
+		/*TTexture iBaseColor;  	
 		TTexture iOrigenTextura;
 		TTexture iColorGridTextura;
 		TTexture iMouseTextura;
 		TTexture iLampTextura;
-        TTexture iCursor3dTextura;
+        TTexture iCursor3dTextura;*/
+        
+        //RArray<TTexture> Textures;
 
         TTexture iShaderMaterialPreview;
         TTexture iShaderRendered;

@@ -345,6 +345,7 @@ CBlenderLite::~CBlenderLite(){
 // and select the shading mode.
 // -----------------------------------------------------------------------------
 //
+RArray<TTexture> Textures;
 void CBlenderLite::AppInit( void ){
     // Construct a texture manager that uses the application's private
     // directory as the location for all textures.
@@ -425,27 +426,24 @@ void CBlenderLite::AppInit( void ){
 	_LIT( KMouseTexture, "cursor.png" );	
 	_LIT( KLampTexture, "lamp.png" );		
 	_LIT( KCursor3dTextura, "cursor3d.png" );	
-	//iconos	
-	/*_LIT( KshaderMaterialPreview, "shader_MaterialPreview.png" );
-	_LIT( KshaderRendered, "shader_Rendered.png" );
-	_LIT( KshaderSolid, "shader_Solid.png" );
-	_LIT( KshaderWireframe, "shader_Wireframe.png" );*/
-	iTextureManager->RequestToLoad( KOriginTexture, &iOrigenTextura, false );
-	iTextureManager->RequestToLoad( KColorGridTexture, &iColorGridTextura, false );
+
+	Textures.ReserveL(5); // Reservar espacio para las texturas
+	for (TInt i = 0; i < 5; ++i) {
+	    TTexture texture;
+	    Textures.Append(texture);
+	}
+	iTextureManager->RequestToLoad( KOriginTexture, &Textures[0], false );
+	iTextureManager->RequestToLoad( KMouseTexture, &Textures[1], false );
+	iTextureManager->RequestToLoad( KLampTexture, &Textures[2], false );
+	iTextureManager->RequestToLoad( KCursor3dTextura, &Textures[3], false );
+	iTextureManager->RequestToLoad( KColorGridTexture, &Textures[4], false );
+	/*iTextureManager->RequestToLoad( KColorGridTexture, &iColorGridTextura, false );
 	iTextureManager->RequestToLoad( KMouseTexture, &iMouseTextura, false );
 	iTextureManager->RequestToLoad( KLampTexture, &iLampTextura, false );
 	iTextureManager->RequestToLoad( KCursor3dTextura, &iCursor3dTextura, false );
-	//iconos
-	//iTextureManager->RequestToLoad( KshaderMaterialPreview, &iShaderMaterialPreview, false );
-	//iTextureManager->RequestToLoad( KshaderRendered, &iShaderRendered, false );
-	//iTextureManager->RequestToLoad( KshaderSolid, &iShaderSolid, false );
-	//iTextureManager->RequestToLoad( KshaderWireframe, &iShaderWireframe, false );
-	
-	
+	iTextureManager->RequestToLoad( KColorGridTexture, &iColorGridTextura, false );*/
 	//Start to load the textures.
 	iTextureManager->DoLoadL();
-	
-	//iParticleCoords = new GLfixed[1 * 3];
 }
 
 
@@ -456,7 +454,6 @@ void CBlenderLite::AppInit( void ){
 //
 void CBlenderLite::AppExit( void ){
 	delete iTextureManager;
-    //delete[] iParticleCoords;
 }
 
 
@@ -760,7 +757,7 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 				glEnable( GL_POINT_SPRITE_OES ); //activa el uso de sprites en los vertices
 				glPointSize( 32 ); //tamaño del punto
 				glVertexPointer( 3, GL_SHORT, 0, pointVertex );
-				glBindTexture( GL_TEXTURE_2D, iLampTextura.iID ); //selecciona la textura
+				glBindTexture( GL_TEXTURE_2D, Textures[2].iID ); //selecciona la textura
 
 				glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE );
 				glDrawArrays( GL_POINTS, 0, 1 );
@@ -839,7 +836,8 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 		glPointSize( 8 );
 		glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
 	    glVertexPointer( 3, GL_SHORT, 0, pointVertex );
-	    glBindTexture( GL_TEXTURE_2D, iOrigenTextura.iID ); //selecciona la textura
+	    //glBindTexture( GL_TEXTURE_2D, iOrigenTextura.iID ); //selecciona la textura
+	    glBindTexture( GL_TEXTURE_2D, Textures[0].iID ); //selecciona la textura
 	    glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE );
 	    glDrawArrays( GL_POINTS, 0, 1 );
 	    glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_FALSE);
@@ -857,7 +855,7 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 		glPointSize( 32 ); // Make the points bigger.
 		glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
 	    glVertexPointer( 3, GL_SHORT, 0, pointVertex );
-	    glBindTexture( GL_TEXTURE_2D, iCursor3dTextura.iID ); //selecciona la textura
+	    glBindTexture( GL_TEXTURE_2D, Textures[3].iID);//iCursor3dTextura.iID ); //selecciona la textura
 
 	    glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE );
 	    glDrawArrays( GL_POINTS, 0, 1 );
@@ -916,7 +914,7 @@ void CBlenderLite::dibujarUI(){
 	
 	glEnable( GL_TEXTURE_2D ); // Permite usar texturas
 	glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);	
-	glBindTexture( GL_TEXTURE_2D, iMouseTextura.iID ); 
+	glBindTexture( GL_TEXTURE_2D, Textures[1].iID ); 
 
 	//que editor esta abierto
 	glPushMatrix();
@@ -2651,6 +2649,12 @@ void CBlenderLite::NewTexture(){
             _LIT(KFileLoadFailed,"Opening image file failed");
             DisplayWarningL(KFileLoadFailed, err);
         }
+		
+        //_LIT( KCursor3dTextura, "cursor3d.png" );	
+	//iTextureManager->RequestToLoad( KOriginTexture, &iOrigenTextura, false );	
+	
+	//Start to load the textures.
+        //iTextureManager->DoLoadL();
         /*else{
             // this is a blocking call
             if (! ExecuteWaitNoteL()){
@@ -2694,7 +2698,14 @@ void CBlenderLite::ImportOBJ(){
 			noteBuf->Des().Format(KFormatString, &file);
 			MensajeError(noteBuf); 
 			return;
-		}		
+		}	
+		/*if (file){
+			_LIT(KFormatString, "Formato no valido");
+			HBufC* noteBuf = HBufC::NewLC(100);
+			noteBuf->Des().Format(KFormatString, &file);
+			MensajeError(noteBuf); 
+			return;
+		}			*/
 		//crea el objeto
 		Cancelar();
 		Object obj;
