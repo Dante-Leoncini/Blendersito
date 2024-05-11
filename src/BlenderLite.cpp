@@ -279,11 +279,6 @@ void CBlenderLite::ConstructL( void ){
 	//tiene que haber un material por defecto siempre
 	NewMaterial();
 
-	//material para pruebas	
-	NewMaterial();
-	Materials[1].textureID = 2;
-	Materials[1].textura = true;
-
 	//debuger
 	//console = Console::NewL(_L("Consola"),TSize(KConsFullScreen, KConsFullScreen));
 	AddObject(camera);
@@ -419,29 +414,46 @@ void CBlenderLite::AppInit( void ){
 
     // Do not use perspective correction
     glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST );
+    
+    RFs fs;
+    User::LeaveIfError(fs.Connect());
+    TFileName privateDir;
+	
+    TParsePtrC Parse( CEikonEnv::Static()->EikAppUi()->Application()->AppFullName() );
+    TFileName RootDirectory = Parse.DriveAndPath().Left( 2 );
+
+    User::LeaveIfError(fs.PrivatePath(privateDir));
+    fs.Close();
 
 	// Push the textures into the loading queue.
 	_LIT( KOriginTexture, "origen.png" );
-	_LIT( KColorGridTexture, "color_grid.png" );
 	_LIT( KMouseTexture, "cursor.png" );	
 	_LIT( KLampTexture, "lamp.png" );		
 	_LIT( KCursor3dTextura, "cursor3d.png" );	
 
-	Textures.ReserveL(5); // Reservar espacio para las texturas
-	for (TInt i = 0; i < 5; ++i) {
+	Textures.ReserveL(4); // Reservar espacio para las texturas
+	for (TInt i = 0; i < 4; ++i) {
 	    TTexture texture;
 	    Textures.Append(texture);
 	}
-	iTextureManager->RequestToLoad( KOriginTexture, &Textures[0], false );
-	iTextureManager->RequestToLoad( KMouseTexture, &Textures[1], false );
-	iTextureManager->RequestToLoad( KLampTexture, &Textures[2], false );
-	iTextureManager->RequestToLoad( KCursor3dTextura, &Textures[3], false );
-	iTextureManager->RequestToLoad( KColorGridTexture, &Textures[4], false );
-	/*iTextureManager->RequestToLoad( KColorGridTexture, &iColorGridTextura, false );
-	iTextureManager->RequestToLoad( KMouseTexture, &iMouseTextura, false );
-	iTextureManager->RequestToLoad( KLampTexture, &iLampTextura, false );
-	iTextureManager->RequestToLoad( KCursor3dTextura, &iCursor3dTextura, false );
-	iTextureManager->RequestToLoad( KColorGridTexture, &iColorGridTextura, false );*/
+	
+    // Concatenar la ruta con el nombre del archivo
+	TFileName fullFilePath = RootDirectory;
+    fullFilePath.Append(privateDir);
+	iTextureManager->RequestToLoad( KOriginTexture, fullFilePath, &Textures[0], false );
+	
+    fullFilePath = RootDirectory;
+    fullFilePath.Append(privateDir);
+	iTextureManager->RequestToLoad( KMouseTexture, fullFilePath, &Textures[1], false );
+	
+    fullFilePath = RootDirectory;
+    fullFilePath.Append(privateDir);
+	iTextureManager->RequestToLoad( KLampTexture, fullFilePath, &Textures[2], false );
+	
+    fullFilePath = RootDirectory;
+    fullFilePath.Append(privateDir);
+	iTextureManager->RequestToLoad( KCursor3dTextura, fullFilePath, &Textures[3], false );
+	
 	//Start to load the textures.
 	iTextureManager->DoLoadL();
 }
@@ -564,7 +576,8 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 				// Obtiene el puntero del arreglo
 				//const GLushort* myArrayPointer = &obj.NewFaces[0];
 				//glDrawElements( GL_TRIANGLES, obj.NewFaces.Count(), GL_UNSIGNED_SHORT, &obj.NewFaces[0] );	
-				glDrawElements( GL_TRIANGLES, pMesh.facesSize*3, GL_UNSIGNED_SHORT, pMesh.faces );		
+				glDrawElements( GL_TRIANGLES, pMesh.facesSize*3, GL_UNSIGNED_SHORT, pMesh.faces );			
+				
 			}
 			//modelo sin textura
 			if (view == Solid){
@@ -572,7 +585,7 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 				glDisable( GL_TEXTURE_2D );
 				glDisable(GL_BLEND);
 				glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  mat.diffuse   ); 
-				glDrawElements( GL_TRIANGLES, pMesh.facesSize*3, GL_UNSIGNED_SHORT, pMesh.faces );
+				glDrawElements( GL_TRIANGLES, pMesh.facesSize*3, GL_UNSIGNED_SHORT, pMesh.faces );	
 			}
 			//wireframe view
 			else if(objSelect != o){    
@@ -1689,7 +1702,7 @@ void CBlenderLite::Borrar(){
 				delete[] pMesh.vertexColor;
 				delete[] pMesh.normals;
 				delete[] pMesh.uv;
-				delete[] pMesh.faces;
+				//delete[] pMesh.faces;
 				delete[] pMesh.vertexGroup;
 				delete[] pMesh.vertexGroupIndiceSize;
 				for(int f=0; f < pMesh.vertexGroupSize; f++){
@@ -1825,7 +1838,7 @@ void CBlenderLite::AddMesh( int modelo ){
 		}	
 		tempMesh.faces = new GLushort[MonkeyFaceSize*3];
 		for(int a=0; a < MonkeyFaceSize*3; a++){
-			tempMesh.faces[a] = MonkeyFace[a];			
+			tempMesh.faces[a] = MonkeyFace[a];		
 		}
 		//tempMesh.edges = new GLushort[tempMesh.edgesSize];
 		tempMesh.uv = new GLbyte[MonkeyVertexSize*2];
@@ -2626,59 +2639,46 @@ void CBlenderLite::SetScreenSize( TUint aWidth, TUint aHeight ){
 	redibujar = true;
 }
 
-void CBlenderLite::DisplayWarningL( const TDesC &aDescr, TInt aErr) const{
-    ASSERT( aErr != KErrNone );
-
-    _LIT(KFailed,"%S: %d");
-    CAknWarningNote* note = new (ELeave) CAknWarningNote(ETrue);
-    TBuf<128> text;
-    text.Format(KFailed, &aDescr, aErr);
-    note->ExecuteLD( text );
+// Función para obtener el directorio raíz de un filePath
+TFileName CBlenderLite::GetRootDirectory(const TDesC& aFilePath)
+{
+    TParse parse;
+    parse.Set(aFilePath, NULL, NULL);
+    return parse.DriveAndPath();
 }
 
 //import
 void CBlenderLite::NewTexture(){
-    // use dialog
     _LIT(KTitle, "Selecciona la Textura");
-    TFileName file(KNullDesC);
-    if (AknCommonDialogs::RunSelectDlgLD(file, R_BLENDERLITE_SELECT_DIALOG, KTitle)){
-        TRect mainPaneRect;
-        AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EMainPane, mainPaneRect);
-        TRAPD(err, LoadFile( file, mainPaneRect.Size() ));
-        if (err){
-            _LIT(KFileLoadFailed,"Opening image file failed");
-            DisplayWarningL(KFileLoadFailed, err);
-        }
+    TFileName filePath;
+    if (AknCommonDialogs::RunSelectDlgLD(filePath, R_BLENDERLITE_SELECT_DIALOG, KTitle)) {
 		
-        //_LIT( KCursor3dTextura, "cursor3d.png" );	
-	//iTextureManager->RequestToLoad( KOriginTexture, &iOrigenTextura, false );	
-	
-	//Start to load the textures.
-        //iTextureManager->DoLoadL();
-        /*else{
-            // this is a blocking call
-            if (! ExecuteWaitNoteL()){
-                // cancelled
-                iHandler->Cancel();
-            }
-        }*/
+		iTextureManager = CTextureManager::NewL ( iScreenWidth, iScreenHeight,
+												FRUSTUM_TOP, FRUSTUM_BOTTOM, FRUSTUM_RIGHT, FRUSTUM_LEFT, FRUSTUM_NEAR,
+												this );
+		TTexture newTexture;
+
+		// Crear un objeto TParse para analizar la ruta del archivo
+        TParse parse;
+        parse.Set(filePath, NULL, NULL);
+
+        // Obtener el nombre del archivo seleccionado
+        //const TFileName& selectedFileName = parse.Name();
+        //const TFileName& selectedFileName = parse.FullName();
+        const TFileName& selectedFileName = parse.NameAndExt();
+        
+		newTexture.iTextureName = selectedFileName;
+		
+		Textures.Append(newTexture);
+
+		// Agregar la nueva textura a la cola de carga del TextureManager
+		TFileName directorioRaiz = GetRootDirectory(filePath);
+		iTextureManager->RequestToLoad(newTexture.iTextureName, directorioRaiz, &Textures[Textures.Count()-1], false);
+		//iTextureManager->RequestToLoad(KTextureName, &Textures[Textures.Count()-1], false);
+
+		// Iniciar la carga de texturas
+		iTextureManager->DoLoadL();
     }
-}
-
-void CBlenderLite::LoadFile(const TFileName& aFileName,
-                                      const TSize &aSize,
-                                      TInt aSelectedFrame){
-    /*__ASSERT_ALWAYS(!IsActive(),User::Invariant());
-    iSize = aSize;
-    iScaledBitmap->Reset();
-    iScaledBitmap->Create(aSize, EColor16M);
-    LoadFileL(aFileName, aSelectedFrame);*/
-
-	/*_LIT( KNewTexture, "color_grid.jpg" );
-	iTextureManager->RequestToLoad( KNewTexture, &iColorGridTextura, false );
-	
-	//Start to load the textures.
-	iTextureManager->DoLoadL();*/
 }
 
 void CBlenderLite::ImportOBJ(){    
@@ -2729,6 +2729,8 @@ void CBlenderLite::ImportOBJ(){
 		RArray<GLbyte> ListNormals;
 		RArray<GLbyte> ListUVs;
 		RArray<TInt> ListCaras;
+		RArray<TInt> MaterialesNuevos;
+		RArray<TInt> MeshsGroups;
 		TInt materiales = 0;	
 
 		TBool continuarLeyendo = ETrue; // Variable para controlar la lectura del archivo
@@ -2775,7 +2777,7 @@ void CBlenderLite::ImportOBJ(){
 							TReal number = 0.0;
 							TInt err = testLex.Val(number, '.');
 							if (err == KErrNone && contador < 3) {
-								number = number*1000;								
+								number = number*2000;								
 								GLshort glNumber = static_cast<GLshort>(number); // Conversión a GLbyte
 								ListVertices.Append(glNumber);
 							}
@@ -2905,9 +2907,34 @@ void CBlenderLite::ImportOBJ(){
 							lex.SkipSpace();
 							contador++;
 						}
+						MeshsGroups[MeshsGroups.Count()-1]++;
 					}
 					else if (line.Left(7) == _L8("usemtl ")) {
-						materiales++;
+						/*TLex8 lex(line.Mid(7));
+						if (!lex.Eos()){
+							TPtrC8 currentString = lex.NextToken();
+							materiales++;		
+
+							HBufC* noteBuf3 = HBufC::NewLC(180);
+							_LIT(KFormatString3, "Material: %d\nNombre: %S");
+							noteBuf3->Des().Format(KFormatString3, materiales, &line);
+							DialogAlert(noteBuf3);*/
+							
+							//agrega un nuevo material
+							MaterialesNuevos.Append(Materials.Count());
+							MeshsGroups.Append(0);
+							Material mat;	
+							mat.specular[0] = mat.specular[1] = mat.specular[2] = mat.specular[3] = 0.3;
+							mat.diffuse[0] = mat.diffuse[1] = mat.diffuse[2] = mat.diffuse[3] = 1.0;
+							mat.emission[0] = mat.emission[1] = mat.emission[2] = mat.emission[3] = 0.0;
+							mat.textura = false;
+							mat.color = false;
+							mat.lighting = true;
+							mat.transparent = false;
+							mat.interpolacion = lineal;
+							mat.textureID = 0;
+							Materials.Append(mat);
+						//}
 					}
 				}
 
@@ -2921,19 +2948,12 @@ void CBlenderLite::ImportOBJ(){
 			}
 			//continuarLeyendo = (buffer.Length() > 0);
 		}
-
-		Mesh tempMesh;
-		tempMesh.vertexSize = ListVertices.Count()/3;
-		tempMesh.facesSize = ListCaras.Count()/9;
-		tempMesh.material = 0;
-		tempMesh.smooth = true;
-		tempMesh.culling = true;
 		
 		// cuantos vertices tiene
-		HBufC* noteBuf3 = HBufC::NewLC(180);
+		/*HBufC* noteBuf3 = HBufC::NewLC(180);
 		_LIT(KFormatString3, "Vertexs: %d Faces: %d Norm: %d UVs: %d, Mat: %d");
 		noteBuf3->Des().Format(KFormatString3, tempMesh.vertexSize, tempMesh.facesSize, ListNormals.Count()/3, ListUVs.Count()/2, materiales);
-		DialogAlert(noteBuf3);
+		DialogAlert(noteBuf3);*/
 
 		// Cerrar el archivo
 		rFile.Close();
@@ -2943,66 +2963,96 @@ void CBlenderLite::ImportOBJ(){
 		//CleanupStack::PopAndDestroy(&fsSession);
 
 		//obj.edges = new GLushort[obj.edgesSize];
-		tempMesh.vertex = new GLshort[tempMesh.vertexSize*3];
-		tempMesh.vertexColor = new GLubyte[tempMesh.vertexSize*4];
-		tempMesh.normals = new GLbyte[tempMesh.vertexSize*3];
-		tempMesh.uv = new GLbyte[tempMesh.vertexSize*2];
-		tempMesh.faces = new GLushort[tempMesh.facesSize*3];
-
-		//valores defecto
-		for(TInt v=0; v < tempMesh.vertexSize*3; v++){
-			tempMesh.vertex[v]  = ListVertices[v];
-			tempMesh.normals[v] = 0;			
-			tempMesh.vertexColor[v] = 255;	
-		}
-		for(TInt v=0; v < tempMesh.vertexSize*2; v++){
-			tempMesh.uv[v] = 0;		
-		}
 		/*for(TInt v=0; v < ListColors.Count()/3; v++){
 			HBufC* noteBuf = HBufC::NewLC(180);
 			_LIT(KFormatString, "indice: %d, color: %d, %d, %d");
 			noteBuf->Des().Format(KFormatString, v+1, ListColors[v*3],ListColors[v*3+1],ListColors[v*3+2]);
 			DialogAlert(noteBuf);
-		}*/
+		}*/		
 		
-		for(TInt a=0; a < tempMesh.facesSize; a++){
-			tempMesh.faces[a*3] = 0;
-			tempMesh.faces[a*3+1] = 0;
-			tempMesh.faces[a*3+2] = 0;
+		// cuantos vertices tiene
+		
+		TInt ultimoIndice = 0;
+		for(TInt m=0; m < MeshsGroups.Count(); m++){			
+			HBufC* noteBuf3 = HBufC::NewLC(180);
+			_LIT(KFormatString3, "Mesh: %d/%d\nfaces %d");
+			noteBuf3->Des().Format(KFormatString3, m+1, MeshsGroups.Count(), MeshsGroups[m], ListCaras.Count()/9);
+			DialogAlert(noteBuf3);			
+			if(MeshsGroups[m] < 1){continue;};
+
+			Mesh tempMesh;
+			tempMesh.material = MaterialesNuevos[m];
+			tempMesh.smooth = true;
+			tempMesh.culling = true;	
 			
-			for(TInt f=0; f < 3; f++){
-				TInt indice = a*9+f*3;
-				tempMesh.faces[a*3+f] = ListCaras[indice];
-				for(TInt v=0; v < 3; v++){
-					//a*9 es que ListCaras tiene 9 valores por cara, 3 vertices, 3 normales y 3 UV
-					//f*3 es para ir por las distintas "/" 1/1/1
-					tempMesh.vertex[ListCaras[indice]*3+v]  = ListVertices[ListCaras[indice]*3+v];	
-					tempMesh.normals[ListCaras[indice]*3+v] = ListNormals[ListCaras[indice+2]*3+v];
-					tempMesh.vertexColor[ListCaras[indice]*4+v] = ListColors[ListCaras[indice]*3+v];
-				}
-				for(TInt uv=0; uv < 2; uv++){
-					tempMesh.uv[ListCaras[indice]*2+uv] = ListUVs[ListCaras[indice+1]*2+uv];
-				}
-			}		
-	    }
+			tempMesh.vertexSize = ListVertices.Count()/3;
+			tempMesh.facesSize = MeshsGroups[m];
+
+			tempMesh.vertex = new GLshort[tempMesh.vertexSize*3];
+			tempMesh.vertexColor = new GLubyte[tempMesh.vertexSize*4];
+			tempMesh.normals = new GLbyte[tempMesh.vertexSize*3];
+			tempMesh.uv = new GLbyte[tempMesh.vertexSize*2];
+			tempMesh.faces = new GLushort[tempMesh.facesSize*3];
+
+			//valores defecto
+			for (int i = 0; i < tempMesh.vertexSize*3; i++) {
+				tempMesh.vertex[i] = ListVertices[i];
+				tempMesh.normals[i] = 0;
+			}
+			for (int i = 0; i < tempMesh.vertexSize*4; i++) {
+				tempMesh.vertexColor[i] = 255;
+			}
+			for (int i = 0; i < tempMesh.vertexSize*2; i++) {
+				tempMesh.uv[i] = 0;
+			}
+			for (int i = 0; i < tempMesh.facesSize*3; i++) {
+				tempMesh.faces[i] = 0;
+			}
+			
+			//valores reales
+			TInt limite = ultimoIndice + MeshsGroups[m];
+			TInt ultimoIndiceinicio = ultimoIndice;
+			for(TInt a=ultimoIndice; a < limite; a++){
+				ultimoIndice++;				
+				for(TInt f=0; f < 3; f++){
+					TInt indice = a*9+f*3;
+					tempMesh.faces[(a-ultimoIndiceinicio)*3+f] = ListCaras[indice];
+					for(TInt v=0; v < 3; v++){
+						//a*9 es que ListCaras tiene 9 valores por cara, 3 vertices, 3 normales y 3 UV
+						//f*3 es para ir por las distintas "/" 1/1/1
+						tempMesh.vertex[ListCaras[indice]*3+v]  = ListVertices[ListCaras[indice]*3+v];	
+						tempMesh.normals[ListCaras[indice]*3+v] = ListNormals[ListCaras[indice+2]*3+v];
+						tempMesh.vertexColor[ListCaras[indice]*4+v] = ListColors[ListCaras[indice]*3+v];
+					}
+					for(TInt uv=0; uv < 2; uv++){
+						tempMesh.uv[ListCaras[indice]*2+uv] = ListUVs[ListCaras[indice+1]*2+uv];
+					}
+				}		
+			}
+			Meshes.Append(tempMesh);
+
+			HBufC* noteBuf = HBufC::NewLC(180);
+			_LIT(KFormatString, "se creo la malla %d");
+			noteBuf->Des().Format(KFormatString, m+1);
+			DialogAlert(noteBuf);
+			
+			obj.Id = Meshes.Count()-1;
+			Objects.Append(obj);
+			objSelect = Objects.Count()-1;
+			Meshes[obj.Id].AgruparVerticesVacio();
+			redibujar = true;
+		}
 
 		//libero memoria		
 		ListVertices.Close();
 		ListColors.Close();
 		ListCaras.Close();
 		ListNormals.Close();
-		ListUVs.Close();	
-		
-		Meshes.Append(tempMesh);
-		HBufC* noteBuf = HBufC::NewLC(180);
-		_LIT(KFormatString, "se creo la malla 3d");
-		noteBuf->Des().Format(KFormatString);
-		DialogAlert(noteBuf);
+		ListUVs.Close();
 
-		obj.Id = Meshes.Count()-1;
-		Objects.Append(obj);
-		objSelect = Objects.Count()-1;
-		Meshes[obj.Id].AgruparVerticesVacio();
+		//para separar las mesh	
+		MaterialesNuevos.Close();
+		MeshsGroups.Close();
 		//Objects[objSelect].RecalcularBordes();
 
 		redibujar = true;

@@ -133,19 +133,21 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void SetUvBordes(GLshort origenX, GLshort origenY, GLshort ancho, GLshort alto, GLshort top, GLshort right, GLshort bottom, GLshort left);
         void DibujarRectanguloBordes(GLshort ancho, GLshort alto, GLshort top, GLshort right, GLshort bottom, GLshort left );
         void SetViewpoint(TInt opcion);
+        TFileName GetRootDirectory(const TDesC& aFilePath);
         void AddModificador(TInt opcion);
         void TecladoNumerico(TInt numero);
         void InsertarValor();
         void ImportOBJ();
         void NewTexture();        
         void CloseWaitNoteL();
+        void ObtenerUbicacionInstalacionL(TDes& aUbicacion);
         void SetTipoSelect(TInt tipo);
         void SetOrigen( TInt opcion );
         void OpenWaitNoteL( TFileName file );
+        void LoadTextureFromFile(const TDesC& aFileName);
         void LoadFile(const TFileName& aFileName,
                                        const TSize &aSize,
                                        TInt aSelectedFrame = 0);
-        void DisplayWarningL( const TDesC &aDescr, TInt aErr) const;
         void Mensaje(HBufC* noteBuf);
         void MensajeError(HBufC* noteBuf);
         TBool DialogAlert(HBufC* noteBuf);

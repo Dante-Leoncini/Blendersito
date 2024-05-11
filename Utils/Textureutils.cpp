@@ -13,6 +13,17 @@
 
 #include "Textureutils.h"
 
+#include <blenderlite.rsg>
+#include <aknmessagequerydialog.h>		// DialogAlertL
+TBool CTextureManager::DialogAlert(HBufC* noteBuf) {
+    TBool retVal(EFalse);
+	CAknQueryDialog* query = CAknQueryDialog::NewL();
+	if (query->ExecuteLD(R_ACCEPT_INVITATION_DLG, *noteBuf)) {
+		retVal = ETrue;
+	}
+	CleanupStack::PopAndDestroy( noteBuf );
+    return retVal;
+}
 
 // CONSTANTS
 
@@ -263,9 +274,7 @@ TBool CImageHandler::SetBitmapL( CFbsBitmap *aBitmap, CFbsBitmap* aBitmapMask )
 // Loads a selected frame from a named file
 // -----------------------------------------------------------------------------
 //
-void CImageHandler::LoadFileL(const TFileName& aFileName,
-	TInt aSelectedFrame)
-	{
+void CImageHandler::LoadFileL(const TFileName& aFileName, TInt aSelectedFrame){
 	__ASSERT_ALWAYS(!IsActive(),User::Invariant());
 	if ( iDecoder )
 		{
@@ -293,7 +302,7 @@ void CImageHandler::LoadFileL(const TFileName& aFileName,
         }
 
 	SetActive();
-	}
+}
 
 // -----------------------------------------------------------------------------
 // CImageHandler::FrameInfo
@@ -540,11 +549,11 @@ TTexture * CTextureManager::TextureExists( const TDesC &aTextureName )
 // -----------------------------------------------------------------------------
 //
 void CTextureManager::RequestToLoad( const TDesC &aTextureName,
+	const TDesC& aTextureLocation,
 	TTexture * aTexture,
 	TUint8 * aMinColorKey,
 	TUint8 * aMaxColorKey,
-    TBool aGenerateMipmaps)
-	{
+    TBool aGenerateMipmaps){
 	if ( GetState() == EIdle )
 		{
 		TTexture * text;
@@ -555,6 +564,9 @@ void CTextureManager::RequestToLoad( const TDesC &aTextureName,
 			}
 
 		aTexture->iTextureName = aTextureName;
+		// Utiliza la ubicación de la textura proporcionada
+        aTexture->iTextureLocation = aTextureLocation;
+
         aTexture->iTextureHasColorKey = ( aMinColorKey != NULL && aMaxColorKey != NULL);
 		if ( aTexture->iTextureHasColorKey )
 			{
@@ -567,10 +579,17 @@ void CTextureManager::RequestToLoad( const TDesC &aTextureName,
 			aTexture->iMaxColorKey[2] = aMaxColorKey[2];
 			}
 
-		aTexture->iGenerateMipmaps = aGenerateMipmaps;
+		aTexture->iGenerateMipmaps = aGenerateMipmaps;  
+		
+		iTexturePath = aTextureLocation; // Establecer la ubicación de la textura directamente
+		/*_LIT(KFormatString, "ubicacion: %S");
+		HBufC* noteBuf = HBufC::NewLC(150);
+		noteBuf->Des().Format(KFormatString, &iTexturePath);
+		DialogAlert(noteBuf);*/
+		
 		iLoadingQueue.AddLast( *aTexture );
-		}
 	}
+}
 
 // -----------------------------------------------------------------------------
 // CTextureManager::DoLoadL

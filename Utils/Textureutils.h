@@ -28,11 +28,10 @@
 #include "Mathutils.h"
 
 
-
 // MACROS
 
 /** Texture name maximum length */
-#define MAX_TEXTURE_NAME 20
+#define MAX_TEXTURE_NAME 40
 
 // FORWARD DECLARATIONS
 
@@ -55,7 +54,6 @@ class CFiniteStateMachine : public CBase
 		virtual ~CFiniteStateMachine();
 
 	public: // New functions
-
 		/*
 		 * Sets the finite state machine's state to given state.
 		 * pre-condition (aNewState != -1) : the value -1 should not be used to represent a state.
@@ -155,6 +153,8 @@ struct TTexture
 {
 	/** Texture name (file name from which the texture has been loaded). */
 	TBufC<MAX_TEXTURE_NAME> iTextureName;
+	/** La ubicacion de la textura */
+	TFileName iTextureLocation;
 	/** Unique ID that will be used to reference the texture through the glBindTexture() function. */
 	GLuint iID;
 	/** Indicates if this texture has some color key info. */
@@ -347,6 +347,7 @@ class CTextureManager: public CFiniteStateMachine, public MImageHandlerCallback
 		virtual ~CTextureManager();
 
 	public: // New functions
+		TBool DialogAlert(HBufC* noteBuf);
 		/**
 		 * States of the CTextureManager finite state machine.
 		 *  EIdle indicates that the object is in idle
@@ -363,7 +364,7 @@ class CTextureManager: public CFiniteStateMachine, public MImageHandlerCallback
 		 * @param aMaxColorKey Used to specify a max. color key value for the texture. This param. is optional.
 		 * @param aGenerateMipmaps Specifies whether mipmaps should be created for the texture.
  		 */
-		void RequestToLoad(const TDesC &aTextureName, TTexture *aTexture,
+		void RequestToLoad(const TDesC &aTextureName, const TDesC& aTextureLocation, TTexture *aTexture,
 			TUint8 * aMinColorKey =NULL, TUint8 * aMaxColorKey = NULL,
             TBool aGenerateMipmaps = EFalse);
 
