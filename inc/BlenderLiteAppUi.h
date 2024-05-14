@@ -42,7 +42,6 @@ class CBlenderLiteAppUi : public CAknAppUi
         virtual ~CBlenderLiteAppUi();
 
     private: // Functions from base classes
-
         /**
          * This method is called by the EIKON framework just before it displays
          * a menu pane. Builds the dynamic menuitems for toggling the lights on and

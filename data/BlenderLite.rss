@@ -263,7 +263,27 @@ RESOURCE MENU_PANE r_Material_menu{
         MENU_ITEM {
             command = ESetMaterial;
             txt = STRING_r_setMaterial;
-        },  
+        },
+        MENU_ITEM {
+            command = ESetTexture;
+            txt = STRING_r_setTexture;
+        }, 
+        MENU_ITEM {
+            command = ERemoveMaterial;
+            txt = STRING_r_removeMaterial;
+        }, 
+        MENU_ITEM {
+            command = ERemoveTexture;
+            txt = STRING_r_removeTexture;
+        }, 
+        MENU_ITEM {
+            command = ENewMaterial;
+            txt = STRING_r_newMaterial;
+        },
+        MENU_ITEM {
+            command = ENewTexture;
+            txt = STRING_r_newTexture;
+        }, 
 		MENU_ITEM {
 			command = ESetSmooth;
 			txt = STRING_r_setSmooth;
@@ -279,11 +299,7 @@ RESOURCE MENU_PANE r_Material_menu{
         MENU_ITEM {
             command = ESetEmission;
             txt = STRING_r_setEmission;
-        },
-        MENU_ITEM {
-            command = ESetTexture;
-            txt = STRING_r_setTexture;
-        },  
+        }, 
         MENU_ITEM {
             command = ESetActiveTexture;
             txt = STRING_r_activeTexture;
@@ -307,11 +323,7 @@ RESOURCE MENU_PANE r_Material_menu{
         MENU_ITEM {
             command = ESetVertexColor;
             txt = STRING_r_setVertexColor;
-        },  
-        MENU_ITEM {
-            command = ENewTexture;
-            txt = STRING_r_newTexture;
-        }                   
+        }                 
     };
 }
 

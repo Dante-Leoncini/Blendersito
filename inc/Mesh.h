@@ -34,11 +34,11 @@ class Mesh {
 		GLubyte* vertexColor;
 		GLbyte* normals;
 		GLbyte* uv;
-		//TInt materialsSize;
-		//TInt* materials;
-		TInt material;
-		TInt facesSize;
-   		GLushort* faces;
+		TInt* materials;
+		//TInt material;
+		TInt materialsSize;
+		TInt* facesGroupsSize;
+   		GLushort** faces;
 
 		//grupo de vertices
    		TInt vertexGroupSize;

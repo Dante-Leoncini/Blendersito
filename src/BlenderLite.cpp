@@ -210,12 +210,12 @@ void CBlenderLite::changeSelect(){
 		if (tipoSelect == vertexSelect && EditSelect >= pMesh.vertexGroupSize){
 			EditSelect = 0;			
 		}	
-		if (tipoSelect == edgeSelect && EditSelect >= pMesh.facesSize/2){
+		/*if (tipoSelect == edgeSelect && EditSelect >= pMesh.facesSize/2){
 			EditSelect = 0;			
 		}	
 		else if (tipoSelect == faceSelect && EditSelect >= pMesh.facesSize/3){
 			EditSelect = 0;			
-		}	
+		}	*/
 	};
     redibujar = true;	
 }
@@ -310,6 +310,23 @@ void CBlenderLite::NewMaterial(){
 	mat.textureID = 0;
 	Materials.Append(mat);
 }
+
+
+void CBlenderLite::RemoveMaterial(){
+	//si no hay objetos
+	/*if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[objSelect];
+	//si no es un mesh
+	if (obj.type != mesh){return;}	
+	Mesh& pMesh = Meshes[obj.Id];
+	Material& mat = Materials[pMesh.materials[0]];
+
+	Materials.Remove(objSelect);*/
+};
+
+void CBlenderLite::RemoveTexture(){
+
+};
 
 // -----------------------------------------------------------------------------
 // CBlenderLite::NewL
@@ -503,7 +520,6 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 		for(int o=0; o < Objects.Count(); o++){
 			Object& obj = Objects[o];
 			Mesh& pMesh = Meshes[obj.Id];
-			Material& mat = Materials[pMesh.material];
 	
 			//si es un mesh o no es visible, lo saltea
 			if(!obj.visible || obj.type != mesh ) {continue;}
@@ -519,7 +535,6 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 			glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
 			glDisable(GL_COLOR_MATERIAL);
 			glMaterialfv(   GL_FRONT_AND_BACK, GL_AMBIENT,  objAmbient  );
-			glMaterialfv(   GL_FRONT_AND_BACK, GL_SPECULAR, mat.specular );
 			glMaterialx( GL_FRONT_AND_BACK, GL_SHININESS,   12 << 16     );
 			glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[negro] );
 	
@@ -538,54 +553,65 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 			//si usa culling
 			if (pMesh.culling){glEnable( GL_CULL_FACE );}
 			else {glDisable( GL_CULL_FACE );}	
-
-			//vertex color
-			if (mat.color){
-				glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);
-				glEnableClientState( GL_COLOR_ARRAY );
-			}
-			else {glDisableClientState( GL_COLOR_ARRAY );}	 
-
-			//si tiene iluminacion	
-			if (mat.lighting){glEnable( GL_LIGHTING );}
-			else {glDisable( GL_LIGHTING );}	
 			
 			//modelo con textura
 			if (view == MaterialPreview){
+				//material
 				glTexCoordPointer( 2, GL_BYTE, 0, pMesh.uv );
-				glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE, mat.diffuse ); 
-				if (mat.textura){
-					glEnable( GL_TEXTURE_2D );
-					glBindTexture(  GL_TEXTURE_2D, mat.textureID ); //selecciona la textura	
-				}
-				else {glDisable( GL_TEXTURE_2D );}
 				
-				//transparent
-				if (mat.transparent){glEnable(GL_BLEND);}
-				else {glDisable(GL_BLEND);}
-				//textura pixelada o suave
-				if (mat.interpolacion == lineal){
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				for(int f=0; f < pMesh.materialsSize; f++){
+					Material& mat = Materials[pMesh.materials[f]];	
+					glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE, mat.diffuse ); 
+					glMaterialfv(   GL_FRONT_AND_BACK, GL_SPECULAR, mat.specular );
+
+					//vertex color
+					if (mat.color){
+						glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);
+						glEnableClientState( GL_COLOR_ARRAY );
+					}
+					else {glDisableClientState( GL_COLOR_ARRAY );}	 
+
+					//si tiene iluminacion	
+					if (mat.lighting){glEnable( GL_LIGHTING );}
+					else {glDisable( GL_LIGHTING );}
+					
+					//transparent
+					if (mat.transparent){glEnable(GL_BLEND);}
+					else {glDisable(GL_BLEND);}
+					
+					//si tiene texturas
+					if (mat.textura){
+						glEnable( GL_TEXTURE_2D );
+						glBindTexture(  GL_TEXTURE_2D, mat.textureID ); //selecciona la textura							
+					
+						//textura pixelada o suave
+						if (mat.interpolacion == lineal){
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+						}
+						else if (mat.interpolacion == closest){
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+						}	
+					}
+					else {glDisable( GL_TEXTURE_2D );}
+
+					glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, mat.emission );
+
+					glDrawElements( GL_TRIANGLES, pMesh.facesGroupsSize[f]*3, GL_UNSIGNED_SHORT, pMesh.faces[f] );	
 				}
-				else if (mat.interpolacion == closest){
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				}
-				glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, mat.emission );
-				// Obtiene el puntero del arreglo
-				//const GLushort* myArrayPointer = &obj.NewFaces[0];
-				//glDrawElements( GL_TRIANGLES, obj.NewFaces.Count(), GL_UNSIGNED_SHORT, &obj.NewFaces[0] );	
-				glDrawElements( GL_TRIANGLES, pMesh.facesSize*3, GL_UNSIGNED_SHORT, pMesh.faces );			
-				
 			}
 			//modelo sin textura
 			if (view == Solid){
+				Material& mat = Materials[pMesh.materials[0]];
 			    glDisableClientState( GL_COLOR_ARRAY );	  	
 				glDisable( GL_TEXTURE_2D );
 				glDisable(GL_BLEND);
 				glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  mat.diffuse   ); 
-				glDrawElements( GL_TRIANGLES, pMesh.facesSize*3, GL_UNSIGNED_SHORT, pMesh.faces );	
+				//glDrawElements( GL_TRIANGLES, pMesh.facesSize*3, GL_UNSIGNED_SHORT, pMesh.faces );	
+				for(int f=0; f < pMesh.materialsSize; f++){			
+					glDrawElements( GL_TRIANGLES, pMesh.facesGroupsSize[f]*3, GL_UNSIGNED_SHORT, pMesh.faces[f] );	
+				}
 			}
 			//wireframe view
 			else if(objSelect != o){    
@@ -639,7 +665,7 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 						}	*/		
 					}
 					//cara seleccionado
-					else if (tipoSelect == faceSelect){	
+					/*else if (tipoSelect == faceSelect){	
 						//vertice seleccionado
 						if (pMesh.facesSize > 0){	
 							glEnable(GL_BLEND);
@@ -650,7 +676,7 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 							glDrawElements( GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, &pMesh.faces[EditSelect*3]);
 							glDisable(GL_BLEND);
 						}				
-					}
+					}*/
 				}
 				else if (view != 2){
 					glPolygonOffset(1.0, 200.0);
@@ -1702,13 +1728,20 @@ void CBlenderLite::Borrar(){
 				delete[] pMesh.vertexColor;
 				delete[] pMesh.normals;
 				delete[] pMesh.uv;
-				//delete[] pMesh.faces;
+				delete[] pMesh.facesGroupsSize;
+				delete[] pMesh.materials;
 				delete[] pMesh.vertexGroup;
 				delete[] pMesh.vertexGroupIndiceSize;
 				for(int f=0; f < pMesh.vertexGroupSize; f++){
 					delete[] pMesh.vertexGroupIndice[f];
 				}
 				delete[] pMesh.vertexGroupIndice;
+
+				for(int f=0; f < pMesh.materialsSize; f++){
+					delete[] pMesh.faces[f];
+				}
+				delete[] pMesh.faces;
+
 				//ahora se borra el mesh
 				Meshes.Remove(obj.Id);
 			}
@@ -1797,16 +1830,14 @@ void CBlenderLite::AddMesh( int modelo ){
 	obj.Id = 0;
 	
 	Mesh tempMesh;
+	tempMesh.materialsSize = 1;
 	if (modelo == cubo){ 
-    	tempMesh.vertexSize = 24;
-		tempMesh.facesSize = 12;
-		//tempMesh.materialsSize = 1;
+    	tempMesh.vertexSize = 24;	
 
 		tempMesh.vertex = new GLshort[tempMesh.vertexSize*3];
 		tempMesh.vertexColor = new GLubyte[tempMesh.vertexSize*4];
 		tempMesh.normals = new GLbyte[tempMesh.vertexSize*3];
 		tempMesh.uv = new GLbyte[tempMesh.vertexSize*2];
-		tempMesh.faces = new GLushort[tempMesh.facesSize*3];
 
 		for (int i = 0; i < tempMesh.vertexSize*3; i++) {
 			tempMesh.vertex[i] = CuboVertices[i];
@@ -1818,13 +1849,20 @@ void CBlenderLite::AddMesh( int modelo ){
 		for (int i = 0; i < tempMesh.vertexSize*2; i++) {
 			tempMesh.uv[i] = CuboUV[i];
 		}
-		for (int i = 0; i < tempMesh.facesSize*3; i++) {
-			tempMesh.faces[i] = CuboTriangles[i];
+
+		tempMesh.facesGroupsSize = new TInt[tempMesh.materialsSize];
+		tempMesh.facesGroupsSize[0] = 12;
+
+		tempMesh.faces = new GLushort*[tempMesh.materialsSize];
+		tempMesh.faces[0] = new GLushort[tempMesh.facesGroupsSize[0]*3];
+		for (int i = 0; i < tempMesh.facesGroupsSize[0]*3; i++) {
+			tempMesh.faces[0][i] = CuboTriangles[i];
 		}
 	}	
 	else if (modelo == monkey){  
     	tempMesh.vertexSize = MonkeyVertexSize;
-		tempMesh.facesSize = MonkeyFaceSize;	
+		//tempMesh.facesSize = MonkeyFaceSize;	
+		tempMesh.facesGroupsSize[0] = MonkeyFaceSize;
 		obj.rotZ = 180;
 		tempMesh.vertex = new GLshort[MonkeyVertexSize*3];
 		tempMesh.vertexColor = new GLubyte[MonkeyVertexSize*4];
@@ -1836,9 +1874,10 @@ void CBlenderLite::AddMesh( int modelo ){
 		for(int a=0; a < MonkeyVertexSize*4; a++){
 			tempMesh.vertexColor[a] = 255;
 		}	
-		tempMesh.faces = new GLushort[MonkeyFaceSize*3];
+		tempMesh.faces = new GLushort*[tempMesh.materialsSize];
+		tempMesh.faces[0] = new GLushort[MonkeyFaceSize*3];
 		for(int a=0; a < MonkeyFaceSize*3; a++){
-			tempMesh.faces[a] = MonkeyFace[a];		
+			tempMesh.faces[0][a] = MonkeyFace[a];	
 		}
 		//tempMesh.edges = new GLushort[tempMesh.edgesSize];
 		tempMesh.uv = new GLbyte[MonkeyVertexSize*2];
@@ -1851,7 +1890,8 @@ void CBlenderLite::AddMesh( int modelo ){
 	}
 	tempMesh.smooth = true;
 	tempMesh.culling = true;
-	tempMesh.material = 0;
+	tempMesh.materials = new TInt[1];
+	tempMesh.materials[0] = 0;
 	Meshes.Append(tempMesh);	
 
 	//creamos el objeto y le asignamos la mesh
@@ -1967,7 +2007,7 @@ void CBlenderLite::ActivarTextura(){
 	//si no es un mesh
 	if (obj.type != mesh){return;}	
 	Mesh& pMesh = Meshes[obj.Id];
-	Material& mat = Materials[pMesh.material];
+	Material& mat = Materials[pMesh.materials[0]];
 
 	Cancelar();
 	//activa o desactiva las texturas
@@ -1991,7 +2031,7 @@ void CBlenderLite::SetTransparencia(){
 	//si no es un mesh
 	if (obj.type != mesh){return;}	
 	Mesh& pMesh = Meshes[obj.Id];
-	Material& mat = Materials[pMesh.material];
+	Material& mat = Materials[pMesh.materials[0]];
 
 	Cancelar();
 	//activa o desactiva las Transparencias
@@ -2056,7 +2096,7 @@ void CBlenderLite::SetLighting(){
 	//si no es un mesh
 	if (obj.type != mesh){return;}	
 	Mesh& pMesh = Meshes[obj.Id];
-	Material& mat = Materials[pMesh.material];
+	Material& mat = Materials[pMesh.materials[0]];
 
 	Cancelar();
 	//activa o desactiva las Transparencias
@@ -2078,7 +2118,7 @@ void CBlenderLite::SetVertexColor(){
 	//si no es un mesh
 	if (obj.type != mesh){return;}	
 	Mesh& pMesh = Meshes[obj.Id];
-	Material& mat = Materials[pMesh.material];
+	Material& mat = Materials[pMesh.materials[0]];
 
 	Cancelar();
 	//activa o desactiva las Transparencias
@@ -2100,7 +2140,7 @@ void CBlenderLite::SetInterpolation(){
 	//si no es un mesh
 	if (obj.type != mesh){return;}	
 	Mesh& pMesh = Meshes[obj.Id];
-	Material& mat = Materials[pMesh.material];
+	Material& mat = Materials[pMesh.materials[0]];
 
 	Cancelar();
 	//activa o desactiva las Transparencias
@@ -2117,21 +2157,34 @@ void CBlenderLite::SetInterpolation(){
 }
 
 void CBlenderLite::SetTexture(){
+	//si solo estan las texturas de blender
+	if (Textures.Count() < 5){return;}		
 	//si no hay objetos
 	if (Objects.Count() < 1){return;}	
 	Object& obj = Objects[objSelect];
 	//si no es un mesh
 	if (obj.type != mesh){return;}	
 	Mesh& pMesh = Meshes[obj.Id];
-	Material& mat = Materials[pMesh.material];
 
 	Cancelar();
-	HBufC* buf = HBufC::NewLC( 30 );
-	buf->Des().Copy(_L("ID de Textura (0-4)"));	
-	TInt textureID = DialogNumber(0, 0, 100, buf);
+	TInt MaterialID = 1;
+	HBufC* noteBuf = HBufC::NewLC(100);
+	if (pMesh.materialsSize > 1){
+		_LIT(KFormatString, "Material 1 to %d");
+		noteBuf->Des().Format(KFormatString, pMesh.materialsSize);
+		MaterialID = DialogNumber(1, 1, pMesh.materialsSize, noteBuf);		
+	}
+
+	Material& mat = Materials[pMesh.materials[MaterialID-1]];
+
+	_LIT(KFormatString2, "Select Texture 1 to %d");
+	noteBuf->Des().Format(KFormatString2, Textures.Count()-4);
+	TInt textureID = DialogNumber(1, 1, Textures.Count()-4, noteBuf);
+	CleanupStack::PopAndDestroy(noteBuf);
+	
 	mat.textura = true;
-	mat.textureID = textureID;
-	CleanupStack::PopAndDestroy(buf);
+	mat.textureID = textureID+4;
+	//mat.textureID = Textures[textureID-5].iID;
     redibujar = true;
 }
 
@@ -2144,17 +2197,31 @@ void CBlenderLite::SetMaterial(){
 	Mesh& pMesh = Meshes[obj.Id];
 
 	Cancelar();
-	HBufC* noteBuf = HBufC::NewLC(30);
-	_LIT(KFormatString, "ID Material 1 to %d");
-	noteBuf->Des().Format(KFormatString, Materials.Count());
-	TInt MaterialID = DialogNumber(0, 0, 100, noteBuf);
-	if (MaterialID > Materials.Count() || 1 > MaterialID){		
-		noteBuf->Des().Copy(_L("Indice invalido"));	
-		MensajeError(noteBuf);
+	HBufC* noteBuf1 = HBufC::NewLC(30);
+	_LIT(KFormatString, "Old Material 1 to %d");
+	noteBuf1->Des().Format(KFormatString, pMesh.materialsSize);
+	TInt OldMaterialID = DialogNumber(1, 1, pMesh.materialsSize, noteBuf1);
+	
+	if (OldMaterialID > pMesh.materialsSize || 1 > OldMaterialID){		
+		noteBuf1->Des().Copy(_L("Indice invalido"));	
+		MensajeError(noteBuf1);
 	}
 	else {
-		pMesh.material = MaterialID-1;
-		CleanupStack::PopAndDestroy(noteBuf);
+		CleanupStack::PopAndDestroy(noteBuf1);
+
+		HBufC* noteBuf2 = HBufC::NewLC(30);
+		_LIT(KFormatString, "New Material 1 to %d");
+		noteBuf2->Des().Format(KFormatString, Materials.Count());
+		TInt MaterialID = DialogNumber(1, 1, Materials.Count(), noteBuf2);
+		
+		if (MaterialID > Materials.Count() || 1 > MaterialID){		
+			noteBuf2->Des().Copy(_L("Indice invalido"));	
+			MensajeError(noteBuf2);
+		}
+		else {
+			pMesh.materials[OldMaterialID-1] = MaterialID-1;
+			CleanupStack::PopAndDestroy(noteBuf2);
+		}
 	}
     redibujar = true;
 }
@@ -2199,29 +2266,40 @@ void CBlenderLite::DuplicatedObject(){
 	if (obj.type == mesh){
 		Mesh& tempMesh = Meshes[obj.Id];
 		Meshes.Append(tempMesh);
-		//ahora apunta a la nueva malla
 		Mesh& tempMesh2 = Meshes[Meshes.Count()-1];
 
+		Objects.Append(obj);
+		objSelect = Objects.Count()-1;
+		Objects[objSelect].Id = Meshes.Count()-1;
+
 		//los punteros apuntan a la misma memoria que el mesh original. hay que cambiarlo
-		tempMesh2.vertex = new GLshort[tempMesh2.vertexSize*3];
-		tempMesh2.normals = new GLbyte[tempMesh2.vertexSize*3];
-		tempMesh2.uv = new GLbyte[tempMesh2.vertexSize*2];
-		tempMesh2.faces = new GLushort[tempMesh2.facesSize*3];
+		tempMesh2.vertex = new GLshort[tempMesh.vertexSize*3];
+		tempMesh2.normals = new GLbyte[tempMesh.vertexSize*3];
+		tempMesh2.vertexColor = new GLubyte[tempMesh.vertexSize*4];
+		tempMesh2.uv = new GLbyte[tempMesh.vertexSize*2];
+		tempMesh2.materials = new TInt[tempMesh.materialsSize];
+		tempMesh2.faces = new GLushort*[tempMesh.materialsSize];
+		
+		tempMesh2.facesGroupsSize = new TInt[tempMesh2.materialsSize];
+		for(int m=0; m < tempMesh2.materialsSize; m++){		
+			tempMesh2.materials[m] = tempMesh.materials[m];
+			tempMesh2.facesGroupsSize[m] = tempMesh.facesGroupsSize[m];   
+			tempMesh2.faces[m] = new GLushort[tempMesh2.facesGroupsSize[m]*3];
+			for(int f=0; f < tempMesh2.facesGroupsSize[m]*3; f++){		
+				tempMesh2.faces[m][f] = tempMesh.faces[m][f];	
+			}
+		}
 		
 		for(TInt a=0; a < tempMesh2.vertexSize*3; a++){
 			tempMesh2.vertex[a] = tempMesh.vertex[a];
 			tempMesh2.normals[a] = tempMesh.normals[a];
+		}		
+		for(TInt a=0; a < tempMesh2.vertexSize*4; a++){
+			tempMesh2.vertexColor[a] = tempMesh.vertexColor[a];
 		}
 		for(TInt a=0; a < tempMesh2.vertexSize*2; a++){
 			tempMesh2.uv[a] = tempMesh.uv[a];
 		}
-		for(TInt a=0; a < tempMesh2.facesSize*3; a++){
-			tempMesh2.faces[a] = tempMesh.faces[a];
-		}
-		tempMesh2.AgruparVertices();	
-		Objects.Append(obj);	
-		objSelect = Objects.Count()-1;
-		Objects[objSelect].Id = Meshes.Count()-1;
 	}
 	else {
 		Objects.Append(obj);	
@@ -2247,7 +2325,7 @@ void CBlenderLite::SetSpecular(){
 	//si no es un mesh
 	if (obj.type != mesh){return;}	
 	Mesh& pMesh = Meshes[obj.Id];
-	Material& mat = Materials[pMesh.material];
+	Material& mat = Materials[pMesh.materials[0]];
 
 	Cancelar();
 
@@ -2271,7 +2349,7 @@ void CBlenderLite::SetEmission(){
 	//si no es un mesh
 	if (obj.type != mesh){return;}	
 	Mesh& pMesh = Meshes[obj.Id];
-	Material& mat = Materials[pMesh.material];
+	Material& mat = Materials[pMesh.materials[0]];
 	
 	HBufC* buf = HBufC::NewLC( 30 );
 	
@@ -2299,7 +2377,7 @@ void CBlenderLite::SetDiffuse(){
 	//si no es un mesh
 	if (obj.type != mesh){return;}	
 	Mesh& pMesh = Meshes[obj.Id];
-	Material& mat = Materials[pMesh.material];
+	Material& mat = Materials[pMesh.materials[0]];
 
 	HBufC* buf = HBufC::NewLC( 25 );
 	buf->Des().Copy(_L("Rojo (0 - 100)"));
@@ -2649,6 +2727,24 @@ TFileName CBlenderLite::GetRootDirectory(const TDesC& aFilePath)
 
 //import
 void CBlenderLite::NewTexture(){
+	//si no hay objetos
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[objSelect];
+	//si no es un mesh
+	if (obj.type != mesh){return;}	
+	Mesh& pMesh = Meshes[obj.Id];
+
+	Cancelar();
+	TInt MaterialID = 1;
+	if (pMesh.materialsSize > 1){
+		HBufC* noteBuf = HBufC::NewLC(100);
+		_LIT(KFormatString, "Material 1 to %d");
+		noteBuf->Des().Format(KFormatString, pMesh.materialsSize);
+		MaterialID = DialogNumber(1, 1, pMesh.materialsSize, noteBuf);	
+		CleanupStack::PopAndDestroy(noteBuf);	
+	}
+	Material& mat = Materials[pMesh.materials[MaterialID-1]];
+
     _LIT(KTitle, "Selecciona la Textura");
     TFileName filePath;
     if (AknCommonDialogs::RunSelectDlgLD(filePath, R_BLENDERLITE_SELECT_DIALOG, KTitle)) {
@@ -2670,6 +2766,10 @@ void CBlenderLite::NewTexture(){
 		newTexture.iTextureName = selectedFileName;
 		
 		Textures.Append(newTexture);
+		mat.textura = true;
+		//mat.textureID = Textures[Textures.Count()-1].iID;
+		mat.textureID = Textures.Count();
+    	redibujar = true;
 
 		// Agregar la nueva textura a la cola de carga del TextureManager
 		TFileName directorioRaiz = GetRootDirectory(filePath);
@@ -2923,6 +3023,7 @@ void CBlenderLite::ImportOBJ(){
 							//agrega un nuevo material
 							MaterialesNuevos.Append(Materials.Count());
 							MeshsGroups.Append(0);
+							
 							Material mat;	
 							mat.specular[0] = mat.specular[1] = mat.specular[2] = mat.specular[3] = 0.3;
 							mat.diffuse[0] = mat.diffuse[1] = mat.diffuse[2] = mat.diffuse[3] = 1.0;
@@ -2973,75 +3074,82 @@ void CBlenderLite::ImportOBJ(){
 		// cuantos vertices tiene
 		
 		TInt ultimoIndice = 0;
-		for(TInt m=0; m < MeshsGroups.Count(); m++){			
-			HBufC* noteBuf3 = HBufC::NewLC(180);
-			_LIT(KFormatString3, "Mesh: %d/%d\nfaces %d");
-			noteBuf3->Des().Format(KFormatString3, m+1, MeshsGroups.Count(), MeshsGroups[m], ListCaras.Count()/9);
-			DialogAlert(noteBuf3);			
-			if(MeshsGroups[m] < 1){continue;};
+		Mesh tempMesh;
+		tempMesh.materialsSize = MeshsGroups.Count();
+		tempMesh.materials = new TInt[tempMesh.materialsSize];
+		tempMesh.facesGroupsSize = new TInt[tempMesh.materialsSize];
+		tempMesh.vertexSize = ListVertices.Count()/3;
+		tempMesh.vertex = new GLshort[tempMesh.vertexSize*3];
+		tempMesh.vertexColor = new GLubyte[tempMesh.vertexSize*4];
+		tempMesh.normals = new GLbyte[tempMesh.vertexSize*3];
+		tempMesh.uv = new GLbyte[tempMesh.vertexSize*2];
+		tempMesh.smooth = true;
+		tempMesh.culling = true;			
 
-			Mesh tempMesh;
-			tempMesh.material = MaterialesNuevos[m];
-			tempMesh.smooth = true;
-			tempMesh.culling = true;	
-			
-			tempMesh.vertexSize = ListVertices.Count()/3;
-			tempMesh.facesSize = MeshsGroups[m];
+		//valores defecto
+		for (int i = 0; i < tempMesh.vertexSize*3; i++) {
+			tempMesh.vertex[i] = ListVertices[i];
+			tempMesh.normals[i] = 0;
+		}
+		for (int i = 0; i < tempMesh.vertexSize*4; i++) {
+			tempMesh.vertexColor[i] = 255;
+		}
+		for (int i = 0; i < tempMesh.vertexSize*2; i++) {
+			tempMesh.uv[i] = 0;
+		}
 
-			tempMesh.vertex = new GLshort[tempMesh.vertexSize*3];
-			tempMesh.vertexColor = new GLubyte[tempMesh.vertexSize*4];
-			tempMesh.normals = new GLbyte[tempMesh.vertexSize*3];
-			tempMesh.uv = new GLbyte[tempMesh.vertexSize*2];
-			tempMesh.faces = new GLushort[tempMesh.facesSize*3];
+		tempMesh.faces = new GLushort*[tempMesh.materialsSize];
+		for(TInt m=0; m < MeshsGroups.Count(); m++){	
+			tempMesh.materials[m] = MaterialesNuevos[m];	
+			tempMesh.facesGroupsSize[m] = MeshsGroups[m];
 
-			//valores defecto
-			for (int i = 0; i < tempMesh.vertexSize*3; i++) {
-				tempMesh.vertex[i] = ListVertices[i];
-				tempMesh.normals[i] = 0;
-			}
-			for (int i = 0; i < tempMesh.vertexSize*4; i++) {
-				tempMesh.vertexColor[i] = 255;
-			}
-			for (int i = 0; i < tempMesh.vertexSize*2; i++) {
-				tempMesh.uv[i] = 0;
-			}
-			for (int i = 0; i < tempMesh.facesSize*3; i++) {
-				tempMesh.faces[i] = 0;
+			//valores defecto caras
+			tempMesh.faces[m] = new GLushort[tempMesh.facesGroupsSize[m]*3];
+			for (int i = 0; i < tempMesh.facesGroupsSize[m]*3; i++) {
+				tempMesh.faces[m][i] = 0;
 			}
 			
 			//valores reales
-			TInt limite = ultimoIndice + MeshsGroups[m];
+			TInt limite = ultimoIndice + MeshsGroups[m];			
 			TInt ultimoIndiceinicio = ultimoIndice;
-			for(TInt a=ultimoIndice; a < limite; a++){
-				ultimoIndice++;				
+				
+			HBufC* noteBuf3 = HBufC::NewLC(180);
+			_LIT(KFormatString3, "Mesh: %d/%d\nfaces %d");
+			noteBuf3->Des().Format(KFormatString3, m+1, MeshsGroups.Count(), MeshsGroups[m], ListCaras.Count()/9);
+			DialogAlert(noteBuf3);	
+
+			for(TInt a=ultimoIndice; a < limite; a++){			
 				for(TInt f=0; f < 3; f++){
-					TInt indice = a*9+f*3;
-					tempMesh.faces[(a-ultimoIndiceinicio)*3+f] = ListCaras[indice];
+					TInt indiceCara = a*9+f*3;
+					TInt indiceVertice = ListCaras[indiceCara]*3;
+					TInt indiceUV = ListCaras[indiceCara]*2;
+					TInt indiceColor = ListCaras[indiceCara]*4;
+					tempMesh.faces[m][(a-ultimoIndiceinicio)*3+f] = ListCaras[indiceCara];
 					for(TInt v=0; v < 3; v++){
 						//a*9 es que ListCaras tiene 9 valores por cara, 3 vertices, 3 normales y 3 UV
 						//f*3 es para ir por las distintas "/" 1/1/1
-						tempMesh.vertex[ListCaras[indice]*3+v]  = ListVertices[ListCaras[indice]*3+v];	
-						tempMesh.normals[ListCaras[indice]*3+v] = ListNormals[ListCaras[indice+2]*3+v];
-						tempMesh.vertexColor[ListCaras[indice]*4+v] = ListColors[ListCaras[indice]*3+v];
+						tempMesh.vertex[indiceVertice+v]  = ListVertices[ListCaras[indiceCara]*3+v];	
+						tempMesh.normals[indiceVertice+v] = ListNormals[ListCaras[indiceCara+2]*3+v];
+						tempMesh.vertexColor[indiceColor+v] = ListColors[ListCaras[indiceCara]*3+v];
 					}
 					for(TInt uv=0; uv < 2; uv++){
-						tempMesh.uv[ListCaras[indice]*2+uv] = ListUVs[ListCaras[indice+1]*2+uv];
+						tempMesh.uv[indiceUV+uv] = ListUVs[ListCaras[indiceCara+1]*2+uv];
 					}
-				}		
+				}	
+				ultimoIndice++;		
 			}
-			Meshes.Append(tempMesh);
-
-			HBufC* noteBuf = HBufC::NewLC(180);
-			_LIT(KFormatString, "se creo la malla %d");
-			noteBuf->Des().Format(KFormatString, m+1);
-			DialogAlert(noteBuf);
-			
-			obj.Id = Meshes.Count()-1;
-			Objects.Append(obj);
-			objSelect = Objects.Count()-1;
-			Meshes[obj.Id].AgruparVerticesVacio();
-			redibujar = true;
 		}
+		Meshes.Append(tempMesh);
+
+		HBufC* noteBuf = HBufC::NewLC(180);
+		_LIT(KFormatString, "se creo la malla 3D");
+		noteBuf->Des().Format(KFormatString);
+		DialogAlert(noteBuf);
+		
+		obj.Id = Meshes.Count()-1;
+		Objects.Append(obj);
+		objSelect = Objects.Count()-1;
+		Meshes[obj.Id].AgruparVerticesVacio();
 
 		//libero memoria		
 		ListVertices.Close();

@@ -138,7 +138,9 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void TecladoNumerico(TInt numero);
         void InsertarValor();
         void ImportOBJ();
-        void NewTexture();        
+        void NewTexture();   
+        void RemoveMaterial();
+		void RemoveTexture();
         void CloseWaitNoteL();
         void ObtenerUbicacionInstalacionL(TDes& aUbicacion);
         void SetTipoSelect(TInt tipo);
@@ -212,6 +214,8 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         bool showXaxis;
         bool showOutlineSelect;
         bool showOrigins;
+        
+        //RArray<Material> Materials;
 
 		/**
 		 * Application states:

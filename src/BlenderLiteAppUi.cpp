@@ -15,6 +15,8 @@
 #include <avkon.hrh>
 #include "Mesh.h"
 
+#include <aknconsts.h>
+
 // ================= MEMBER FUNCTIONS =======================
 //
 // ----------------------------------------------------------
@@ -60,6 +62,36 @@ enum{
 enum {Solid, MaterialPreview, Wireframe, Rendered};
 
 void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPane ){
+    //prepara el menu de materiales    
+	/*if (aResourceId == R_MATERIAL_MENU){
+	//if (aResourceId == R_LISTMATERIALS_MENU){
+        // Eliminar todos los elementos de men� existentes uno por uno
+        for (TInt i = aMenuPane->NumberOfItemsInPane() - 1; i >= 0; --i)
+        {
+            aMenuPane->DeleteMenuItem(aMenuPane->MenuItemCommandId(i));
+        }      
+        // Definir una cadena de caracteres Unicode de 16 bits
+        const TUint16 unicodeText[] = { 'N', 'o', 'm', 'b', 'r', 'e', ' ', 'd', 'e', 'l', ' ', 'e', 'l', 'e', 'm', 'e', 'n', 't', 'o', ' ', 'd', 'e', ' ', 'm', 'e', 'n', '�', '\0' };
+
+        // Inicializar TPtrC16 con la cadena de caracteres Unicode de 16 bits
+        //TPtrC16 itemText(unicodeText);
+        TPtrC8 itemText = L"Nombre del elemento de men�";
+
+		TBlenderLiteMenuCommands menuCommand = EBlenderLiteOrigenSetOrigen;  // Suponiendo que EBlenderLiteCommand es una constante o enumeraci�n v�lida
+		
+		CEikMenuPaneItem::SData menuItemData;
+		menuItemData.iCommandId = menuCommand;  // Asigna el ID de comando de tu men�
+		menuItemData.iText = itemText;
+				
+		aMenuPane->InsertMenuItemL(menuItemData, 2);
+        
+        // Agrega los nombres de materiales como elementos de men�
+		//for (TInt i = 0; i < iAppContainer->iBlenderLite->Materials.Count(); ++i){
+			//TInt commandId = EAknCmdEmpty + i; // Asigna un ID de comando �nico para cada elemento de men�
+		    //_LIT(KTitle, "Selecciona la Textura");
+			//aMenuPane->AddMenuItemL(TPtrC(KTitle), EBlenderLiteOrigenSetOrigen);
+		//}
+    }*/
 	//oculta el SetOrigen si no esta en modo edicion
     if (aResourceId == R_BLENDERLITE_MENU ) {
         if (iAppContainer->iBlenderLite->estado == edicion) {
@@ -84,7 +116,7 @@ void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
             }
         else {
             aMenuPane->SetItemTextL( EBlenderLiteWidescreen, R_WIDESCREEN_ON  );
-        } 
+        }
     }
     else if (aResourceId == R_VIEWPORT_OVERLEY_MENU ) {
         if ( iAppContainer->iBlenderLite->showOverlays ){
@@ -294,6 +326,9 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             break;
             }
         //nuevos!!!      
+        //case EMaterial:
+        //    OpenMaterialMenuL();
+        //    break;
         case EViewportSetShowFloor:
             iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->showFloor);
             break;       
@@ -317,7 +352,7 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             break; 
         case EImportOBJ:
             iAppContainer->iBlenderLite->ImportOBJ();
-            break; 
+            break;  
         case EBlenderLiteWidescreen:
             iAppContainer->SetWidescreen();
             break;    
@@ -458,11 +493,19 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             break; 
         case EBlenderLiteModificadorScrew:
             iAppContainer->iBlenderLite->AddModificador(screw);
-            break; 
+            break;             
+        case ENewMaterial:
+            iAppContainer->iBlenderLite->NewMaterial();
+            break;
         case ENewTexture:
             iAppContainer->iBlenderLite->NewTexture();
             break; 
-            
+        case ERemoveMaterial:
+            iAppContainer->iBlenderLite->RemoveMaterial();
+            break;  
+        case ERemoveTexture:
+            iAppContainer->iBlenderLite->RemoveTexture();
+            break; 
             //case EBlenderLiteNavegacion:
             //iAppContainer->iBlenderLite->SetMode();
             //break;            

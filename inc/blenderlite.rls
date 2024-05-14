@@ -38,6 +38,11 @@ rls_string STRING_r_blenderlite_SetNavegacion  "Cambiar Navegacion"
 
 rls_string STRING_r_blenderlite_Borrar         "Delete"
 
+rls_string STRING_r_removeMaterial        "Remove Material"
+rls_string STRING_r_removeTexture         "Remove Texture"
+rls_string STRING_r_newMaterial           "New Material"
+rls_string STRING_r_newTexture            "New Texture"
+
 rls_string STRING_r_Material              "Material"
 rls_string STRING_r_setTexture            "Set Texture"
 rls_string STRING_r_setMaterial           "Set Material"
@@ -87,7 +92,6 @@ rls_string STRING_r_blenderlite_OrigenToCursor   "Origen al cursor 3D"
 rls_string STRING_r_blenderlite_widescreen_on    "Pantalla Ancha on"
 rls_string STRING_r_blenderlite_widescreen_off   "Pantalla Ancha off"
 
-rls_string STRING_r_newTexture   "New Texture"
 rls_string STRING_r_ImportOBJ   "Import Wavefront (.obj)"
 
 rls_string STRING_r_Overlay         "Overlays"
