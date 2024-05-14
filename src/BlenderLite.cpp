@@ -2096,7 +2096,16 @@ void CBlenderLite::SetLighting(){
 	//si no es un mesh
 	if (obj.type != mesh){return;}	
 	Mesh& pMesh = Meshes[obj.Id];
-	Material& mat = Materials[pMesh.materials[0]];
+
+	TInt MaterialID = 1;
+	if (pMesh.materialsSize > 1){
+		HBufC* noteBuf = HBufC::NewLC(100);
+		_LIT(KFormatString, "Material 1 to %d");
+		noteBuf->Des().Format(KFormatString, pMesh.materialsSize);
+		MaterialID = DialogNumber(1, 1, pMesh.materialsSize, noteBuf);	
+		CleanupStack::PopAndDestroy(noteBuf);	
+	}
+	Material& mat = Materials[pMesh.materials[MaterialID-1]];
 
 	Cancelar();
 	//activa o desactiva las Transparencias
