@@ -36,6 +36,7 @@ enum TBlenderLiteMenuCommands
     ESetCulling,
     ESetLighting,
     ESetVertexColor,
+    ESetAmbientLight,
     
     EBlenderLiteEditarMesh,
     EViewportObject,
@@ -58,6 +59,7 @@ enum TBlenderLiteMenuCommands
     EBlenderLiteViewSolid,
     EBlenderLiteViewMaterial,
     EBlenderLiteViewWireframe,
+    EViewRendered,
     
     EBlenderLiteModificadores,
     EBlenderLiteModificadorArray,

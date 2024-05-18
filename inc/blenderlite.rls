@@ -75,6 +75,10 @@ rls_string STRING_r_blenderlite_Vista3D          "Vista 3D"
 rls_string STRING_r_blenderlite_ViewSolid        "View Solid"
 rls_string STRING_r_blenderlite_ViewMaterial     "View Material"
 rls_string STRING_r_blenderlite_ViewWireframe    "View Wireframe"
+rls_string STRING_r_ViewRendered                 "View Rendered"
+rls_string STRING_r_setAmbientLight              "Set Ambient Light"
+
+
 
 rls_string STRING_r_blenderlite_Modificadores     "Modificadores"
 rls_string STRING_r_blenderlite_ModificadorArray  "Array"

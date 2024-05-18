@@ -211,6 +211,10 @@ RESOURCE MENU_PANE r_viewport_add_menu{
 RESOURCE MENU_PANE r_blenderlite_vista3D_menu{
 	items = {
         MENU_ITEM {
+            command = EViewRendered;
+            txt = STRING_r_ViewRendered;
+        },
+        MENU_ITEM {
             command = EBlenderLiteViewMaterial;
             txt = STRING_r_blenderlite_ViewMaterial;
         },
@@ -323,7 +327,11 @@ RESOURCE MENU_PANE r_Material_menu{
         MENU_ITEM {
             command = ESetVertexColor;
             txt = STRING_r_setVertexColor;
-        }                 
+        },    
+        MENU_ITEM {
+            command = ESetAmbientLight;
+            txt = STRING_r_setAmbientLight;
+        }            
     };
 }
 
@@ -502,9 +510,6 @@ RESOURCE MENU_PANE r_blenderlite_editarOrigen_menu{
 //----------------------------------------------------
 //
 
-RESOURCE TBUF256 r_blenderlite_topView{buf = STRING_r_blenderlite_topView;}
-RESOURCE TBUF256 r_blenderlite_frontView{buf = STRING_r_blenderlite_frontView;}
-RESOURCE TBUF256 r_blenderlite_rightView{buf = STRING_r_blenderlite_rightView;}
 RESOURCE TBUF256 r_blenderlite_perspectiva{buf = STRING_r_blenderlite_perspectiva;}
 RESOURCE TBUF256 r_blenderlite_ObjFocus{buf = STRING_r_blenderlite_ObjFocus;}
 RESOURCE TBUF256 r_blenderlite_CambiarObject{buf = STRING_r_blenderlite_CambiarObject;}
@@ -521,9 +526,6 @@ RESOURCE TBUF256 r_blenderlite_CambiarPosicion{buf = STRING_r_blenderlite_Cambia
 RESOURCE TBUF256 r_blenderlite_CambiarRotacion{buf = STRING_r_blenderlite_CambiarRotacion;}
 
 RESOURCE TBUF256 r_blenderlite_Vista3D{buf = STRING_r_blenderlite_Vista3D;}
-RESOURCE TBUF256 r_blenderlite_ViewSolid{buf = STRING_r_blenderlite_ViewSolid;}
-RESOURCE TBUF256 r_blenderlite_ViewMaterial{buf = STRING_r_blenderlite_ViewMaterial;}
-RESOURCE TBUF256 r_blenderlite_ViewWireframe{buf = STRING_r_blenderlite_ViewWireframe;}
 
 RESOURCE TBUF256 r_blenderlite_Modificadores{buf = STRING_r_blenderlite_Modificadores;}
 RESOURCE TBUF256 r_blenderlite_ModificadorArray{buf = STRING_r_blenderlite_ModificadorArray;}

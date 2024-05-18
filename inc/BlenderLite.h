@@ -108,6 +108,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void ActivarTextura();
         void SetInterpolation();
         void SetTransparencia();
+        void SetAmbientLight();
         void SetSmooth();
         void SetCulling();
         void SetLighting();

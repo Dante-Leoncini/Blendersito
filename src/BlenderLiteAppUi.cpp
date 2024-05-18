@@ -401,6 +401,9 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
         case EDuplicatedLinked:
             iAppContainer->iBlenderLite->DuplicatedLinked();
             break; 
+        case ESetAmbientLight:
+            iAppContainer->iBlenderLite->SetAmbientLight();
+            break;   
         case ESetDiffuse:
             iAppContainer->iBlenderLite->SetDiffuse();
             break;   
@@ -461,9 +464,9 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
         case EBlenderLiteViewWireframe:
             iAppContainer->iBlenderLite->SetShading(Wireframe);
             break; 
-        /*case EBlenderLiteViewRendered:
+        case EViewRendered:
             iAppContainer->iBlenderLite->SetShading(Rendered);
-            break; */
+            break;
         case EBlenderLiteSetTipoVertex:
             iAppContainer->iBlenderLite->SetTipoSelect(vertexSelect);
             break; 

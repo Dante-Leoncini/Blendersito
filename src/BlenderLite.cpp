@@ -101,6 +101,8 @@ static const GLfloat ColorTransformZ[4]  = { MATERIALCOLOR(0.46, 0.67, 0.89, 1.0
 /* Global ambient light. */
 static const GLfloat globalAmbient[4]   = { LIGHTCOLOR(0.5, 0.5, 0.5, 1.0) };
 
+GLfloat AmbientRender[4] = { LIGHTCOLOR(0.0, 0.0, 0.0, 1.0) };
+
 /* Lamp parameters. */
 static const GLfloat lightDiffuseLamp[4]   = { LIGHTCOLOR(0.8, 0.8, 0.8, 1.0) };
 static const GLfloat lightAmbient[4]   = { LIGHTCOLOR(0.0, 0.0, 0.0, 1.0) };
@@ -110,7 +112,7 @@ static const GLfloat sunLightPosition[4]  = {-100, 1000, 1000, 0 }; // y, z, x, 
 static const GLfloat lightDiffuseSpot[4]   = { LIGHTCOLOR(0.0, 0.0, 0.0, 1.0) };
 static const GLfloat lightSpecularSpot[4]  = { LIGHTCOLOR(0.0, 0.0, 3.0, 1.0) };
 static const GLfloat lightPositionSpot[4]  = {  0, -10, -1, 0 };
-static const GLfloat lightDirectionSpot[4] = {  0,  10,  1, 1 };
+static const GLfloat lightDirectionSpot[4] = {  0,  -10,  -1, 1 };
 
 //camara
 bool ortografica = false;
@@ -135,6 +137,7 @@ bool showOrigins = true;
 GLfloat Cursor3DposX = 0.0f;
 GLfloat Cursor3DposZ = 0.0f;
 GLfloat Cursor3DposY = 0.0f;
+TInt nextLightId = GL_LIGHT3;
 
 //solo redibuja si este valor esta en true
 bool redibujar = true;
@@ -188,6 +191,7 @@ SaveState estadoObj;
 //Crea un array de objetos
 RArray<Object> Objects;
 RArray<Material> Materials;
+RArray<Light> Lights;
 RArray<Mesh> Meshes;
 TInt objSelect = 0;
 TInt tipoSelect = vertexSelect;
@@ -293,6 +297,10 @@ void CBlenderLite::ConstructL( void ){
 	Objects[1].posX = -3000;
 	Objects[1].posY = 1500;
 	Objects[1].posZ = 4500;
+	GLfloat positionLight[4] = {0, 0, 0, 0};
+	//glLightfv(  nextLightId-1, GL_POSITION, positionLight );
+	glLightfv(  GL_LIGHT3, GL_POSITION, positionLight );
+	
 	//AddMesh(monkey);
 	AddMesh(cubo);
 }
@@ -411,7 +419,7 @@ void CBlenderLite::AppInit( void ){
     glLightfv(  GL_LIGHT0, GL_POSITION, sunLightPosition );
 
     // Set up spot.  Initially spot is disabled.
-    //glEnable( GL_LIGHT1 );
+    glEnable( GL_LIGHT1 );
     glLightfv(  GL_LIGHT1, GL_DIFFUSE,  lightDiffuseSpot  );
     glLightfv(  GL_LIGHT1, GL_AMBIENT,  lightAmbient  );
     glLightfv(  GL_LIGHT1, GL_SPECULAR, lightSpecularSpot );
@@ -421,8 +429,8 @@ void CBlenderLite::AppInit( void ){
     glLightf(   GL_LIGHT1, GL_LINEAR_ATTENUATION,    0.5  );
     glLightf(   GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.5  );
 
-    glLightf(   GL_LIGHT1, GL_SPOT_CUTOFF,   17.0                );
-    glLightf(   GL_LIGHT1, GL_SPOT_EXPONENT,  2.0                );
+    glLightf(   GL_LIGHT1, GL_SPOT_CUTOFF,   170.0                );
+    glLightf(   GL_LIGHT1, GL_SPOT_EXPONENT,  20.0                );
     glLightfv(  GL_LIGHT1, GL_SPOT_DIRECTION, lightDirectionSpot );
 
     // Set shading mode
@@ -555,7 +563,7 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 			else {glDisable( GL_CULL_FACE );}	
 			
 			//modelo con textura
-			if (view == MaterialPreview){
+			if (view == MaterialPreview || view == Rendered){
 				//material
 				glTexCoordPointer( 2, GL_BYTE, 0, pMesh.uv );
 				
@@ -603,6 +611,7 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 			}
 			//modelo sin textura
 			if (view == Solid){
+				glEnable( GL_LIGHTING );
 				Material& mat = Materials[pMesh.materials[0]];
 			    glDisableClientState( GL_COLOR_ARRAY );	  	
 				glDisable( GL_TEXTURE_2D );
@@ -1525,7 +1534,37 @@ void CBlenderLite::guardarEstado(int indice){
 };
 
 //cambie el shader
-void CBlenderLite::SetShading(TInt valor){
+void CBlenderLite::SetShading(TInt valor){	
+	for (int i = 0; i < Lights.Count(); i++) {
+		//glDisable( Lights[i].lightId );			
+		//glDisable( GL_LIGHT3 );			
+	}
+	switch (valor) {
+		case Wireframe:
+			glDisable( GL_LIGHT0 );
+    		glLightModelfv( GL_LIGHT_MODEL_AMBIENT, globalAmbient );
+			break;
+		case Rendered:
+			glDisable( GL_LIGHT0 );			
+			for (int i = 0; i < Lights.Count(); i++) {
+				//glEnable( Lights[i].lightId );		
+				glEnable( GL_LIGHT3 );	
+			}
+    		glLightModelfv( GL_LIGHT_MODEL_AMBIENT, AmbientRender );
+			break;
+		case Solid:
+			glEnable( GL_LIGHT0 );
+    		glLightModelfv( GL_LIGHT_MODEL_AMBIENT, globalAmbient );
+			break;
+		case MaterialPreview:
+			glEnable( GL_LIGHT0 );
+    		glLightModelfv( GL_LIGHT_MODEL_AMBIENT, globalAmbient );
+			break;
+		default:
+			glDisable( GL_LIGHT0 );
+			break;
+	};
+
 	view = valor;
     redibujar = true;	
 }
@@ -1812,6 +1851,33 @@ void CBlenderLite::AddObject( TInt tipo ){
 	obj.scaleX = obj.scaleY = obj.scaleZ = 45000;
 	obj.Id = -0;
 	Objects.Append(obj);
+	if (tipo == light){
+		Light tempLight;
+		tempLight.type = pointLight;
+		tempLight.lightId = nextLightId;
+		tempLight.color[0] = 1.0;
+		tempLight.color[1] = 1.0;
+		tempLight.color[2] = 1.0;
+		tempLight.color[3] = 1.0;
+		//tempLight.color  = { MATERIALCOLOR(1.0, 1.0, 1.0, 1.0) };
+		
+		glEnable( GL_LIGHT3 );	
+		glLightfv(  GL_LIGHT3, GL_DIFFUSE,  tempLight.color  );
+		glLightfv(  GL_LIGHT3, GL_AMBIENT,  lightAmbient  );
+		glLightfv(  GL_LIGHT3, GL_SPECULAR, lightSpecularSpot );
+		glLightfv(  GL_LIGHT3, GL_POSITION, lightPositionSpot );
+
+		glLightf(   GL_LIGHT3, GL_CONSTANT_ATTENUATION,  1.5  );
+		glLightf(   GL_LIGHT3, GL_LINEAR_ATTENUATION,    0.5  );
+		glLightf(   GL_LIGHT3, GL_QUADRATIC_ATTENUATION, 0.5  );
+
+		glLightf(   GL_LIGHT3, GL_SPOT_CUTOFF,   17.0                );
+		glLightf(   GL_LIGHT3, GL_SPOT_EXPONENT,  2.0                );
+		glLightfv(  GL_LIGHT3, GL_SPOT_DIRECTION, lightDirectionSpot );
+		nextLightId++;
+
+		Lights.Append(tempLight);
+	}
 	objSelect = Objects.Count()-1;
     redibujar = true;
 }
@@ -2007,20 +2073,28 @@ void CBlenderLite::ActivarTextura(){
 	//si no es un mesh
 	if (obj.type != mesh){return;}	
 	Mesh& pMesh = Meshes[obj.Id];
-	Material& mat = Materials[pMesh.materials[0]];
+
+	Cancelar();
+	TInt MaterialID = 1;
+	HBufC* noteBuf = HBufC::NewLC(100);
+	if (pMesh.materialsSize > 1){
+		_LIT(KFormatString, "Material 1 to %d");
+		noteBuf->Des().Format(KFormatString, pMesh.materialsSize);
+		MaterialID = DialogNumber(1, 1, pMesh.materialsSize, noteBuf);		
+	}
+	Material& mat = Materials[pMesh.materials[MaterialID-1]];
 
 	Cancelar();
 	//activa o desactiva las texturas
-	HBufC* buf = HBufC::NewLC( 20 );
-	buf->Des().Copy(_L("Activar Textura?"));
-	if (DialogAlert(buf)){	
+	noteBuf->Des().Copy(_L("Activar Textura?"));
+	if (DialogAlert(noteBuf)){	
 		mat.textura = true;
 		
 	}
 	else {
 		mat.textura = false;	
 	}
-	//CleanupStack::PopAndDestroy(buf);	
+	CleanupStack::PopAndDestroy(noteBuf);	
     redibujar = true;
 }
 
@@ -2031,19 +2105,28 @@ void CBlenderLite::SetTransparencia(){
 	//si no es un mesh
 	if (obj.type != mesh){return;}	
 	Mesh& pMesh = Meshes[obj.Id];
-	Material& mat = Materials[pMesh.materials[0]];
+
+	Cancelar();
+	TInt MaterialID = 1;
+	HBufC* noteBuf = HBufC::NewLC(100);
+	if (pMesh.materialsSize > 1){
+		_LIT(KFormatString, "Material 1 to %d");
+		noteBuf->Des().Format(KFormatString, pMesh.materialsSize);
+		MaterialID = DialogNumber(1, 1, pMesh.materialsSize, noteBuf);		
+	}
+
+	Material& mat = Materials[pMesh.materials[MaterialID-1]];
 
 	Cancelar();
 	//activa o desactiva las Transparencias
-	HBufC* buf = HBufC::NewLC( 22 );
-	buf->Des().Copy(_L("Activar Transparencia?"));
-	if (DialogAlert(buf)){	
+	noteBuf->Des().Copy(_L("Activar Transparencia?"));
+	if (DialogAlert(noteBuf)){	
 		mat.transparent = true;
 	}
 	else {
 		mat.transparent = false;	
 	}
-	//CleanupStack::PopAndDestroy(buf);	
+	CleanupStack::PopAndDestroy(noteBuf);	
     redibujar = true;
 }
 
@@ -2334,20 +2417,26 @@ void CBlenderLite::SetSpecular(){
 	//si no es un mesh
 	if (obj.type != mesh){return;}	
 	Mesh& pMesh = Meshes[obj.Id];
-	Material& mat = Materials[pMesh.materials[0]];
 
 	Cancelar();
+	TInt MaterialID = 1;
+	HBufC* noteBuf = HBufC::NewLC(100);
+	if (pMesh.materialsSize > 1){
+		_LIT(KFormatString, "Material 1 to %d");
+		noteBuf->Des().Format(KFormatString, pMesh.materialsSize);
+		MaterialID = DialogNumber(1, 1, pMesh.materialsSize, noteBuf);		
+	}
+	Material& mat = Materials[pMesh.materials[MaterialID-1]];
 
-	HBufC* buf = HBufC::NewLC( 25 );
-	buf->Des().Copy(_L("Valor Specular (0 - 100)"));
-	TInt valor = DialogNumber((TInt)(mat.specular[0]*100.f), 0, 100, buf);
+	noteBuf->Des().Copy(_L("Valor Specular (0 - 100)"));
+	TInt valor = DialogNumber((TInt)(mat.specular[0]*100.f), 0, 100, noteBuf);
 	GLfloat resultado = valor/100.0f;
 
 	mat.specular[0] = resultado;
 	mat.specular[1] = resultado;
 	mat.specular[2] = resultado;
 	mat.specular[3] = resultado;
-	CleanupStack::PopAndDestroy(buf);
+	CleanupStack::PopAndDestroy(noteBuf);
     redibujar = true;
 }
 
@@ -2358,25 +2447,52 @@ void CBlenderLite::SetEmission(){
 	//si no es un mesh
 	if (obj.type != mesh){return;}	
 	Mesh& pMesh = Meshes[obj.Id];
-	Material& mat = Materials[pMesh.materials[0]];
+
+	Cancelar();
+	TInt MaterialID = 1;
+	HBufC* noteBuf = HBufC::NewLC(100);
+	if (pMesh.materialsSize > 1){
+		_LIT(KFormatString, "Material 1 to %d");
+		noteBuf->Des().Format(KFormatString, pMesh.materialsSize);
+		MaterialID = DialogNumber(1, 1, pMesh.materialsSize, noteBuf);		
+	}
+	Material& mat = Materials[pMesh.materials[MaterialID-1]];
 	
-	HBufC* buf = HBufC::NewLC( 30 );
-	
-	buf->Des().Copy(_L("Emission Roja (0 - 100)"));
-	TInt valor = DialogNumber((TInt)(mat.emission[0]*100.f), 0, 100, buf);
+	noteBuf->Des().Copy(_L("Emission Roja (0 - 100)"));
+	TInt valor = DialogNumber((TInt)(mat.emission[0]*100.f), 0, 100, noteBuf);
 	mat.emission[0] = valor/100.0f;
     redibujar = true;
 
-	buf->Des().Copy(_L("Emission Verde (0 - 100)"));
-    valor = DialogNumber((TInt)(mat.emission[1]*100.f), 0, 100, buf);
+	noteBuf->Des().Copy(_L("Emission Verde (0 - 100)"));
+    valor = DialogNumber((TInt)(mat.emission[1]*100.f), 0, 100, noteBuf);
     mat.emission[1] = valor/100.0f;
 	redibujar = true;	
 
-	buf->Des().Copy(_L("Emission Verde (0 - 100)"));
-    valor = DialogNumber((TInt)(mat.emission[2]*100.f), 0, 100, buf);
+	noteBuf->Des().Copy(_L("Emission Verde (0 - 100)"));
+    valor = DialogNumber((TInt)(mat.emission[2]*100.f), 0, 100, noteBuf);
     mat.emission[2] = valor/100.0f;
-	CleanupStack::PopAndDestroy(buf);
+	CleanupStack::PopAndDestroy(noteBuf);
 	redibujar = true;
+}
+
+void CBlenderLite::SetAmbientLight(){
+	HBufC* buf = HBufC::NewLC( 25 );
+	buf->Des().Copy(_L("Rojo (0 - 100)"));
+	TInt valorR = DialogNumber((TInt)(AmbientRender[0]*100.f), 0, 100, buf);
+	AmbientRender[0] = (GLfloat)valorR/100.0f;
+    redibujar = true;	
+	buf->Des().Copy(_L("Verde (0 - 100)"));
+	TInt valorG = DialogNumber((TInt)(AmbientRender[1]*100.f), 0, 100, buf);
+	AmbientRender[1] = (GLfloat)valorG/100.0f;
+    redibujar = true;	
+	buf->Des().Copy(_L("Azul (0 - 100)"));
+	TInt valorB = DialogNumber((TInt)(AmbientRender[2]*100.f), 0, 100, buf);
+	AmbientRender[2] = (GLfloat)valorB/100.0f;
+	CleanupStack::PopAndDestroy(buf);
+	if (view == Rendered){
+		glLightModelfv( GL_LIGHT_MODEL_AMBIENT, AmbientRender );
+	}
+    redibujar = true;
 }
 
 void CBlenderLite::SetDiffuse(){
@@ -2386,21 +2502,29 @@ void CBlenderLite::SetDiffuse(){
 	//si no es un mesh
 	if (obj.type != mesh){return;}	
 	Mesh& pMesh = Meshes[obj.Id];
-	Material& mat = Materials[pMesh.materials[0]];
 
-	HBufC* buf = HBufC::NewLC( 25 );
-	buf->Des().Copy(_L("Rojo (0 - 100)"));
-	TInt valorR = DialogNumber((TInt)(mat.diffuse[0]*100.f), 0, 100, buf);
+	Cancelar();
+	TInt MaterialID = 1;
+	HBufC* noteBuf = HBufC::NewLC(100);
+	if (pMesh.materialsSize > 1){
+		_LIT(KFormatString, "Material 1 to %d");
+		noteBuf->Des().Format(KFormatString, pMesh.materialsSize);
+		MaterialID = DialogNumber(1, 1, pMesh.materialsSize, noteBuf);		
+	}
+	Material& mat = Materials[pMesh.materials[MaterialID-1]];
+
+	noteBuf->Des().Copy(_L("Rojo (0 - 100)"));
+	TInt valorR = DialogNumber((TInt)(mat.diffuse[0]*100.f), 0, 100, noteBuf);
 	mat.diffuse[0] = (GLfloat)valorR/100.0f;
     redibujar = true;	
-	buf->Des().Copy(_L("Verde (0 - 100)"));
-	TInt valorG = DialogNumber((TInt)(mat.diffuse[1]*100.f), 0, 100, buf);
+	noteBuf->Des().Copy(_L("Verde (0 - 100)"));
+	TInt valorG = DialogNumber((TInt)(mat.diffuse[1]*100.f), 0, 100, noteBuf);
 	mat.diffuse[1] = (GLfloat)valorG/100.0f;
     redibujar = true;	
-	buf->Des().Copy(_L("Azul (0 - 100)"));
-	TInt valorB = DialogNumber((TInt)(mat.diffuse[2]*100.f), 0, 100, buf);
+	noteBuf->Des().Copy(_L("Azul (0 - 100)"));
+	TInt valorB = DialogNumber((TInt)(mat.diffuse[2]*100.f), 0, 100, noteBuf);
 	mat.diffuse[2] = (GLfloat)valorB/100.0f;
-	CleanupStack::PopAndDestroy(buf);
+	CleanupStack::PopAndDestroy(noteBuf);
     redibujar = true;
 }
 

@@ -2,6 +2,9 @@
 typedef enum { mesh, camera, light, empty, armature, curve };
 typedef GLshort Edge[2];
 
+typedef enum { pointLight, sunLight };
+
+
 class Object {
 	public:
 		TInt type;
@@ -10,6 +13,13 @@ class Object {
 		GLfloat rotX; GLfloat rotY; GLfloat rotZ;
 		GLfixed scaleX; GLfixed scaleY; GLfixed scaleZ;
 		TInt Id;
+};
+
+class Light { 
+	public:
+		TInt type;
+		TInt lightId;
+		GLfloat color[4];
 };
 
 class Material { 
