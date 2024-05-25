@@ -126,22 +126,27 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void CursorToSelect();
         void Borrar();
         void changeSelect();
+        void Animation();
         void SetMouse();
-        void ToggleValue(bool& valueToUpdate);
+        void ToggleValue(TBool& valueToUpdate);
         void InfoObject(TInt opciones);
         void SetUvSprite(GLshort x, GLshort y, GLshort ancho, GLshort alto);
         void SetSpriteSize(GLshort ancho, GLshort alto);
         void DrawnRectangle();
         void IconSelect(TBool activo);
         void UiMoveTo(GLshort x, GLshort y);
+        void DrawnLines(TInt LineWidth, TInt cantidad, GLshort* vertexlines, GLushort* lineasIndices);
+        void DrawnLines(TInt LineWidth, TInt cantidad, const GLshort* vertexlines, const GLushort* lineasIndices);
         void SetUvBordes(GLshort origenX, GLshort origenY, GLshort ancho, GLshort alto, GLshort top, GLshort right, GLshort bottom, GLshort left);
         void DibujarRectanguloBordes(GLshort ancho, GLshort alto, GLshort top, GLshort right, GLshort bottom, GLshort left );
         void SearchSelectObj(Object& obj, TInt objIndex, TBool& found);
         void DrawTransformAxis(Object& obj);
         void SetViewpoint(TInt opcion);
         TFileName GetRootDirectory(const TDesC& aFilePath);        
-        void SaveCanvasToImage(const char* filename);
-        void SaveAsBMP(int width, int height, const GLubyte* pixels, const char* filename);
+        void SaveCanvasToImage();
+        void DrawnTimeline();
+        //void SaveAsBMP(int width, int height, const GLubyte* pixels, const char* filename);
+        void SaveAsBMP(TInt width, TInt height, const GLubyte* pixels);
         void AddModificador(TInt opcion);
         void RenderMeshAndChildren(Object& obj);
         void RenderObjectAndChildrens(TInt objId);
@@ -155,6 +160,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void RenderMesh( TInt objId );
         void RenderObject( TInt objId );
         void DibujarOrigen();
+        void SetCurrentFrame();
         void SetParent();
         void ClearParent();
         void ObtenerUbicacionInstalacionL(TDes& aUbicacion);
@@ -222,13 +228,15 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
     public:  // Data
         /** para el menu de la app */
         TBool iWidescreenEnabled;
-        bool showOverlays;
-        bool show3DCursor;
-        bool showFloor;
-        bool showYaxis;
-        bool showXaxis;
-        bool showOutlineSelect;
-        bool showOrigins;
+        TBool showOverlays;
+        TBool show3DCursor;
+        TBool showFloor;
+        TBool showYaxis;
+        TBool showXaxis;
+        TBool showOutlineSelect;
+        TBool showOrigins;
+        TBool ShowTimeline;
+        TBool PlayAnimation;
         
         //RArray<Material> Materials;
 

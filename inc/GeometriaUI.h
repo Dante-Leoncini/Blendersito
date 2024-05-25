@@ -9,8 +9,15 @@ static GLshort LineaLightVertex[LineaLightVertexSize] = {
     0, -30000, 0,
 };
 
-//para cualquier linea simple
-static const GLushort LineaEdge[LineaEdgeSize]={0, 1};
+static const GLshort LineaTimeline[6] = {    
+    0, 0, 0,
+    0, -16, 0,
+};
+
+// Define los índices de las líneas
+static const GLushort LineaEdge[2] = {
+    0, 1
+};
 
 static const TInt CameraVertexSize = 8 * 3;
 static const TInt CameraEdgesSize = 11 * 2;

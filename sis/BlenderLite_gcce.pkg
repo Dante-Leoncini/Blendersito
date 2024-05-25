@@ -23,6 +23,7 @@
 "..\inc\texturas\lamp.png"   -"!:\private\A00D021D\lamp.png"
 "..\inc\texturas\cursor3d.png"   -"!:\private\A00D021D\cursor3d.png"
 "..\inc\texturas\cursor.png"   -"!:\private\A00D021D\cursor.png"
+"..\inc\texturas\keyframe.png"   -"!:\private\A00D021D\keyframe.png"
 
 
 ;required for application to be covered by backup/restore facility 

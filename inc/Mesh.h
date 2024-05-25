@@ -75,7 +75,7 @@ class Mesh {
 				TempVertexIndiceGroup[a] = new GLushort[5]; //lo ideal seria el maximo posible. pero problemas de memoria
 			}	
 		    vertexGroupSize = 0;
-		    bool iguales = false;
+		    TBool iguales = false;
 			for(TInt a=0; a < vertexSize/3; a++){
 				iguales = false;
 				//busca copias
@@ -330,7 +330,7 @@ class Mesh { //clase Mesh
 				TempVertexIndiceGroup[a] = new GLushort[5]; //lo ideal seria el maximo posible. pero problemas de memoria
 			}	
 		    vertexGroupSize = 0;
-		    bool iguales = false;
+		    TBool iguales = false;
 			for(TInt a=0; a < vertexSize/3; a++){
 				iguales = false;
 				//busca copias

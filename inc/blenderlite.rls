@@ -81,8 +81,6 @@ rls_string STRING_r_blenderlite_ViewWireframe    "View Wireframe"
 rls_string STRING_r_ViewRendered                 "View Rendered"
 rls_string STRING_r_setAmbientLight              "Set Ambient Light"
 
-
-
 rls_string STRING_r_blenderlite_Modificadores     "Modificadores"
 rls_string STRING_r_blenderlite_ModificadorArray  "Array"
 rls_string STRING_r_blenderlite_ModificadorMirror "Mirror"
@@ -100,6 +98,9 @@ rls_string STRING_r_blenderlite_widescreen_on    "Pantalla Ancha on"
 rls_string STRING_r_blenderlite_widescreen_off   "Pantalla Ancha off"
 
 rls_string STRING_r_ImportOBJ   "Import Wavefront (.obj)"
+            
+rls_string STRING_r_RenderImage         "Render Image"
+rls_string STRING_r_RenderAnimation     "Render Animation"
 
 rls_string STRING_r_Overlay         "Overlays"
 rls_string STRING_r_ShowOverlay     "Show Overlays"
@@ -116,6 +117,13 @@ rls_string STRING_r_HideOutlineSelect     "Hide Outline Select"
 rls_string STRING_r_ShowOutlineSelect     "Show Outline Select"
 rls_string STRING_r_HideOrigin      "Hide Origin"
 rls_string STRING_r_ShowOrigin      "Show Origin"
+
+rls_string STRING_r_Timeline         "Timeline"
+rls_string STRING_r_Play             "Play"
+rls_string STRING_r_Stop             "Stop"
+rls_string STRING_r_SetCurrentFrame  "Set Current Frame"
+rls_string STRING_r_Show_Timeline    "Show Timeline"
+rls_string STRING_r_Hide_Timeline    "Hide Timeline"
 
 
 // End of File

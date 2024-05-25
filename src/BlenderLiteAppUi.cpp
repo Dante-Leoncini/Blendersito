@@ -163,6 +163,20 @@ void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
             aMenuPane->SetItemTextL( EViewportSetOrigins, R_SHOWORIGIN  );
         }    
     }  
+    else if (aResourceId == R_TIMELINE_MENU ) {
+        if ( iAppContainer->iBlenderLite->PlayAnimation ){
+            aMenuPane->SetItemTextL( ETimelinePlayStop, R_STOP );
+        }
+        else {
+            aMenuPane->SetItemTextL( ETimelinePlayStop, R_PLAY );
+        }
+        if ( iAppContainer->iBlenderLite->ShowTimeline ){
+            aMenuPane->SetItemTextL( ETimelineShowTimeline, R_HIDE_TIMELINE );
+        }
+        else {
+            aMenuPane->SetItemTextL( ETimelineShowTimeline, R_SHOW_TIMELINE  );
+        }
+    }
 }
 
 // ----------------------------------------------------
@@ -349,7 +363,16 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             break;       
         case EViewportSet3DCursor:
             iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->show3DCursor);
-            break; 
+            break;    
+        case ETimelinePlayStop:
+            iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->PlayAnimation);
+            break;  
+        case ETimelineShowTimeline:
+            iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->ShowTimeline);
+            break;
+        case ETimelineSetCurrentFrame:
+            iAppContainer->iBlenderLite->SetCurrentFrame();
+            break;
         case EImportOBJ:
             iAppContainer->iBlenderLite->ImportOBJ();
             break;  
@@ -406,6 +429,12 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             break;     
         case EClearParent:
             iAppContainer->iBlenderLite->ClearParent();
+            break;   
+        case ERenderImage:
+            iAppContainer->iBlenderLite->SaveCanvasToImage();
+            break; 
+        case ERenderAnimation:
+            iAppContainer->iBlenderLite->SaveCanvasToImage();
             break; 
         case ESetAmbientLight:
             iAppContainer->iBlenderLite->SetAmbientLight();

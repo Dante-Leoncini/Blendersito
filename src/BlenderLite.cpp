@@ -118,7 +118,7 @@ static const GLfloat sunLightPosition[4]  = {-100, 1000, 1000, 0 }; // y, z, x, 
 static const GLfloat positionPuntualLight[4] = {0, 0, 0, 1};
 
 //camara
-bool ortografica = false;
+TBool ortografica = false;
 GLfloat aspectRatio;
 GLfloat rotX = 113.5;
 GLfloat rotY = 20.0; //66.2
@@ -129,21 +129,26 @@ GLfloat posZ = 0;
 //vista 3d
 GLshort mouseX = 0;
 GLshort mouseY = 0;
-bool mouseVisible = false;
-bool showOverlays = true;
-bool show3DCursor = true;
-bool showFloor = true;
-bool showYaxis = true;
-bool showXaxis = true;
-bool showOutlineSelect = true;
-bool showOrigins = true;
+TBool mouseVisible = false;
+TBool showOverlays = true;
+TBool show3DCursor = true;
+TBool showFloor = true;
+TBool showYaxis = true;
+TBool showXaxis = true;
+TBool showOutlineSelect = true;
+TBool showOrigins = true;
 GLfloat Cursor3DposX = 0.0f;
 GLfloat Cursor3DposZ = 0.0f;
 GLfloat Cursor3DposY = 0.0f;
 TInt nextLightId = GL_LIGHT1;
 
-//solo redibuja si este valor esta en true
-bool redibujar = true;
+//animacion
+TInt StartFrame = 1;
+TInt EndFrame = 250;
+TInt CurrentFrame = 1;
+TBool PlayAnimation = true;
+TBool ShowTimeline = true;
+TBool redibujar = true; //solo redibuja si este valor esta en true
 
 //interpolacion
 enum {lineal, closest};
@@ -283,6 +288,8 @@ void CBlenderLite::ConstructL( void ){
 	showXaxis = true;
 	showOutlineSelect = true;
 	showOrigins = true;
+	PlayAnimation = true;
+	ShowTimeline = true;
 
 	//tiene que haber un material por defecto siempre
 	NewMaterial();
@@ -371,6 +378,7 @@ CBlenderLite::~CBlenderLite(){
 // -----------------------------------------------------------------------------
 //
 RArray<TTexture> Textures;
+TInt NumTexturasBlendersito = 0;
 void CBlenderLite::AppInit( void ){
     // Construct a texture manager that uses the application's private
     // directory as the location for all textures.
@@ -460,9 +468,11 @@ void CBlenderLite::AppInit( void ){
 	_LIT( KMouseTexture, "cursor.png" );	
 	_LIT( KLampTexture, "lamp.png" );		
 	_LIT( KCursor3dTextura, "cursor3d.png" );	
-
-	Textures.ReserveL(4); // Reservar espacio para las texturas
-	for (TInt i = 0; i < 4; ++i) {
+	_LIT( KkeyframeTextura, "keyframe.png" );	
+	
+	NumTexturasBlendersito = 5;
+	Textures.ReserveL(NumTexturasBlendersito); // Reservar espacio para las texturas
+	for (TInt i = 0; i < NumTexturasBlendersito; ++i) {
 	    TTexture texture;
 	    Textures.Append(texture);
 	}
@@ -471,18 +481,10 @@ void CBlenderLite::AppInit( void ){
 	TFileName fullFilePath = RootDirectory;
     fullFilePath.Append(privateDir);
 	iTextureManager->RequestToLoad( KOriginTexture, fullFilePath, &Textures[0], false );
-	
-    fullFilePath = RootDirectory;
-    fullFilePath.Append(privateDir);
 	iTextureManager->RequestToLoad( KMouseTexture, fullFilePath, &Textures[1], false );
-	
-    fullFilePath = RootDirectory;
-    fullFilePath.Append(privateDir);
 	iTextureManager->RequestToLoad( KLampTexture, fullFilePath, &Textures[2], false );
-	
-    fullFilePath = RootDirectory;
-    fullFilePath.Append(privateDir);
 	iTextureManager->RequestToLoad( KCursor3dTextura, fullFilePath, &Textures[3], false );
+	iTextureManager->RequestToLoad( KkeyframeTextura, fullFilePath, &Textures[4], false );
 	
 	//Start to load the textures.
 	iTextureManager->DoLoadL();
@@ -793,6 +795,22 @@ void CBlenderLite::RenderObject( TInt objId ){
 	//glPopMatrix(); //reinicia la matrix a donde se guardo	
 }
 
+void CBlenderLite::Animation(){
+	CurrentFrame++;
+	if (CurrentFrame > EndFrame){
+		CurrentFrame = StartFrame;
+	}
+}
+
+void CBlenderLite::SetCurrentFrame(){
+	Cancelar();
+	HBufC* noteBuf = HBufC::NewLC(100);
+	noteBuf->Des().Copy(_L("Set Current Frame"));
+	CurrentFrame = DialogNumber(CurrentFrame, StartFrame-1, EndFrame+1, noteBuf);	
+	CleanupStack::PopAndDestroy(noteBuf);
+    redibujar = true;
+}
+
 void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeSecs ){
     // If texture loading is still going on, return from this method without doing anything.
 	if ( GetState() == ELoadingTextures ){
@@ -802,8 +820,12 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	// Controles
 	Rotar( fixedDeltaTimeSecs );
 	
-	if ( !redibujar ){
+	if ( !redibujar && !PlayAnimation ){
 		return;
+	}
+
+	if (PlayAnimation){
+		Animation();
 	}
 	
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -1134,9 +1156,64 @@ void CBlenderLite::dibujarUI(){
 		DrawnRectangle();
 	}
 
+	if (ShowTimeline){
+		DrawnTimeline();
+	}
+
 	//resetea la perspectiva	
 	ortografica = !ortografica;
 	SetPerspectiva(false);
+}
+
+void CBlenderLite::DrawnTimeline(){
+	glDisable( GL_TEXTURE_2D );	
+	glDisable( GL_BLEND );
+
+	UiMoveTo(0,iScreenHeight-32);
+	/*glColor4f(0.114f,0.114f,0.114f,1.0f);
+	SetSpriteSize(iScreenWidth,48);
+	DrawnRectangle();
+
+	UiMoveTo(0,24);*/
+	glColor4f(0.188f,0.188f,0.188f,1.0f);
+	SetSpriteSize(iScreenWidth,16);
+	DrawnRectangle();
+
+	glColor4f(0.086f,0.086f,0.086f,1.0f);
+    GLshort distanciaEntreLineas = iScreenWidth / 5;
+	glPushMatrix();
+    for (int l = 0; l < 4; l++) {
+		UiMoveTo(distanciaEntreLineas,0);
+		DrawnLines(1, 1, LineaTimeline, LineaEdge);
+    }
+	glPopMatrix(); //reinicia la matrix a donde se guardo	
+
+	glPushMatrix();
+	glColor4f(0.149f,0.149f,0.149f,1.0f);
+	UiMoveTo(distanciaEntreLineas/2,0);
+    for (int l = 0; l < 4; l++) {
+		DrawnLines(1, 1, LineaTimeline, LineaEdge);
+		UiMoveTo(distanciaEntreLineas,0);
+    }
+	glPopMatrix(); //reinicia la matrix a donde se guardo	
+
+	//linea azul del tiempo
+	glColor4f(0.259f,0.427f,0.682f,1.0f); 
+    GLshort posicionTiempo = CurrentFrame;
+	UiMoveTo(posicionTiempo,0);
+	DrawnLines(2, 1, LineaTimeline, LineaEdge);
+}
+
+void CBlenderLite::DrawnLines(TInt LineWidth, TInt cantidad, GLshort* vertexlines, GLushort* lineasIndices){
+	glVertexPointer( 3, GL_SHORT, 0, vertexlines );
+	glLineWidth(LineWidth);	
+	glDrawElements( GL_LINES, cantidad*2, GL_UNSIGNED_SHORT, lineasIndices );
+}
+
+void CBlenderLite::DrawnLines(TInt LineWidth, TInt cantidad, const GLshort* vertexlines, const GLushort* lineasIndices) {
+    glVertexPointer(3, GL_SHORT, 0, vertexlines);
+    glLineWidth(LineWidth);
+    glDrawElements(GL_LINES, cantidad * 2, GL_UNSIGNED_SHORT, lineasIndices);
 }
 
 void CBlenderLite::SetUvSprite(GLshort x, GLshort y, GLshort ancho, GLshort alto){
@@ -1209,7 +1286,7 @@ void CBlenderLite::SetMouse(){
 }
 
 //invierte cualquier valor que se le manda, de verdadero a falso y viceversa
-void CBlenderLite::ToggleValue(bool& valueToUpdate){
+void CBlenderLite::ToggleValue(TBool& valueToUpdate){
     valueToUpdate = !valueToUpdate;
     redibujar = true;
 }
@@ -2452,7 +2529,13 @@ void CBlenderLite::SetInterpolation(){
 
 void CBlenderLite::SetTexture(){
 	//si solo estan las texturas de blender
-	if (Textures.Count() < 5){return;}		
+	if (Textures.Count() < NumTexturasBlendersito+1){		
+		HBufC* noteBuf = HBufC::NewLC(100);	
+		noteBuf->Des().Copy(_L("No hay texturas cargadas"));	
+		MensajeError(noteBuf);
+		CleanupStack::PopAndDestroy(noteBuf);
+		return;
+	}	
 	//si no hay objetos
 	if (Objects.Count() < 1){return;}	
 	Object& obj = Objects[objSelect];
@@ -2472,12 +2555,12 @@ void CBlenderLite::SetTexture(){
 	Material& mat = Materials[pMesh.materials[MaterialID-1]];
 
 	_LIT(KFormatString2, "Select Texture 1 to %d");
-	noteBuf->Des().Format(KFormatString2, Textures.Count()-4);
-	TInt textureID = DialogNumber(1, 1, Textures.Count()-4, noteBuf);
+	noteBuf->Des().Format(KFormatString2, Textures.Count()-NumTexturasBlendersito);
+	TInt textureID = DialogNumber(1, 1, Textures.Count()-NumTexturasBlendersito, noteBuf);
 	CleanupStack::PopAndDestroy(noteBuf);
 	
 	mat.textura = true;
-	mat.textureID = textureID+4;
+	mat.textureID = textureID+NumTexturasBlendersito;
 	//mat.textureID = Textures[textureID-5].iID;
     redibujar = true;
 }
@@ -3591,14 +3674,107 @@ void CBlenderLite::SetOrigen( TInt opcion ){
     redibujar = true;
 }
 
-void CBlenderLite::SaveCanvasToImage(const char* filename) {
+struct TBMPFileHeader {
+    TUint16 bfType;
+    TUint32 bfSize;
+    TUint16 bfReserved1;
+    TUint16 bfReserved2;
+    TUint32 bfOffBits;
+};
+
+struct TBMPInfoHeader {
+    TUint32 biSize;
+    TInt32 biWidth;
+    TInt32 biHeight;
+    TUint16 biPlanes;
+    TUint16 biBitCount;
+    TUint32 biCompression;
+    TUint32 biSizeImage;
+    TInt32 biXPelsPerMeter;
+    TInt32 biYPelsPerMeter;
+    TUint32 biClrUsed;
+    TUint32 biClrImportant;
+};
+
+void CBlenderLite::SaveAsBMP(int width, int height, const GLubyte* pixels) {
+    RFs fsSession;
+    RFile file;
+    TInt err = fsSession.Connect();
+    if (err != KErrNone) {
+        return;
+    }
+
+    _LIT(KFileName, "E:\\high_resolution_image.bmp");
+    TPtrC fileName(KFileName);
+
+    err = file.Replace(fsSession, fileName, EFileWrite);
+    if (err != KErrNone) {
+        fsSession.Close();
+        return;
+    }
+
+    TBMPFileHeader fileHeader;
+    TBMPInfoHeader infoHeader;
+
+    TInt32 rowSize = ((24 * width + 31) / 32) * 4;  // Tamaño de la fila con padding
+    TUint32 imageSize = rowSize * height;  // Tamaño de la imagen en bytes
+    fileHeader.bfType = 0x4D42;  // 'BM'
+    fileHeader.bfSize = sizeof(TBMPFileHeader) + sizeof(TBMPInfoHeader) + imageSize;
+    fileHeader.bfReserved1 = 0;
+    fileHeader.bfReserved2 = 0;
+    fileHeader.bfOffBits = sizeof(TBMPFileHeader) + sizeof(TBMPInfoHeader);
+
+    infoHeader.biSize = sizeof(TBMPInfoHeader);
+    infoHeader.biWidth = width;
+    infoHeader.biHeight = -height;  // Negativo para evitar voltear la imagen
+    infoHeader.biPlanes = 1;
+    infoHeader.biBitCount = 24;  // 24 bits por píxel
+    infoHeader.biCompression = 0;
+    infoHeader.biSizeImage = imageSize;
+    infoHeader.biXPelsPerMeter = 0;
+    infoHeader.biYPelsPerMeter = 0;
+    infoHeader.biClrUsed = 0;
+    infoHeader.biClrImportant = 0;
+
+    TPtrC8 fileHeaderPtr(reinterpret_cast<const TUint8*>(&fileHeader), sizeof(fileHeader));
+    file.Write(fileHeaderPtr);
+    TPtrC8 infoHeaderPtr(reinterpret_cast<const TUint8*>(&infoHeader), sizeof(infoHeader));
+    file.Write(infoHeaderPtr);
+
+    // Convertir de RGBA a RGB
+    GLubyte* rgbPixels = new GLubyte[imageSize];
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            int srcIndex = (y * width + x) * 4;  // Índice de origen RGBA
+            int destIndex = y * rowSize + x * 3;  // Índice de destino RGB con padding
+            rgbPixels[destIndex] = pixels[srcIndex];        // R
+            rgbPixels[destIndex + 1] = pixels[srcIndex + 1]; // G
+            rgbPixels[destIndex + 2] = pixels[srcIndex + 2]; // B
+        }
+    }
+
+    TPtrC8 pixelsPtr(reinterpret_cast<const TUint8*>(rgbPixels), imageSize);
+    file.Write(pixelsPtr);
+
+    delete[] rgbPixels;
+    file.Close();
+    fsSession.Close();
+}
+
+void CBlenderLite::SaveCanvasToImage() {
+	/*HBufC* noteBuf = HBufC::NewLC(100);	
+	_LIT(KFormatString, "Guardando imagen: %dx%d");
+	noteBuf->Des().Format(KFormatString, iScreenWidth,iScreenHeight);
+	DialogAlert(noteBuf);	
+	CleanupStack::PopAndDestroy(noteBuf);*/
+
     GLubyte* pixels = new GLubyte[iScreenWidth * iScreenHeight * 4]; // 4 para RGBA
     glReadPixels(0, 0, iScreenWidth, iScreenHeight, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
+    SaveAsBMP(iScreenWidth, iScreenHeight, pixels);
     //SaveAsBMP(iScreenWidth, iScreenHeight, pixels, filename);
 
     delete[] pixels;
 }
-
 
 //  End of File

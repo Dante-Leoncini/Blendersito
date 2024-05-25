@@ -47,6 +47,9 @@ enum TBlenderLiteMenuCommands
     
     ESetParent,
 	EClearParent,
+
+    ERenderImage,
+    ERenderAnimation,
     
     EBlenderLiteSeleccionar,
     EBlenderLiteSetTipoVertex,
@@ -97,7 +100,12 @@ enum TBlenderLiteMenuCommands
     EDuplicatedLinked,               
 
     EViewportObjectSnap,
-    EViewportCursorToSelect
+    EViewportCursorToSelect,
+
+    ETimelineMenu,
+    ETimelinePlayStop,
+    ETimelineShowTimeline,
+    ETimelineSetCurrentFrame
 };
 
 enum TAknExNoteNoteControlIds {

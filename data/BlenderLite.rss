@@ -134,8 +134,48 @@ RESOURCE MENU_PANE r_blenderlite_menu
                 command = EBlenderLiteModificadores;
                 cascade = r_viewport_overley_menu;
                 txt = STRING_r_Overlay;
-            }    
+            },			
+        	MENU_ITEM
+            {
+                command = ETimelineMenu;
+                cascade = r_timeline_menu;
+                txt = STRING_r_Timeline;
+            },          
+        	MENU_ITEM
+            {
+                command = ERenderImage;
+                txt = STRING_r_RenderImage;
+            }//,         
+        	//MENU_ITEM
+            //{
+            //    command = ERenderAnimation;
+            //    txt = STRING_r_RenderAnimation;
+            //}  
         };
+}
+
+//----------------------------------------------------
+//
+//    r_timeline_menu
+//
+//----------------------------------------------------
+//
+
+RESOURCE MENU_PANE r_timeline_menu {
+    items = { 		
+        MENU_ITEM {
+            command = ETimelinePlayStop;
+            txt = STRING_r_Play;
+        },	
+        MENU_ITEM {
+            command = ETimelineSetCurrentFrame;
+            txt = STRING_r_SetCurrentFrame;
+        },
+        MENU_ITEM {
+            command = ETimelineShowTimeline;
+            txt = STRING_r_ShowTimeline;
+        }	
+    };
 }
 
 //----------------------------------------------------
@@ -538,7 +578,6 @@ RESOURCE TBUF256 r_blenderlite_CambiarRotacion{buf = STRING_r_blenderlite_Cambia
 RESOURCE TBUF256 r_blenderlite_Vista3D{buf = STRING_r_blenderlite_Vista3D;}
 
 RESOURCE TBUF256 r_blenderlite_Modificadores{buf = STRING_r_blenderlite_Modificadores;}
-RESOURCE TBUF256 r_blenderlite_ModificadorArray{buf = STRING_r_blenderlite_ModificadorArray;}
 RESOURCE TBUF256 r_blenderlite_ModificadorMirror{buf = STRING_r_blenderlite_ModificadorMirror;}
 RESOURCE TBUF256 r_blenderlite_ModificadorSrew{buf = STRING_r_blenderlite_ModificadorSrew;}
 
@@ -573,6 +612,11 @@ RESOURCE TBUF256 r_hideoverlay{buf = STRING_r_HideOverlay;}
 RESOURCE TBUF256 r_showoverlay{buf = STRING_r_ShowOverlay;}
 RESOURCE TBUF256 r_hide3dcursor{buf = STRING_r_Hide3DCursor;}
 RESOURCE TBUF256 r_show3dcursor{buf = STRING_r_Show3DCursor;}
+
+RESOURCE TBUF256 r_Play{buf = STRING_r_Play;}
+RESOURCE TBUF256 r_Stop{buf = STRING_r_Stop;}
+RESOURCE TBUF256 r_Show_Timeline{buf = STRING_r_Show_Timeline;}
+RESOURCE TBUF256 r_Hide_Timeline{buf = STRING_r_Hide_Timeline;}
 
 RESOURCE TBUF256 r_hideFloor{buf = STRING_r_HideFloor;}
 RESOURCE TBUF256 r_showFloor{buf = STRING_r_ShowFloor;}
