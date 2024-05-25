@@ -109,10 +109,13 @@ static const GLfloat lightAmbient[4]   = { LIGHTCOLOR(0.0, 0.0, 0.0, 1.0) };
 static const GLfloat sunLightPosition[4]  = {-100, 1000, 1000, 0 }; // y, z, x, si es direccional o puntual
 	
 /* Spotlight parameters. */
-static const GLfloat lightDiffuseSpot[4]   = { LIGHTCOLOR(0.0, 0.0, 0.0, 1.0) };
-static const GLfloat lightSpecularSpot[4]  = { LIGHTCOLOR(0.0, 0.0, 3.0, 1.0) };
-static const GLfloat lightPositionSpot[4]  = {  0, -10, -1, 0 };
-static const GLfloat lightDirectionSpot[4] = {  0,  -10,  -1, 1 };
+//static const GLfloat lightDiffuseSpot[4]   = { LIGHTCOLOR(1.0, 1.0, 1.0, 1.0) };
+//static const GLfloat lightSpecularSpot[4]  = { LIGHTCOLOR(1.0, 1.0, 1.0, 1.0) };
+//static const GLfloat lightPositionSpot[4]  = {  0, -10, -1, 0 };
+//static const GLfloat lightDirectionSpot[4] = {  0,  -10,  -1, 1 };
+
+//para las luces puntuales
+static const GLfloat positionPuntualLight[4] = {0, 0, 0, 1};
 
 //camara
 bool ortografica = false;
@@ -137,7 +140,7 @@ bool showOrigins = true;
 GLfloat Cursor3DposX = 0.0f;
 GLfloat Cursor3DposZ = 0.0f;
 GLfloat Cursor3DposY = 0.0f;
-TInt nextLightId = GL_LIGHT3;
+TInt nextLightId = GL_LIGHT1;
 
 //solo redibuja si este valor esta en true
 bool redibujar = true;
@@ -189,6 +192,7 @@ class SaveState {
 SaveState estadoObj;
 
 //Crea un array de objetos
+RArray<TInt> Collection;
 RArray<Object> Objects;
 RArray<Material> Materials;
 RArray<Light> Lights;
@@ -297,9 +301,10 @@ void CBlenderLite::ConstructL( void ){
 	Objects[1].posX = -3000;
 	Objects[1].posY = 1500;
 	Objects[1].posZ = 4500;
-	GLfloat positionLight[4] = {0, 0, 0, 0};
-	//glLightfv(  nextLightId-1, GL_POSITION, positionLight );
-	glLightfv(  GL_LIGHT3, GL_POSITION, positionLight );
+	//GLfloat positionLight[4] = {0, -10, 0, 0};
+    //GLfloat lightPositionSpot[4]  = {  0, -10, -1, 0 };
+	//glLightfv(  nextLightId-1, GL_POSITION, positionPuntualLight );
+	//glLightfv(  nextLightId, GL_POSITION, lightPositionSpot );
 	
 	//AddMesh(monkey);
 	AddMesh(cubo);
@@ -419,8 +424,8 @@ void CBlenderLite::AppInit( void ){
     glLightfv(  GL_LIGHT0, GL_POSITION, sunLightPosition );
 
     // Set up spot.  Initially spot is disabled.
-    glEnable( GL_LIGHT1 );
-    glLightfv(  GL_LIGHT1, GL_DIFFUSE,  lightDiffuseSpot  );
+    //glEnable( GL_LIGHT1 );
+    /*glLightfv(  GL_LIGHT1, GL_DIFFUSE,  lightDiffuseSpot  );
     glLightfv(  GL_LIGHT1, GL_AMBIENT,  lightAmbient  );
     glLightfv(  GL_LIGHT1, GL_SPECULAR, lightSpecularSpot );
     glLightfv(  GL_LIGHT1, GL_POSITION, lightPositionSpot );
@@ -431,7 +436,7 @@ void CBlenderLite::AppInit( void ){
 
     glLightf(   GL_LIGHT1, GL_SPOT_CUTOFF,   170.0                );
     glLightf(   GL_LIGHT1, GL_SPOT_EXPONENT,  20.0                );
-    glLightfv(  GL_LIGHT1, GL_SPOT_DIRECTION, lightDirectionSpot );
+    glLightfv(  GL_LIGHT1, GL_SPOT_DIRECTION, lightDirectionSpot );*/
 
     // Set shading mode
     glShadeModel( GL_SMOOTH );
@@ -500,6 +505,294 @@ void CBlenderLite::AppExit( void ){
 // -----------------------------------------------------------------------------
 //
 
+void CBlenderLite::RenderMesh( TInt objId ){
+	Mesh& pMesh = Meshes[objId];
+		
+	glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
+	glDisable(GL_COLOR_MATERIAL);
+	glMaterialfv(   GL_FRONT_AND_BACK, GL_AMBIENT,  objAmbient  );
+	glMaterialx( GL_FRONT_AND_BACK, GL_SHININESS,   12 << 16     );
+	glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[negro] );
+
+	glDisable(GL_POLYGON_OFFSET_FILL);
+	// Set array pointers from mesh.
+	glVertexPointer( 3, GL_SHORT, 0, pMesh.vertex );
+	glColorPointer( 4, GL_UNSIGNED_BYTE, 0, pMesh.vertexColor );
+	glNormalPointer( GL_BYTE, 0, pMesh.normals );
+	//resetea las lienas a 1
+	glLineWidth(1);	
+
+	//glShadeModel( GL_SMOOTH );
+	if (pMesh.smooth){glShadeModel( GL_SMOOTH );}
+	else {glShadeModel( GL_FLAT );}
+
+	//si usa culling
+	if (pMesh.culling){glEnable( GL_CULL_FACE );}
+	else {glDisable( GL_CULL_FACE );}	
+	
+	//modelo con textura
+	if (view == MaterialPreview || view == Rendered){
+		//material
+		glTexCoordPointer( 2, GL_BYTE, 0, pMesh.uv );
+		
+		for(int f=0; f < pMesh.materialsSize; f++){
+			Material& mat = Materials[pMesh.materials[f]];	
+			glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE, mat.diffuse ); 
+			glMaterialfv(   GL_FRONT_AND_BACK, GL_SPECULAR, mat.specular );
+
+			//vertex color
+			if (mat.color){
+				glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);
+				glEnableClientState( GL_COLOR_ARRAY );
+			}
+			else {glDisableClientState( GL_COLOR_ARRAY );}	 
+
+			//si tiene iluminacion	
+			if (mat.lighting){glEnable( GL_LIGHTING );}
+			else {glDisable( GL_LIGHTING );}
+			
+			//transparent
+			if (mat.transparent){glEnable(GL_BLEND);}
+			else {glDisable(GL_BLEND);}
+			
+			//si tiene texturas
+			if (mat.textura){
+				glEnable( GL_TEXTURE_2D );
+				glBindTexture(  GL_TEXTURE_2D, mat.textureID ); //selecciona la textura							
+			
+				//textura pixelada o suave
+				if (mat.interpolacion == lineal){
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				}
+				else if (mat.interpolacion == closest){
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				}	
+			}
+			else {glDisable( GL_TEXTURE_2D );}
+
+			glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, mat.emission );
+
+			glDrawElements( GL_TRIANGLES, pMesh.facesGroupsSize[f]*3, GL_UNSIGNED_SHORT, pMesh.faces[f] );	
+		}
+	}
+	//modelo sin textura
+	if (view == Solid){
+		glEnable( GL_LIGHTING );
+		Material& mat = Materials[pMesh.materials[0]];
+		glDisableClientState( GL_COLOR_ARRAY );	  	
+		glDisable( GL_TEXTURE_2D );
+		glDisable(GL_BLEND);
+		glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  mat.diffuse   ); 
+		//glDrawElements( GL_TRIANGLES, pMesh.facesSize*3, GL_UNSIGNED_SHORT, pMesh.faces );	
+		for(int f=0; f < pMesh.materialsSize; f++){			
+			glDrawElements( GL_TRIANGLES, pMesh.facesGroupsSize[f]*3, GL_UNSIGNED_SHORT, pMesh.faces[f] );	
+		}
+	}
+	//wireframe view
+	else if(objSelect != objId){    
+		glDisableClientState( GL_COLOR_ARRAY );	  
+		glDisable( GL_LIGHTING );
+		glEnable(GL_COLOR_MATERIAL);
+		glColor4f(ListaColores[gris][0],ListaColores[gris][1],ListaColores[gris][2],ListaColores[gris][3]);
+		//glDrawElements( GL_LINES, pMesh.edgesSize, GL_UNSIGNED_SHORT, pMesh.edges );	
+	}  
+	
+	//dibuja el borde seleccionado
+	if(objSelect == objId && showOverlays && showOutlineSelect){
+		glDisableClientState( GL_COLOR_ARRAY );	  
+		glDisable( GL_LIGHTING );
+		glEnable(GL_COLOR_MATERIAL);
+		glDisable( GL_TEXTURE_2D );  
+		glEnable(GL_POLYGON_OFFSET_FILL);
+		//si se esta editando
+		if (estado == edicion || estado == translacionVertex){
+			//bordes
+			glPolygonOffset(1.0, -1.0);
+			glLineWidth(1);	 
+			glColor4f(ListaColores[gris][0],
+					ListaColores[gris][1],
+					ListaColores[gris][2],
+					ListaColores[gris][3]);
+			//glDrawElements( GL_LINES, obj.edgesSize, GL_UNSIGNED_SHORT, obj.edges );
+			//vertices
+			if (tipoSelect == vertexSelect){
+				glPolygonOffset(1.0, -4.0);
+				glColor4f(ListaColores[negro][0],
+						ListaColores[negro][1],
+						ListaColores[negro][2],
+						ListaColores[negro][3]);
+				glPointSize(4);
+				glDrawElements( GL_POINTS, pMesh.vertexGroupSize, GL_UNSIGNED_SHORT, pMesh.vertexGroup);
+				//vertice seleccionado
+				if (pMesh.vertexGroupSize > 0){
+					glPolygonOffset(1.0, -10.0);
+					glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
+					glDrawArrays( GL_POINTS, pMesh.vertexGroup[EditSelect], 1 );				
+				}					
+			}
+			//borde seleccionado
+			else if (tipoSelect == edgeSelect){		
+				//vertice seleccionado
+				/*if (obj.edgesSize > 0){		
+					glPolygonOffset(1.0, -10.0);
+					glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
+					glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, &obj.edges[EditSelect*2]);
+				}	*/		
+			}
+			//cara seleccionado
+			/*else if (tipoSelect == faceSelect){	
+				//vertice seleccionado
+				if (pMesh.facesSize > 0){	
+					glEnable(GL_BLEND);
+					glDisable(GL_LIGHTING);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					glPolygonOffset(1.0, -10.0);
+					glColor4f(ListaColores[naranjaFace][0],ListaColores[naranjaFace][1],ListaColores[naranjaFace][2],ListaColores[naranjaFace][3]);
+					glDrawElements( GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, &pMesh.faces[EditSelect*3]);
+					glDisable(GL_BLEND);
+				}				
+			}*/
+		}
+		else if (view != 2){
+			glPolygonOffset(1.0, 200.0);
+			glLineWidth(3);	 
+			glColor4f(ListaColores[colorBordeSelect][0],ListaColores[colorBordeSelect][1],ListaColores[colorBordeSelect][2],ListaColores[colorBordeSelect][3]);
+			//glDrawElements( GL_LINES, obj.edgesSize, GL_UNSIGNED_SHORT, obj.edges );	
+		}	
+		else { //bordes seleccionados en wireframe
+			glDisable(GL_POLYGON_OFFSET_FILL);
+			glLineWidth(1);		
+			glColor4f(ListaColores[colorBordeSelect][0],ListaColores[colorBordeSelect][1],ListaColores[colorBordeSelect][2],ListaColores[colorBordeSelect][3]);
+			//glDrawElements( GL_LINES, obj.edgesSize, GL_UNSIGNED_SHORT, obj.edges );	
+		}
+	};
+}
+
+// Función recursiva para renderizar un objeto y sus hijos
+void CBlenderLite::RenderMeshAndChildren(Object& obj){
+    // Guardar la matriz actual
+    glPushMatrix();
+    
+    // Aplicar las transformaciones del objeto
+    glTranslatef(obj.posX, obj.posZ, obj.posY);
+    glRotatef(obj.rotX, 1, 0, 0); // ángulo, X Y Z
+    glRotatef(obj.rotZ, 0, 1, 0); // ángulo, X Y Z
+    glRotatef(obj.rotY, 0, 0, 1); // ángulo, X Y Z
+    glScalex(obj.scaleX, obj.scaleZ, obj.scaleY);	
+
+    // Si es visible y es un mesh, lo dibuja
+    if (obj.visible && obj.type == mesh) {
+        RenderMesh(obj.Id); // Ajusta el segundo parámetro si es necesario
+    }
+    
+    // Procesar cada hijo
+    for (int c = 0; c < obj.Childrens.Count(); c++) {
+        Object& objChild = Objects[obj.Childrens[c]];
+        RenderMeshAndChildren(objChild);
+    }
+
+    // Restaurar la matriz previa
+    glPopMatrix();
+}
+
+// Función recursiva para renderizar un objeto y sus hijos
+void CBlenderLite::RenderObjectAndChildrens(TInt objId){
+	Object& obj = Objects[objId];
+    // Guardar la matriz actual
+    glPushMatrix();
+    
+    // Aplicar las transformaciones del objeto
+    glTranslatef(obj.posX, obj.posZ, obj.posY);
+    glRotatef(obj.rotX, 1, 0, 0); // ángulo, X Y Z
+    glRotatef(obj.rotZ, 0, 1, 0); // ángulo, X Y Z
+    glRotatef(obj.rotY, 0, 0, 1); // ángulo, X Y Z
+    glScalex(obj.scaleX, obj.scaleZ, obj.scaleY);	
+
+    // Si es visible y no es un mesh, lo dibuja
+    if (obj.visible && obj.type != mesh) {
+        RenderObject(objId); // Ajusta el segundo parámetro si es necesario
+    }
+    
+    // Procesar cada hijo
+    for (int c = 0; c < obj.Childrens.Count(); c++) {
+        RenderObjectAndChildrens(obj.Childrens[c]);
+    }
+
+    // Restaurar la matriz previa
+    glPopMatrix();
+}
+
+void CBlenderLite::RenderObject( TInt objId ){
+	Object& obj = Objects[objId];
+
+	glDisable( GL_TEXTURE_2D );
+	//glPushMatrix(); //guarda la matrix
+
+	//posicion, rotacion y escala del objeto
+	//glTranslatef( obj.posX, obj.posZ, obj.posY);
+
+	//color si esta seleccionado
+	if (objSelect == objId){
+		glColor4f(ListaColores[colorBordeSelect][0],ListaColores[colorBordeSelect][1],ListaColores[colorBordeSelect][2],ListaColores[colorBordeSelect][3]);
+	}
+	else {		
+		glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);		
+	}
+	//si es un empty
+	if (obj.type == empty){		
+		glDisable( GL_TEXTURE_2D );	 
+		glDisable( GL_BLEND );
+		//glRotatef(obj.rotX, 1, 0, 0); //angulo, X Y Z
+		//glRotatef(obj.rotZ, 0, 1, 0); //angulo, X Y Z
+		//glRotatef(obj.rotY, 0, 0, 1); //angulo, X Y Z
+		//glScalex( obj.scaleX, obj.scaleZ, obj.scaleY );		
+		glLineWidth(1);	
+		glVertexPointer( 3, GL_SHORT, 0, EmptyVertices );
+		glDrawElements( GL_LINES, EmptyEdgesSize, GL_UNSIGNED_SHORT, EmptyEdges );
+	}
+	else if (obj.type == camera){			
+		glDisable( GL_TEXTURE_2D ); 
+		glDisable( GL_BLEND );
+		//glRotatef(obj.rotX, 1, 0, 0); //angulo, X Y Z
+		//glRotatef(obj.rotZ, 0, 1, 0); //angulo, X Y Z
+		//glRotatef(obj.rotY, 0, 0, 1); //angulo, X Y Z
+		//glScalex( obj.scaleX, obj.scaleZ, obj.scaleY );
+		glLineWidth(1);	
+		glVertexPointer( 3, GL_SHORT, 0, CameraVertices );
+		glDrawElements( GL_LINES, CameraEdgesSize, GL_UNSIGNED_SHORT, CameraEdges );
+	}
+	else if (obj.type == light){				
+		glEnable( GL_TEXTURE_2D ); 
+		glEnable( GL_BLEND );
+		glDepthMask(GL_FALSE); // Desactiva la escritura en el Z-buffer
+
+		glEnable( GL_POINT_SPRITE_OES ); //activa el uso de sprites en los vertices
+		glPointSize( 32 ); //tamaño del punto
+		glVertexPointer( 3, GL_SHORT, 0, pointVertex );
+		glBindTexture( GL_TEXTURE_2D, Textures[2].iID ); //selecciona la textura
+
+		glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE );
+		glDrawArrays( GL_POINTS, 0, 1 );
+		glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_FALSE);
+
+		glDisable( GL_POINT_SPRITE_OES );			
+		glDisable( GL_TEXTURE_2D ); 
+
+		glLineWidth(1);	
+		//glScalex( 0, 10, 0 ); //4500
+		LineaLightVertex[4] = (GLshort)-obj.posZ;
+		glVertexPointer( 3, GL_SHORT, 0, LineaLightVertex );
+		glDrawElements( GL_LINES, LineaEdgeSize, GL_UNSIGNED_SHORT, LineaEdge );
+
+		glDisable( GL_BLEND );
+		glDepthMask(GL_TRUE); // Reactiva la escritura en el Z-buffer
+	}
+
+	//glPopMatrix(); //reinicia la matrix a donde se guardo	
+}
+
 void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeSecs ){
     // If texture loading is still going on, return from this method without doing anything.
 	if ( GetState() == ELoadingTextures ){
@@ -521,186 +814,33 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	glRotatef(rotY, 1, 0, 0); //angulo, X Y Z
 	glRotatef(rotX, 0, 1, 0); //angulo, X Y Z
 	// Use some magic numbers to scale the head model to fit the screen.
-	glScalex( 1 << 10, 1 << 10, 1 << 10 );	
+	glScalex( 1 << 10, 1 << 10, 1 << 10 );
+
+    // Habilitar la normalizaci�n de las normales
+    glEnable(GL_NORMALIZE);	
+
+	//primero hay que colocar las luces en caso de estar en modo render!
+	if (view == MaterialPreview || view == Rendered){
+		for(int o=0; o < Objects.Count(); o++){
+			Object& obj = Objects[o];
+			if(!obj.visible || obj.type != light ) {continue;}
+			Light& light = Lights[obj.Id];
+
+			glPushMatrix(); //guarda la matrix
+			glTranslatef( obj.posX, obj.posZ, obj.posY);
+			GLfloat lightPos[] = {0.0f, 0.0f, 0.0f, 1.0f}; // Luz puntual en la posici�n transformada
+			glLightfv(light.lightId, GL_POSITION, lightPos);
+			//glLightfv(  light.lightId, GL_POSITION, positionPuntualLight );
+			glPopMatrix(); //reinicia la matrix a donde se guardo  
+		}		
+	}
 	
 	//bucle que dibuja cada objeto en orden
 	if(Meshes.Count() > 0){
-		for(int o=0; o < Objects.Count(); o++){
-			Object& obj = Objects[o];
-			Mesh& pMesh = Meshes[obj.Id];
-	
-			//si es un mesh o no es visible, lo saltea
-			if(!obj.visible || obj.type != mesh ) {continue;}
-				
-			//posicion, rotacion y escala del objeto
-			glPushMatrix(); //guarda la matrix
-			glTranslatef( obj.posX, obj.posZ, obj.posY);
-			glRotatef(obj.rotX, 1, 0, 0); //angulo, X Y Z
-			glRotatef(obj.rotZ, 0, 1, 0); //angulo, X Y Z
-			glRotatef(obj.rotY, 0, 0, 1); //angulo, X Y Z
-			glScalex( obj.scaleX, obj.scaleZ, obj.scaleY );	
-	
-			glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
-			glDisable(GL_COLOR_MATERIAL);
-			glMaterialfv(   GL_FRONT_AND_BACK, GL_AMBIENT,  objAmbient  );
-			glMaterialx( GL_FRONT_AND_BACK, GL_SHININESS,   12 << 16     );
-			glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[negro] );
-	
-			glDisable(GL_POLYGON_OFFSET_FILL);
-			// Set array pointers from mesh.
-			glVertexPointer( 3, GL_SHORT, 0, pMesh.vertex );
-			glColorPointer( 4, GL_UNSIGNED_BYTE, 0, pMesh.vertexColor );
-			glNormalPointer( GL_BYTE, 0, pMesh.normals );
-			//resetea las lienas a 1
-			glLineWidth(1);	
-	
-			//glShadeModel( GL_SMOOTH );
-			if (pMesh.smooth){glShadeModel( GL_SMOOTH );}
-			else {glShadeModel( GL_FLAT );}
-
-			//si usa culling
-			if (pMesh.culling){glEnable( GL_CULL_FACE );}
-			else {glDisable( GL_CULL_FACE );}	
-			
-			//modelo con textura
-			if (view == MaterialPreview || view == Rendered){
-				//material
-				glTexCoordPointer( 2, GL_BYTE, 0, pMesh.uv );
-				
-				for(int f=0; f < pMesh.materialsSize; f++){
-					Material& mat = Materials[pMesh.materials[f]];	
-					glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE, mat.diffuse ); 
-					glMaterialfv(   GL_FRONT_AND_BACK, GL_SPECULAR, mat.specular );
-
-					//vertex color
-					if (mat.color){
-						glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);
-						glEnableClientState( GL_COLOR_ARRAY );
-					}
-					else {glDisableClientState( GL_COLOR_ARRAY );}	 
-
-					//si tiene iluminacion	
-					if (mat.lighting){glEnable( GL_LIGHTING );}
-					else {glDisable( GL_LIGHTING );}
-					
-					//transparent
-					if (mat.transparent){glEnable(GL_BLEND);}
-					else {glDisable(GL_BLEND);}
-					
-					//si tiene texturas
-					if (mat.textura){
-						glEnable( GL_TEXTURE_2D );
-						glBindTexture(  GL_TEXTURE_2D, mat.textureID ); //selecciona la textura							
-					
-						//textura pixelada o suave
-						if (mat.interpolacion == lineal){
-							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-						}
-						else if (mat.interpolacion == closest){
-							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-						}	
-					}
-					else {glDisable( GL_TEXTURE_2D );}
-
-					glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, mat.emission );
-
-					glDrawElements( GL_TRIANGLES, pMesh.facesGroupsSize[f]*3, GL_UNSIGNED_SHORT, pMesh.faces[f] );	
-				}
-			}
-			//modelo sin textura
-			if (view == Solid){
-				glEnable( GL_LIGHTING );
-				Material& mat = Materials[pMesh.materials[0]];
-			    glDisableClientState( GL_COLOR_ARRAY );	  	
-				glDisable( GL_TEXTURE_2D );
-				glDisable(GL_BLEND);
-				glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  mat.diffuse   ); 
-				//glDrawElements( GL_TRIANGLES, pMesh.facesSize*3, GL_UNSIGNED_SHORT, pMesh.faces );	
-				for(int f=0; f < pMesh.materialsSize; f++){			
-					glDrawElements( GL_TRIANGLES, pMesh.facesGroupsSize[f]*3, GL_UNSIGNED_SHORT, pMesh.faces[f] );	
-				}
-			}
-			//wireframe view
-			else if(objSelect != o){    
-			    glDisableClientState( GL_COLOR_ARRAY );	  
-				glDisable( GL_LIGHTING );
-				glEnable(GL_COLOR_MATERIAL);
-				glColor4f(ListaColores[gris][0],ListaColores[gris][1],ListaColores[gris][2],ListaColores[gris][3]);
-				//glDrawElements( GL_LINES, pMesh.edgesSize, GL_UNSIGNED_SHORT, pMesh.edges );	
-			}  
-			
-			//dibuja el borde seleccionado
-			if(objSelect == o && showOverlays && showOutlineSelect){
-			    glDisableClientState( GL_COLOR_ARRAY );	  
-				glDisable( GL_LIGHTING );
-				glEnable(GL_COLOR_MATERIAL);
-				glDisable( GL_TEXTURE_2D );  
-				glEnable(GL_POLYGON_OFFSET_FILL);
-				//si se esta editando
-				if (estado == edicion || estado == translacionVertex){
-					//bordes
-					glPolygonOffset(1.0, -1.0);
-					glLineWidth(1);	 
-					glColor4f(ListaColores[gris][0],
-							  ListaColores[gris][1],
-							  ListaColores[gris][2],
-							  ListaColores[gris][3]);
-					//glDrawElements( GL_LINES, obj.edgesSize, GL_UNSIGNED_SHORT, obj.edges );
-					//vertices
-					if (tipoSelect == vertexSelect){
-						glPolygonOffset(1.0, -4.0);
-						glColor4f(ListaColores[negro][0],
-								  ListaColores[negro][1],
-								  ListaColores[negro][2],
-								  ListaColores[negro][3]);
-						glPointSize(4);
-						glDrawElements( GL_POINTS, pMesh.vertexGroupSize, GL_UNSIGNED_SHORT, pMesh.vertexGroup);
-						//vertice seleccionado
-						if (pMesh.vertexGroupSize > 0){
-							glPolygonOffset(1.0, -10.0);
-							glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
-							glDrawArrays( GL_POINTS, pMesh.vertexGroup[EditSelect], 1 );				
-						}					
-					}
-					//borde seleccionado
-					else if (tipoSelect == edgeSelect){		
-						//vertice seleccionado
-						/*if (obj.edgesSize > 0){		
-							glPolygonOffset(1.0, -10.0);
-							glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
-							glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, &obj.edges[EditSelect*2]);
-						}	*/		
-					}
-					//cara seleccionado
-					/*else if (tipoSelect == faceSelect){	
-						//vertice seleccionado
-						if (pMesh.facesSize > 0){	
-							glEnable(GL_BLEND);
-							glDisable(GL_LIGHTING);
-							glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-							glPolygonOffset(1.0, -10.0);
-							glColor4f(ListaColores[naranjaFace][0],ListaColores[naranjaFace][1],ListaColores[naranjaFace][2],ListaColores[naranjaFace][3]);
-							glDrawElements( GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, &pMesh.faces[EditSelect*3]);
-							glDisable(GL_BLEND);
-						}				
-					}*/
-				}
-				else if (view != 2){
-					glPolygonOffset(1.0, 200.0);
-					glLineWidth(3);	 
-					glColor4f(ListaColores[colorBordeSelect][0],ListaColores[colorBordeSelect][1],ListaColores[colorBordeSelect][2],ListaColores[colorBordeSelect][3]);
-					//glDrawElements( GL_LINES, obj.edgesSize, GL_UNSIGNED_SHORT, obj.edges );	
-				}	
-				else { //bordes seleccionados en wireframe
-					glDisable(GL_POLYGON_OFFSET_FILL);
-					glLineWidth(1);		
-					glColor4f(ListaColores[colorBordeSelect][0],ListaColores[colorBordeSelect][1],ListaColores[colorBordeSelect][2],ListaColores[colorBordeSelect][3]);
-					//glDrawElements( GL_LINES, obj.edgesSize, GL_UNSIGNED_SHORT, obj.edges );	
-				}
-			};		
-			glPopMatrix(); //reinicia la matrix a donde se guardo  
+		// Función principal para iterar sobre la colección
+		for (int o = 0; o < Collection.Count(); o++) {
+			Object& obj = Objects[Collection[o]];
+			RenderMeshAndChildren(obj);
 		}
 	}
 	//fin del dibujado de objetos
@@ -756,142 +896,22 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 
 	//dibujo de objetos nuevo!
 	if (showOverlays){
-		for(TInt o=0; o < Objects.Count(); o++){
-			Object& obj = Objects[o];
-			//si es un mesh o no es visible, lo saltea
-			if(!obj.visible || obj.type == mesh) {continue;}
-
-			glDisable( GL_TEXTURE_2D );
-			glPushMatrix(); //guarda la matrix
-
-			//posicion, rotacion y escala del objeto
-			glTranslatef( obj.posX, obj.posZ, obj.posY);
-
-			//color si esta seleccionado
-			if (objSelect == o){
-				glColor4f(ListaColores[colorBordeSelect][0],ListaColores[colorBordeSelect][1],ListaColores[colorBordeSelect][2],ListaColores[colorBordeSelect][3]);
-			}
-			else {		
-				glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);		
-			}
-			//si es un empty
-			if (obj.type == empty){		
-				glDisable( GL_TEXTURE_2D );	 
-				glDisable( GL_BLEND );
-				glRotatef(obj.rotX, 1, 0, 0); //angulo, X Y Z
-				glRotatef(obj.rotZ, 0, 1, 0); //angulo, X Y Z
-				glRotatef(obj.rotY, 0, 0, 1); //angulo, X Y Z
-				glScalex( obj.scaleX, obj.scaleZ, obj.scaleY );		
-				glLineWidth(1);	
-				glVertexPointer( 3, GL_SHORT, 0, EmptyVertices );
-				glDrawElements( GL_LINES, EmptyEdgesSize, GL_UNSIGNED_SHORT, EmptyEdges );
-			}
-			else if (obj.type == camera){			
-				glDisable( GL_TEXTURE_2D ); 
-				glDisable( GL_BLEND );
-				glRotatef(obj.rotX, 1, 0, 0); //angulo, X Y Z
-				glRotatef(obj.rotZ, 0, 1, 0); //angulo, X Y Z
-				glRotatef(obj.rotY, 0, 0, 1); //angulo, X Y Z
-				glScalex( obj.scaleX, obj.scaleZ, obj.scaleY );
-				glLineWidth(1);	
-				glVertexPointer( 3, GL_SHORT, 0, CameraVertices );
-				glDrawElements( GL_LINES, CameraEdgesSize, GL_UNSIGNED_SHORT, CameraEdges );
-			}
-			else if (obj.type == light){				
-				glEnable( GL_TEXTURE_2D ); 
-				glEnable( GL_BLEND );
-				glDepthMask(GL_FALSE); // Desactiva la escritura en el Z-buffer
-
-				glEnable( GL_POINT_SPRITE_OES ); //activa el uso de sprites en los vertices
-				glPointSize( 32 ); //tamaño del punto
-				glVertexPointer( 3, GL_SHORT, 0, pointVertex );
-				glBindTexture( GL_TEXTURE_2D, Textures[2].iID ); //selecciona la textura
-
-				glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE );
-				glDrawArrays( GL_POINTS, 0, 1 );
-				glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_FALSE);
-
-				glDisable( GL_POINT_SPRITE_OES );			
-				glDisable( GL_TEXTURE_2D ); 
-		
-				glLineWidth(1);	
-				//glScalex( 0, 10, 0 ); //4500
-				LineaLightVertex[4] = (GLshort)-obj.posZ;
-				glVertexPointer( 3, GL_SHORT, 0, LineaLightVertex );
-				glDrawElements( GL_LINES, LineaEdgeSize, GL_UNSIGNED_SHORT, LineaEdge );
-
-				glDisable( GL_BLEND );
-				glDepthMask(GL_TRUE); // Reactiva la escritura en el Z-buffer
-			}
-
-			glPopMatrix(); //reinicia la matrix a donde se guardo	
-		};
+		for (int o = 0; o < Collection.Count(); o++) {
+			RenderObjectAndChildrens(Collection[o]);
+		}
 	}
 	
-    //dibuja los ejes de transformacion    
-	glDisable( GL_DEPTH_TEST );
-	if (estado == translacion || estado == translacionVertex || estado == rotacion || estado == escala){
-		Object& obj = Objects[objSelect];
-		glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
-		glLineWidth(2);	
-		glPushMatrix(); //guarda la matrix
-		glTranslatef( obj.posX, obj.posZ, obj.posY);
-		if (estado == rotacion || estado == escala){
-			glRotatef(obj.rotX, 1, 0, 0); //angulo, X Y Z
-			glRotatef(obj.rotY, 0, 0, 1); //angulo, X Y Z
-			glRotatef(obj.rotZ, 0, 1, 0); //angulo, X Y Z			
-		}
-		if (estado == translacionVertex){
-			Mesh& pMesh = Meshes[obj.Id];
-			glTranslatef(pMesh.vertex[pMesh.vertexGroup[EditSelect]*3]  *obj.scaleX/65000, 
-					     pMesh.vertex[pMesh.vertexGroup[EditSelect]*3+1]*obj.scaleY/65000, 
-					     pMesh.vertex[pMesh.vertexGroup[EditSelect]*3+2]*obj.scaleZ/65000
-			);		
-		}
-		if (axisSelect == X){
-			glColor4f(ColorTransformX[0],ColorTransformX[1],ColorTransformX[2],ColorTransformX[3]);
-			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeRojo );				
-		}
-		else if (axisSelect == Y){
-			glColor4f(ColorTransformY[0],ColorTransformY[1],ColorTransformY[2],ColorTransformY[3]);
-			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeVerde ); 				
-		}
-		else if (axisSelect == Z){
-			glColor4f(ColorTransformZ[0],ColorTransformZ[1],ColorTransformZ[2],ColorTransformZ[3]);
-			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeAzul ); 				
-		}	
-		else if (axisSelect == XYZ){
-			glColor4f(ColorTransformX[0],ColorTransformX[1],ColorTransformX[2],ColorTransformX[3]);
-			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeRojo );	
-			glColor4f(ColorTransformY[0],ColorTransformY[1],ColorTransformY[2],ColorTransformY[3]);
-			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeVerde ); 
-			glColor4f(ColorTransformZ[0],ColorTransformZ[1],ColorTransformZ[2],ColorTransformZ[3]);
-			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeAzul ); 				
-		}	
-	    glPopMatrix(); //reinicia la matrix a donde se guardo	
-	}
-				
-	//dibuja el origen del objeto
-	if (Objects.Count() > 0 && showOverlays && showOrigins){		
-	    glPushMatrix(); //guarda la matrix
-		glTranslatef( Objects[objSelect].posX, Objects[objSelect].posZ, Objects[objSelect].posY);
+    //dibuja los ejes de transformacion y el origen del objeto
+	glDisable( GL_DEPTH_TEST );		
+	if (Objects.Count() > 0 && (showOverlays && showOrigins) || estado == translacion || estado == translacionVertex || estado == rotacion || estado == escala) {
+        for (TInt o = 0; o < Collection.Count(); o++) {
+            TBool found = false;
+            Object& obj = Objects[Collection[o]];
+            SearchSelectObj(obj, Collection[o], found);
+            if (found) break;  // Si ya encontró el objeto, salir del bucle
+        }
+    }
 
-		glEnable( GL_TEXTURE_2D );
-		glEnable( GL_BLEND );
-		// Enable point sprites.
-		glEnable( GL_POINT_SPRITE_OES );
-		// Make the points bigger.
-		glPointSize( 8 );
-		glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
-	    glVertexPointer( 3, GL_SHORT, 0, pointVertex );
-	    //glBindTexture( GL_TEXTURE_2D, iOrigenTextura.iID ); //selecciona la textura
-	    glBindTexture( GL_TEXTURE_2D, Textures[0].iID ); //selecciona la textura
-	    glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE );
-	    glDrawArrays( GL_POINTS, 0, 1 );
-	    glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_FALSE);
-		glDisable( GL_POINT_SPRITE_OES );
-	    glPopMatrix(); //reinicia la matrix a donde se guardo	
-	}
 	//dibuja el cursor 3D	
 	if (showOverlays && show3DCursor){
 	    glPushMatrix(); //guarda la matrix
@@ -926,6 +946,88 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 
     //termino de dibujar
     redibujar = false;
+}
+
+void CBlenderLite::SearchSelectObj(Object& obj, TInt objIndex, TBool& found) {
+    glPushMatrix();    
+    glTranslatef(obj.posX, obj.posZ, obj.posY);
+    
+    if (objIndex == objSelect) {
+		if (estado == rotacion || estado == escala){
+			glRotatef(obj.rotX, 1, 0, 0); //angulo, X Y Z
+			glRotatef(obj.rotZ, 0, 1, 0); //angulo, X Y Z
+			glRotatef(obj.rotY, 0, 0, 1); //angulo, X Y Z
+		}		
+		//dibuja los ejes de transformacion
+		if (estado == translacion || estado == translacionVertex || estado == rotacion || estado == escala){		
+        	DrawTransformAxis(obj);
+		}		
+		//dibuja el origen
+		if (showOverlays && showOrigins) {
+			DibujarOrigen();
+		}
+        found = true;
+    } else {
+		glRotatef(obj.rotX, 1, 0, 0); //angulo, X Y Z
+		glRotatef(obj.rotZ, 0, 1, 0); //angulo, X Y Z
+		glRotatef(obj.rotY, 0, 0, 1); //angulo, X Y Z
+		glScalex(obj.scaleX, obj.scaleZ, obj.scaleY);	
+        for (int c = 0; c < obj.Childrens.Count(); c++) {
+            if (found) break;  // Si ya lo encontró, salir del bucle
+            Object& objChild = Objects[obj.Childrens[c]];
+            SearchSelectObj(objChild, obj.Childrens[c], found);
+        }
+    }
+    glPopMatrix();
+}
+
+void CBlenderLite::DrawTransformAxis(Object& obj) {
+	glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
+	glLineWidth(2);	
+	if (estado == translacionVertex){
+		Mesh& pMesh = Meshes[obj.Id];
+		glTranslatef(pMesh.vertex[pMesh.vertexGroup[EditSelect]*3]  *obj.scaleX/65000, 
+						pMesh.vertex[pMesh.vertexGroup[EditSelect]*3+1]*obj.scaleY/65000, 
+						pMesh.vertex[pMesh.vertexGroup[EditSelect]*3+2]*obj.scaleZ/65000
+		);		
+	}
+	if (axisSelect == X){
+		glColor4f(ColorTransformX[0],ColorTransformX[1],ColorTransformX[2],ColorTransformX[3]);
+		glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeRojo );				
+	}
+	else if (axisSelect == Y){
+		glColor4f(ColorTransformY[0],ColorTransformY[1],ColorTransformY[2],ColorTransformY[3]);
+		glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeVerde ); 				
+	}
+	else if (axisSelect == Z){
+		glColor4f(ColorTransformZ[0],ColorTransformZ[1],ColorTransformZ[2],ColorTransformZ[3]);
+		glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeAzul ); 				
+	}	
+	else if (axisSelect == XYZ){
+		glColor4f(ColorTransformX[0],ColorTransformX[1],ColorTransformX[2],ColorTransformX[3]);
+		glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeRojo );	
+		glColor4f(ColorTransformY[0],ColorTransformY[1],ColorTransformY[2],ColorTransformY[3]);
+		glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeVerde ); 
+		glColor4f(ColorTransformZ[0],ColorTransformZ[1],ColorTransformZ[2],ColorTransformZ[3]);
+		glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeAzul ); 				
+	}	
+}
+
+void CBlenderLite::DibujarOrigen(){
+	glEnable( GL_TEXTURE_2D );
+	glEnable( GL_BLEND );
+	// Enable point sprites.
+	glEnable( GL_POINT_SPRITE_OES );
+	// Make the points bigger.
+	glPointSize( 8 );
+	glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
+	glVertexPointer( 3, GL_SHORT, 0, pointVertex );
+	//glBindTexture( GL_TEXTURE_2D, iOrigenTextura.iID ); //selecciona la textura
+	glBindTexture( GL_TEXTURE_2D, Textures[0].iID ); //selecciona la textura
+	glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE );
+	glDrawArrays( GL_POINTS, 0, 1 );
+	glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_FALSE);
+	glDisable( GL_POINT_SPRITE_OES );
 }
 
 //Se encarga de la nueva UI 3d
@@ -1489,9 +1591,9 @@ void CBlenderLite::Tab(){
 
 void CBlenderLite::ReestablecerEstado(int indice){
 	Object& obj = Objects[indice];
-	Mesh& pMesh = Meshes[obj.Id];
 
-	if (estado == translacionVertex){
+	if (estado == translacionVertex && obj.type == mesh ){
+		Mesh& pMesh = Meshes[obj.Id];
 		 for(int g=0; g < pMesh.vertexGroupIndiceSize[EditSelect]; g++){
 			pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][g]*3] = estadoVertex[0];
 			pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][g]*3+2] = estadoVertex[1];	
@@ -1596,23 +1698,6 @@ void CBlenderLite::ToggleLamp( void )
         glEnable( GL_LIGHT0 );
         }
     }
-
-
-// -----------------------------------------------------------------------------
-// CBlenderLite::ToggleSpot
-// Enable/Disable spot from the application menu.
-// -----------------------------------------------------------------------------
-//
-void CBlenderLite::ToggleSpot( void ){
-    if ( iSpotEnabled ){
-		iSpotEnabled = EFalse;
-		glDisable( GL_LIGHT1 );
-	}
-    else{
-		iSpotEnabled = ETrue;
-		glEnable( GL_LIGHT1 );
-	}
-}
 
 void CBlenderLite::InsertarValor(){
 	HBufC* buf = HBufC::NewLC( 20 );
@@ -1724,6 +1809,74 @@ void CBlenderLite::TecladoNumerico(TInt numero){
 	}
 };
 
+
+void CBlenderLite::SetParent(){
+	if (Objects.Count() < 1){return;}
+	
+	TInt ParentID = 1;
+	HBufC* noteBuf = HBufC::NewLC(100);
+	_LIT(KFormatString, "Set Parent 1 to %d");
+	noteBuf->Des().Format(KFormatString, Objects.Count());
+	ParentID = DialogNumber(1, 1, Objects.Count(), noteBuf);	
+	ParentID --;
+
+	//si se emparento a si mismo. falla
+	if (ParentID == objSelect){
+		noteBuf->Des().Copy(_L("El hijo y el padre son el mismo"));	
+		MensajeError(noteBuf);
+		CleanupStack::PopAndDestroy(noteBuf);
+		return;
+	}
+	Objects[ParentID].Childrens.Append(objSelect);
+	/*Objects[objSelect].posX = Objects[objSelect].posX - Objects[ParentID].posX* 65000;
+	Objects[objSelect].posY = Objects[objSelect].posY - Objects[ParentID].posY* 65000;
+	Objects[objSelect].posZ = Objects[objSelect].posZ - Objects[ParentID].posZ* 65000;*/
+	/*Objects[objSelect].rotX = Objects[objSelect].rotX - Objects[ParentID].rotX;
+	Objects[objSelect].rotY = Objects[objSelect].rotY - Objects[ParentID].rotY;
+	Objects[objSelect].rotZ = Objects[objSelect].rotZ - Objects[ParentID].rotZ;*/
+	/*Objects[objSelect].scaleX = Objects[ParentID].scaleX / Objects[objSelect].scaleX * 65000;
+    Objects[objSelect].scaleY = Objects[ParentID].scaleY / Objects[objSelect].scaleY * 65000;
+    Objects[objSelect].scaleZ = Objects[ParentID].scaleZ / Objects[objSelect].scaleZ * 65000;*/
+
+	//si esta en la coleccion. lo borra
+	for(int c=0; c < Collection.Count(); c++){
+		if (Collection[c] == objSelect){
+			Collection.Remove(c);
+			break;			
+		}
+	}
+	/*_LIT(KFormatString2, "coleccion %d");
+	noteBuf->Des().Format(KFormatString2, Collection.Count());
+	MensajeError(noteBuf);*/
+	CleanupStack::PopAndDestroy(noteBuf);
+	redibujar = true;
+};
+
+void CBlenderLite::ClearParent(){
+	if (Objects.Count() < 1){return;}
+	for(int c=0; c < Collection.Count(); c++){
+		if (Collection[c] == objSelect){
+			Collection.Remove(c);	
+			break;
+		}
+	}
+	Collection.Append(objSelect);
+
+	//lo borra si quedo emparentado en algun objeto
+	for(int o=0; o < Objects.Count(); o++){
+		TBool salirBucle = false;
+		for(int c=0; c < Objects[o].Childrens.Count(); c++){
+			if (Objects[o].Childrens[c] == objSelect){
+				Objects[o].Childrens.Remove(c);	
+				salirBucle = true;
+				break;
+			}
+		}
+		if (salirBucle){break;}
+	}
+	redibujar = true;
+};
+
 void CBlenderLite::Borrar(){
 	if (estado != navegacion && estado != edicion ){
 		Cancelar();
@@ -1734,7 +1887,11 @@ void CBlenderLite::Borrar(){
 		HBufC* noteBuf = HBufC::NewLC(100);
 		_LIT(KStaticErrorMessage, "Delete Object?");
 		noteBuf->Des().Format(KStaticErrorMessage);
-		if (!DialogAlert(noteBuf)){return;}
+		if (!DialogAlert(noteBuf)){
+			CleanupStack::PopAndDestroy(noteBuf);	
+			return;
+		}
+		CleanupStack::PopAndDestroy(noteBuf);	
 		Cancelar();
 
 		//libera la memoria de los punteros primero	
@@ -1783,6 +1940,29 @@ void CBlenderLite::Borrar(){
 
 				//ahora se borra el mesh
 				Meshes.Remove(obj.Id);
+			}
+		}
+
+		// Borrar de la colección
+		for (int c = Collection.Count() - 1; c >= 0; c--) {
+			if (Collection[c] == objSelect) {
+				Collection.Remove(c);
+			}
+			// Hace falta cambiar los índices
+			else if (Collection[c] > objSelect) {
+				Collection[c]--;
+			}
+		}
+		
+		// Actualizar índices en los objetos
+		for (int o = 0; o < Objects.Count(); o++) {
+			for (int c = Objects[o].Childrens.Count() - 1; c >= 0; c--) {
+				if (Objects[o].Childrens[c] == objSelect) {
+					// Opcionalmente, puedes eliminar el hijo aquí si el objeto seleccionado es un hijo
+					Objects[o].Childrens.Remove(c);
+				} else if (Objects[o].Childrens[c] > objSelect) {
+					Objects[o].Childrens[c]--;
+				}
 			}
 		}
 
@@ -1851,6 +2031,7 @@ void CBlenderLite::AddObject( TInt tipo ){
 	obj.scaleX = obj.scaleY = obj.scaleZ = 45000;
 	obj.Id = -0;
 	Objects.Append(obj);
+	Collection.Append(Objects.Count()-1);
 	if (tipo == light){
 		Light tempLight;
 		tempLight.type = pointLight;
@@ -1860,23 +2041,28 @@ void CBlenderLite::AddObject( TInt tipo ){
 		tempLight.color[2] = 1.0;
 		tempLight.color[3] = 1.0;
 		//tempLight.color  = { MATERIALCOLOR(1.0, 1.0, 1.0, 1.0) };
+
+		glEnable( nextLightId );		
+		GLfloat lightDiffuseSpot[4]   = { LIGHTCOLOR(1.0, 1.0, 1.0, 1.0) };
+		GLfloat lightSpecularSpot[4]  = { LIGHTCOLOR(1.0, 1.0, 1.0, 1.0) };
+		glLightfv(  nextLightId, GL_DIFFUSE,  lightDiffuseSpot  );
+		glLightfv(  nextLightId, GL_AMBIENT,  lightAmbient  );
+		glLightfv(  nextLightId, GL_SPECULAR, lightSpecularSpot );
+		//glLightfv(  nextLightId, GL_POSITION, lightPositionSpot );
+		glLightfv(  nextLightId, GL_POSITION, positionPuntualLight );
 		
-		glEnable( GL_LIGHT3 );	
-		glLightfv(  GL_LIGHT3, GL_DIFFUSE,  tempLight.color  );
-		glLightfv(  GL_LIGHT3, GL_AMBIENT,  lightAmbient  );
-		glLightfv(  GL_LIGHT3, GL_SPECULAR, lightSpecularSpot );
-		glLightfv(  GL_LIGHT3, GL_POSITION, lightPositionSpot );
 
-		glLightf(   GL_LIGHT3, GL_CONSTANT_ATTENUATION,  1.5  );
-		glLightf(   GL_LIGHT3, GL_LINEAR_ATTENUATION,    0.5  );
-		glLightf(   GL_LIGHT3, GL_QUADRATIC_ATTENUATION, 0.5  );
+		glLightf(   nextLightId, GL_CONSTANT_ATTENUATION,  1.5  );
+		glLightf(   nextLightId, GL_LINEAR_ATTENUATION,    0.5  );
+		glLightf(   nextLightId, GL_QUADRATIC_ATTENUATION, 0.5  );
 
-		glLightf(   GL_LIGHT3, GL_SPOT_CUTOFF,   17.0                );
-		glLightf(   GL_LIGHT3, GL_SPOT_EXPONENT,  2.0                );
-		glLightfv(  GL_LIGHT3, GL_SPOT_DIRECTION, lightDirectionSpot );
+		/*glLightf(   nextLightId, GL_SPOT_CUTOFF,   170.0                );
+		glLightf(   nextLightId, GL_SPOT_EXPONENT,  20.0                );
+		glLightfv(  nextLightId, GL_SPOT_DIRECTION, lightDirectionSpot );*/
 		nextLightId++;
 
 		Lights.Append(tempLight);
+		obj.Id = Lights.Count()-1;
 	}
 	objSelect = Objects.Count()-1;
     redibujar = true;
@@ -1967,6 +2153,7 @@ void CBlenderLite::AddMesh( int modelo ){
 	obj.Id = Meshes.Count()-1;
 	Meshes[obj.Id].AgruparVertices();
 	Objects.Append(obj);	
+	Collection.Append(Objects.Count()-1);
 	objSelect = Objects.Count()-1;
     redibujar = true;
 }
@@ -2161,14 +2348,15 @@ void CBlenderLite::SetCulling(){
 
 	Cancelar();
 	//activa o desactiva las Transparencias
-	HBufC* buf = HBufC::NewLC( 22 );
-	buf->Des().Copy(_L("Activar Culling?"));
-	if (DialogAlert(buf)){	
+	HBufC* noteBuf = HBufC::NewLC( 22 );
+	noteBuf->Des().Copy(_L("Activar Culling?"));
+	if (DialogAlert(noteBuf)){	
 		pMesh.culling = true;
 	}
 	else {
 		pMesh.culling = false;	
 	}
+	CleanupStack::PopAndDestroy(noteBuf);	
     redibujar = true;
 }
 
@@ -2181,25 +2369,24 @@ void CBlenderLite::SetLighting(){
 	Mesh& pMesh = Meshes[obj.Id];
 
 	TInt MaterialID = 1;
+	HBufC* noteBuf = HBufC::NewLC(100);
 	if (pMesh.materialsSize > 1){
-		HBufC* noteBuf = HBufC::NewLC(100);
 		_LIT(KFormatString, "Material 1 to %d");
 		noteBuf->Des().Format(KFormatString, pMesh.materialsSize);
 		MaterialID = DialogNumber(1, 1, pMesh.materialsSize, noteBuf);	
-		CleanupStack::PopAndDestroy(noteBuf);	
 	}
 	Material& mat = Materials[pMesh.materials[MaterialID-1]];
 
 	Cancelar();
 	//activa o desactiva las Transparencias
-	HBufC* buf = HBufC::NewLC( 30 );
-	buf->Des().Copy(_L("Activar Iluminacion?"));
-	if (DialogAlert(buf)){	
+	noteBuf->Des().Copy(_L("Activar Iluminacion?"));
+	if (DialogAlert(noteBuf)){	
 		mat.lighting = true;
 	}
 	else {
 		mat.lighting = false;	
 	}
+	CleanupStack::PopAndDestroy(noteBuf);	
     redibujar = true;
 }
 
@@ -2210,18 +2397,26 @@ void CBlenderLite::SetVertexColor(){
 	//si no es un mesh
 	if (obj.type != mesh){return;}	
 	Mesh& pMesh = Meshes[obj.Id];
-	Material& mat = Materials[pMesh.materials[0]];
+
+	TInt MaterialID = 1;
+	HBufC* noteBuf = HBufC::NewLC(100);
+	if (pMesh.materialsSize > 1){
+		_LIT(KFormatString, "Material 1 to %d");
+		noteBuf->Des().Format(KFormatString, pMesh.materialsSize);
+		MaterialID = DialogNumber(1, 1, pMesh.materialsSize, noteBuf);	
+	}
+	Material& mat = Materials[pMesh.materials[MaterialID-1]];
 
 	Cancelar();
 	//activa o desactiva las Transparencias
-	HBufC* buf = HBufC::NewLC( 30 );
-	buf->Des().Copy(_L("Activar Vertex Color?"));
-	if (DialogAlert(buf)){	
+	noteBuf->Des().Copy(_L("Activar Vertex Color?"));
+	if (DialogAlert(noteBuf)){	
 		mat.color = true;
 	}
 	else {
 		mat.color = false;	
 	}
+	CleanupStack::PopAndDestroy(noteBuf);	
     redibujar = true;
 }
 
@@ -2232,19 +2427,26 @@ void CBlenderLite::SetInterpolation(){
 	//si no es un mesh
 	if (obj.type != mesh){return;}	
 	Mesh& pMesh = Meshes[obj.Id];
-	Material& mat = Materials[pMesh.materials[0]];
+
+	TInt MaterialID = 1;
+	HBufC* noteBuf = HBufC::NewLC(100);
+	if (pMesh.materialsSize > 1){
+		_LIT(KFormatString, "Material 1 to %d");
+		noteBuf->Des().Format(KFormatString, pMesh.materialsSize);
+		MaterialID = DialogNumber(1, 1, pMesh.materialsSize, noteBuf);
+	}
+	Material& mat = Materials[pMesh.materials[MaterialID-1]];
 
 	Cancelar();
 	//activa o desactiva las Transparencias
-	HBufC* buf = HBufC::NewLC( 21 );
-	buf->Des().Copy(_L("Interpolacion Lineal?"));
-	if (DialogAlert(buf)){	
+	noteBuf->Des().Copy(_L("Interpolacion Lineal?"));
+	if (DialogAlert(noteBuf)){	
 		mat.interpolacion = lineal;
 	}
 	else {
 		mat.interpolacion = closest;	
 	}
-	//CleanupStack::PopAndDestroy(buf);	
+	CleanupStack::PopAndDestroy(noteBuf);	
     redibujar = true;
 }
 
@@ -2289,32 +2491,29 @@ void CBlenderLite::SetMaterial(){
 	Mesh& pMesh = Meshes[obj.Id];
 
 	Cancelar();
-	HBufC* noteBuf1 = HBufC::NewLC(30);
+	HBufC* noteBuf = HBufC::NewLC(100);
 	_LIT(KFormatString, "Old Material 1 to %d");
-	noteBuf1->Des().Format(KFormatString, pMesh.materialsSize);
-	TInt OldMaterialID = DialogNumber(1, 1, pMesh.materialsSize, noteBuf1);
+	noteBuf->Des().Format(KFormatString, pMesh.materialsSize);
+	TInt OldMaterialID = DialogNumber(1, 1, pMesh.materialsSize, noteBuf);
 	
 	if (OldMaterialID > pMesh.materialsSize || 1 > OldMaterialID){		
-		noteBuf1->Des().Copy(_L("Indice invalido"));	
-		MensajeError(noteBuf1);
+		noteBuf->Des().Copy(_L("Indice invalido"));	
+		MensajeError(noteBuf);
 	}
 	else {
-		CleanupStack::PopAndDestroy(noteBuf1);
-
-		HBufC* noteBuf2 = HBufC::NewLC(30);
 		_LIT(KFormatString, "New Material 1 to %d");
-		noteBuf2->Des().Format(KFormatString, Materials.Count());
-		TInt MaterialID = DialogNumber(1, 1, Materials.Count(), noteBuf2);
+		noteBuf->Des().Format(KFormatString, Materials.Count());
+		TInt MaterialID = DialogNumber(1, 1, Materials.Count(), noteBuf);
 		
 		if (MaterialID > Materials.Count() || 1 > MaterialID){		
-			noteBuf2->Des().Copy(_L("Indice invalido"));	
-			MensajeError(noteBuf2);
+			noteBuf->Des().Copy(_L("Indice invalido"));	
+			MensajeError(noteBuf);
 		}
 		else {
 			pMesh.materials[OldMaterialID-1] = MaterialID-1;
-			CleanupStack::PopAndDestroy(noteBuf2);
 		}
 	}
+	CleanupStack::PopAndDestroy(noteBuf);
     redibujar = true;
 }
 
@@ -2362,6 +2561,7 @@ void CBlenderLite::DuplicatedObject(){
 
 		Objects.Append(obj);
 		objSelect = Objects.Count()-1;
+		Collection.Append(objSelect);
 		Objects[objSelect].Id = Meshes.Count()-1;
 
 		//los punteros apuntan a la misma memoria que el mesh original. hay que cambiarlo
@@ -2396,6 +2596,7 @@ void CBlenderLite::DuplicatedObject(){
 	else {
 		Objects.Append(obj);	
 		objSelect = Objects.Count()-1;
+		Collection.Append(objSelect);
 	}
 
     redibujar = true;
@@ -2407,6 +2608,7 @@ void CBlenderLite::DuplicatedLinked(){
 	Object& obj = Objects[objSelect];
 	Objects.Append(obj);	
 	objSelect = Objects.Count()-1;
+	Collection.Append(objSelect);
     redibujar = true;
 }
 
@@ -2704,6 +2906,20 @@ void CBlenderLite::SetViewpoint(TInt opcion){
 }
 
 void CBlenderLite::InfoObject(TInt opciones){
+	HBufC* noteBuf = HBufC::NewLC(100);	
+	_LIT(KFormatString, "Posicion: x: %d, y: %d, z: %d");
+	noteBuf->Des().Format(KFormatString, Objects[objSelect].posX, Objects[objSelect].posY, Objects[objSelect].posZ);
+	DialogAlert(noteBuf);	
+	
+	_LIT(KFormatString2, "Rotacion: x: %d, y: %d, z: %d");
+	noteBuf->Des().Format(KFormatString2, Objects[objSelect].rotX, Objects[objSelect].rotY, Objects[objSelect].rotZ);
+	DialogAlert(noteBuf);	
+
+	_LIT(KFormatString3, "Escala: x: %d, y: %d, z: %d");
+	noteBuf->Des().Format(KFormatString3, Objects[objSelect].scaleX, Objects[objSelect].scaleY, Objects[objSelect].scaleZ);
+	DialogAlert(noteBuf);
+
+	CleanupStack::PopAndDestroy(noteBuf);	
 	/*if (opciones == 1){
 		HBufC* noteBuf = HBufC::NewLC(30); //TInt::Length(obj.vertexGroupSize)
 		_LIT(KFormatString, "size %d Indices %d");
@@ -2735,13 +2951,13 @@ void CBlenderLite::InfoObject(TInt opciones){
 void CBlenderLite::Mensaje(HBufC* noteBuf){	        	
 	CAknInformationNote* note = new (ELeave) CAknInformationNote();
 	note->ExecuteLD(*noteBuf);
-	CleanupStack::PopAndDestroy(noteBuf);
+	//CleanupStack::PopAndDestroy(noteBuf);
 };
 
 void CBlenderLite::MensajeError(HBufC* noteBuf){
     CAknErrorNote* note = new (ELeave) CAknErrorNote();
     note->ExecuteLD(*noteBuf);
-    CleanupStack::PopAndDestroy(noteBuf);
+    //CleanupStack::PopAndDestroy(noteBuf);
 }
 
 /*TBool CBlenderLite::DialogAlert(HBufC* noteBuf){	  
@@ -2761,7 +2977,6 @@ TBool CBlenderLite::DialogAlert(HBufC* noteBuf) {
 	if (query->ExecuteLD(R_ACCEPT_INVITATION_DLG, *noteBuf)) {
 		retVal = ETrue;
 	}
-	CleanupStack::PopAndDestroy( noteBuf );
     return retVal;
 }
 
@@ -3281,6 +3496,7 @@ void CBlenderLite::ImportOBJ(){
 		
 		obj.Id = Meshes.Count()-1;
 		Objects.Append(obj);
+		Collection.Append(Objects.Count()-1);
 		objSelect = Objects.Count()-1;
 		Meshes[obj.Id].AgruparVerticesVacio();
 
@@ -3373,6 +3589,15 @@ void CBlenderLite::SetOrigen( TInt opcion ){
 		}//, edgeSelect, faceSelect  EditSelect		*/
 	}	
     redibujar = true;
+}
+
+void CBlenderLite::SaveCanvasToImage(const char* filename) {
+    GLubyte* pixels = new GLubyte[iScreenWidth * iScreenHeight * 4]; // 4 para RGBA
+    glReadPixels(0, 0, iScreenWidth, iScreenHeight, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    //SaveAsBMP(iScreenWidth, iScreenHeight, pixels, filename);
+
+    delete[] pixels;
 }
 
 

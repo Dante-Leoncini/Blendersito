@@ -4,7 +4,6 @@ typedef GLshort Edge[2];
 
 typedef enum { pointLight, sunLight };
 
-
 class Object {
 	public:
 		TInt type;
@@ -13,6 +12,7 @@ class Object {
 		GLfloat rotX; GLfloat rotY; GLfloat rotZ;
 		GLfixed scaleX; GLfixed scaleY; GLfixed scaleZ;
 		TInt Id;
+		RArray<TInt> Childrens;
 };
 
 class Light { 

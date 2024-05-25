@@ -45,6 +45,9 @@ enum TBlenderLiteMenuCommands
     EBlenderLiteSetPosicion,
     EBlenderLiteSetRotacion,
     
+    ESetParent,
+	EClearParent,
+    
     EBlenderLiteSeleccionar,
     EBlenderLiteSetTipoVertex,
     EBlenderLiteSetTipoEdge,

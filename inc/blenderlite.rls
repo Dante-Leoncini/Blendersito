@@ -63,6 +63,9 @@ rls_string STRING_r_Object               "Object"
 rls_string STRING_r_Snap                 "Snap"
 rls_string STRING_r_cursor_to_selected   "Cursor to Selected"
 
+rls_string STRING_r_SetParent            "Set Parent"
+rls_string STRING_r_ClearParent          "Clear Parent"
+
 rls_string STRING_r_DuplicatedObject               "Duplicate Object"
 rls_string STRING_r_DuplicatedLinked               "Duplicate Linked"
 

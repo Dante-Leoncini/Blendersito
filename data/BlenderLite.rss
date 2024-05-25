@@ -437,6 +437,16 @@ RESOURCE MENU_PANE r_viewport_object_menu{
 		{
 			command = EDuplicatedLinked;
 			txt = STRING_r_DuplicatedLinked;
+        }, 
+		MENU_ITEM
+		{
+			command = ESetParent;
+			txt = STRING_r_SetParent;
+        }, 
+		MENU_ITEM
+		{
+			command = EClearParent;
+			txt = STRING_r_ClearParent;
         } 
     };
 }

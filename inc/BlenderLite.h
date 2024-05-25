@@ -16,6 +16,9 @@
 #include "Glutils.h" // Misc GLU and GLUT functions
 #include "BlenderLiteinput.h"
 
+// Forward declaration de Object
+class Object;
+
 // MACROS
 #define TEX_WIDTH     256 // Texture size must be power of two and max size
 #define TEX_HEIGHT    256 // for textures is 256 x 256
@@ -133,9 +136,15 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void UiMoveTo(GLshort x, GLshort y);
         void SetUvBordes(GLshort origenX, GLshort origenY, GLshort ancho, GLshort alto, GLshort top, GLshort right, GLshort bottom, GLshort left);
         void DibujarRectanguloBordes(GLshort ancho, GLshort alto, GLshort top, GLshort right, GLshort bottom, GLshort left );
+        void SearchSelectObj(Object& obj, TInt objIndex, TBool& found);
+        void DrawTransformAxis(Object& obj);
         void SetViewpoint(TInt opcion);
-        TFileName GetRootDirectory(const TDesC& aFilePath);
+        TFileName GetRootDirectory(const TDesC& aFilePath);        
+        void SaveCanvasToImage(const char* filename);
+        void SaveAsBMP(int width, int height, const GLubyte* pixels, const char* filename);
         void AddModificador(TInt opcion);
+        void RenderMeshAndChildren(Object& obj);
+        void RenderObjectAndChildrens(TInt objId);
         void TecladoNumerico(TInt numero);
         void InsertarValor();
         void ImportOBJ();
@@ -143,6 +152,11 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void RemoveMaterial();
 		void RemoveTexture();
         void CloseWaitNoteL();
+        void RenderMesh( TInt objId );
+        void RenderObject( TInt objId );
+        void DibujarOrigen();
+        void SetParent();
+        void ClearParent();
         void ObtenerUbicacionInstalacionL(TDes& aUbicacion);
         void SetTipoSelect(TInt tipo);
         void SetOrigen( TInt opcion );

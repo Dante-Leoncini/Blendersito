@@ -400,6 +400,12 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             break;       
         case EDuplicatedLinked:
             iAppContainer->iBlenderLite->DuplicatedLinked();
+            break;     
+        case ESetParent:
+            iAppContainer->iBlenderLite->SetParent();
+            break;     
+        case EClearParent:
+            iAppContainer->iBlenderLite->ClearParent();
             break; 
         case ESetAmbientLight:
             iAppContainer->iBlenderLite->SetAmbientLight();
