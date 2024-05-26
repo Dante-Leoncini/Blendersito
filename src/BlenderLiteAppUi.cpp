@@ -323,6 +323,8 @@ enum{
 	vertexSelect, edgeSelect, faceSelect
 };
 
+typedef enum { AnimPosition, AnimRotation, AnimScale };
+
 // ----------------------------------------------------
 // CBlenderLiteAppUi::HandleCommandL
 // Command handler
@@ -548,7 +550,7 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             iAppContainer->iBlenderLite->RemoveTexture();
             break; 
         case EInsertKeyframe:
-            iAppContainer->iBlenderLite->InsertKeyframe();
+            iAppContainer->iBlenderLite->InsertKeyframe(AnimPosition);
             break; 
         case ERemoveKeyframes:
             iAppContainer->iBlenderLite->RemoveKeyframes();

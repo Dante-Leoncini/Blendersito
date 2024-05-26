@@ -118,7 +118,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void SetVertexColor();
         void SetSpecular();
         void SetDiffuse();
-        void InsertKeyframe();
+        void InsertKeyframe(TInt propertySelect);
         void RemoveKeyframes();
         void ClearKeyframes();
         void SetEmission();
@@ -149,8 +149,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         TFileName GetRootDirectory(const TDesC& aFilePath);        
         void SaveCanvasToImage();
         void DrawnTimeline();
-        //void SaveAsBMP(int width, int height, const GLubyte* pixels, const char* filename);
-        void SaveAsBMP(TInt width, TInt height, const GLubyte* pixels);
+        void SaveAsBMP(TInt width, TInt height, const GLubyte* pixels, const TDesC& fileName);
         void AddModificador(TInt opcion);
         void RenderMeshAndChildren(Object& obj);
         void RenderObjectAndChildrens(TInt objId);
@@ -180,6 +179,8 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         TBool DialogAlert(HBufC* noteBuf);
         TBool DialogAlert(const TDesC& noteBuf);
         TInt DialogNumber( TInt valor, TInt min, TInt max, HBufC* noteBuf); //,TPtrC etiqueta
+        //TInt DialogSelectOption(const TDesC& aPrompt, CDesCArray& aOptions);
+        TInt DialogSelectOption(const TDesC& aPrompt);
         void Tab();
         
         //cambiar el shader en el viewport

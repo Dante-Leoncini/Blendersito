@@ -33,6 +33,11 @@
 #include <aknnotewrappers.h> 
 #include <akncommondialogs.h>
 
+//nuevo apra el nuevo dialogo con opciones
+#include <aknlists.h>
+#include <aknpopup.h>
+#include <eikclbd.h>
+
 // MACROS
 #define MATERIAL_MAX 1
 #define LIGHT_MAX    1
@@ -132,6 +137,7 @@ GLshort mouseX = 0;
 GLshort mouseY = 0;
 TBool mouseVisible = false;
 TBool showOverlays = true;
+TBool ShowUi = true;
 TBool show3DCursor = true;
 TBool showFloor = true;
 TBool showYaxis = true;
@@ -819,7 +825,22 @@ void CBlenderLite::RenderObject( TInt objId ){
 }
 
 
-void CBlenderLite::InsertKeyframe(){
+void CBlenderLite::InsertKeyframe(TInt propertySelect){
+    // Crear una lista de opciones
+    //CDesCArrayFlat* options = new (ELeave) CDesCArrayFlat(3);
+    //CleanupStack::PushL(options);
+    /*options->AppendL(_L("Opción 1"));
+    options->AppendL(_L("Opción 2"));
+    options->AppendL(_L("Opción 3"));*/
+
+    // Mostrar el diálogo de selección de opciones
+    //TInt selectedIndex = DialogSelectOption(_L("Selecciona una opción:"), *options);
+    TInt selectedIndex = DialogSelectOption(_L("Selecciona una opción:"));
+
+    //CleanupStack::PopAndDestroy(options);
+	//si no se selecciono nada
+    if (selectedIndex == -1) {return;}
+
 	TBool encontrado = false;
 	TInt index = 0;
     for(TInt a = 0; a < Animations.Count(); a++) {
@@ -836,17 +857,44 @@ void CBlenderLite::InsertKeyframe(){
 
 	if (encontrado){
 		for(TInt p = 0; p < Animations[index].Propertys.Count(); p++) {
-			switch (Animations[index].Propertys[p].Property) {
+			AnimProperty& animProp = Animations[index].Propertys[p];
+			if(animProp.Property != propertySelect){continue;}
+			switch (animProp.Property) {
 				case AnimPosition:
 					key.valueX = Objects[objSelect].posX;
 					key.valueY =  Objects[objSelect].posY;
 					key.valueZ =  Objects[objSelect].posZ;
 					break;
+				case AnimRotation:
+					key.valueX = Objects[objSelect].rotX;
+					key.valueY =  Objects[objSelect].rotY;
+					key.valueZ =  Objects[objSelect].rotZ;
+					break;
+				case AnimScale:
+					key.valueX = Objects[objSelect].scaleX;
+					key.valueY =  Objects[objSelect].scaleY;
+					key.valueZ =  Objects[objSelect].scaleZ;
+					break;
 				default:
 					break;
 			}
-			Animations[index].Propertys[p].keyframes.Append(key);	
-			Animations[index].Propertys[p].SortKeyFrames();	
+
+			TBool yaExiste = false;
+			for(TInt k = 0; k < animProp.keyframes.Count(); k++) {
+				//evita que se duplique. solo reemplaza
+				if (animProp.keyframes[k].frame == CurrentFrame){
+					animProp.keyframes[k].valueX = key.valueX;
+					animProp.keyframes[k].valueY = key.valueY;
+					animProp.keyframes[k].valueZ = key.valueZ;
+					yaExiste = true;
+					break;
+				}
+			};
+			if (!yaExiste){
+				animProp.keyframes.Append(key);	
+				animProp.SortKeyFrames();
+			}
+			break;
 		}
 	}
 	else {		
@@ -858,11 +906,27 @@ void CBlenderLite::InsertKeyframe(){
 		AnimProperty propNew;
 		anim.Propertys.Append(propNew);
 		AnimProperty& prop = anim.Propertys[anim.Propertys.Count()-1];
-		prop.Property = AnimPosition;
+		prop.Property = propertySelect;
 
-		key.valueX = Objects[objSelect].posX;
-		key.valueY =  Objects[objSelect].posY;
-		key.valueZ =  Objects[objSelect].posZ;
+		switch (propertySelect) {
+			case AnimPosition:
+				key.valueX = Objects[objSelect].posX;
+				key.valueY =  Objects[objSelect].posY;
+				key.valueZ =  Objects[objSelect].posZ;
+				break;
+			case AnimRotation:
+				key.valueX = Objects[objSelect].rotX;
+				key.valueY =  Objects[objSelect].rotY;
+				key.valueZ =  Objects[objSelect].rotZ;
+				break;
+			case AnimScale:
+				key.valueX = Objects[objSelect].scaleX;
+				key.valueY =  Objects[objSelect].scaleY;
+				key.valueZ =  Objects[objSelect].scaleZ;
+				break;
+			default:
+				break;
+		}
 		prop.keyframes.Append(key);
 	}
     redibujar = true;	
@@ -1150,7 +1214,9 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	    glPopMatrix(); //reinicia la matrix a donde se guardo	
 	}
 
-	dibujarUI();
+	if (ShowUi){
+		dibujarUI();
+	}
 
     //termino de dibujar
     redibujar = false;
@@ -3313,6 +3379,31 @@ TInt CBlenderLite::DialogNumber(TInt valor, TInt min, TInt max, HBufC* noteBuf )
     return number;
 }
 
+//TInt CBlenderLite::DialogSelectOption(const TDesC& aPrompt, CDesCArray& aOptions) {
+TInt CBlenderLite::DialogSelectOption(const TDesC& aPrompt) {	
+    /*options->AppendL(_L("Opción 1"));
+    options->AppendL(_L("Opción 2"));
+    options->AppendL(_L("Opción 3"));*/
+    // Variable to hold the selected index
+    TInt selectedIndex = 0;
+
+    // Create the list query dialog
+    CAknListQueryDialog* dlg = new (ELeave) CAknListQueryDialog(&selectedIndex);
+
+    // Set the prompt for the dialog
+    dlg->PrepareLC(R_AVKON_MESSAGE_QUERY_DIALOG);
+    //dlg->SetItemTextArray(&aOptions);
+    dlg->SetPromptL(aPrompt);
+    
+    // Execute the dialog and check if an option was selected
+    if (dlg->RunLD()) {
+        return selectedIndex;
+    } else {
+        // Return -1 if no option was selected
+        return -1;
+    }
+}
+
 // -----------------------------------------------------------------------------
 // CBlenderLite::SetScreenSize
 // Reacts to the dynamic screen size change during execution of this program.
@@ -3901,13 +3992,20 @@ void CBlenderLite::SetOrigen( TInt opcion ){
     redibujar = true;
 }
 
-struct TBMPFileHeader {
+struct __attribute__((packed)) TBMPFileHeader {
     TUint16 bfType;
     TUint32 bfSize;
     TUint16 bfReserved1;
     TUint16 bfReserved2;
     TUint32 bfOffBits;
 };
+/*struct TBMPFileHeader {
+    TUint16 bfType;
+    TUint32 bfSize;
+    TUint16 bfReserved1;
+    TUint16 bfReserved2;
+    TUint32 bfOffBits;
+};*/
 
 struct TBMPInfoHeader {
     TUint32 biSize;
@@ -3923,16 +4021,13 @@ struct TBMPInfoHeader {
     TUint32 biClrImportant;
 };
 
-void CBlenderLite::SaveAsBMP(int width, int height, const GLubyte* pixels) {
+void CBlenderLite::SaveAsBMP(int width, int height, const GLubyte* pixels, const TDesC& fileName) {
     RFs fsSession;
     RFile file;
     TInt err = fsSession.Connect();
     if (err != KErrNone) {
         return;
     }
-
-    _LIT(KFileName, "E:\\high_resolution_image.bmp");
-    TPtrC fileName(KFileName);
 
     err = file.Replace(fsSession, fileName, EFileWrite);
     if (err != KErrNone) {
@@ -3943,19 +4038,28 @@ void CBlenderLite::SaveAsBMP(int width, int height, const GLubyte* pixels) {
     TBMPFileHeader fileHeader;
     TBMPInfoHeader infoHeader;
 
-    TInt32 rowSize = ((24 * width + 31) / 32) * 4;  // Tamaño de la fila con padding
-    TUint32 imageSize = rowSize * height;  // Tamaño de la imagen en bytes
+    TInt32 rowSize = ((24 * width + 31) / 32) * 4;  // Row size with padding
+    TUint32 imageSize = rowSize * height;  // Image size in bytes
     fileHeader.bfType = 0x4D42;  // 'BM'
     fileHeader.bfSize = sizeof(TBMPFileHeader) + sizeof(TBMPInfoHeader) + imageSize;
     fileHeader.bfReserved1 = 0;
     fileHeader.bfReserved2 = 0;
     fileHeader.bfOffBits = sizeof(TBMPFileHeader) + sizeof(TBMPInfoHeader);
 
+	/*HBufC* noteBuf = HBufC::NewLC(200);
+	_LIT(KFormatString, "TBMPFileHeader: %d\nTBMPInfoHeader:%d");
+	noteBuf->Des().Format(KFormatString, sizeof(TBMPFileHeader), sizeof(TBMPInfoHeader));
+
+	_LIT(KFormatString2, "rowSize: %d\nimage size:%d\nbfSize: %d\nbfReserved1: %d\nbfReserved2: %d");
+	noteBuf->Des().Format(KFormatString2, rowSize, imageSize, fileHeader.bfSize, fileHeader.bfReserved1, fileHeader.bfReserved2);
+	DialogAlert(noteBuf);	
+	CleanupStack::PopAndDestroy(noteBuf);*/
+
     infoHeader.biSize = sizeof(TBMPInfoHeader);
     infoHeader.biWidth = width;
-    infoHeader.biHeight = -height;  // Negativo para evitar voltear la imagen
+    infoHeader.biHeight = height;
     infoHeader.biPlanes = 1;
-    infoHeader.biBitCount = 24;  // 24 bits por píxel
+    infoHeader.biBitCount = 24;  // 24 bits per pixel
     infoHeader.biCompression = 0;
     infoHeader.biSizeImage = imageSize;
     infoHeader.biXPelsPerMeter = 0;
@@ -3968,12 +4072,12 @@ void CBlenderLite::SaveAsBMP(int width, int height, const GLubyte* pixels) {
     TPtrC8 infoHeaderPtr(reinterpret_cast<const TUint8*>(&infoHeader), sizeof(infoHeader));
     file.Write(infoHeaderPtr);
 
-    // Convertir de RGBA a RGB
+    // Convert from RGBA to RGB
     GLubyte* rgbPixels = new GLubyte[imageSize];
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            int srcIndex = (y * width + x) * 4;  // Índice de origen RGBA
-            int destIndex = y * rowSize + x * 3;  // Índice de destino RGB con padding
+            int srcIndex = (y * width + x) * 4;  // Source RGBA index
+            int destIndex = y * rowSize + x * 3;  // Destination RGB index with padding
             rgbPixels[destIndex] = pixels[srcIndex];        // R
             rgbPixels[destIndex + 1] = pixels[srcIndex + 1]; // G
             rgbPixels[destIndex + 2] = pixels[srcIndex + 2]; // B
@@ -3989,19 +4093,27 @@ void CBlenderLite::SaveAsBMP(int width, int height, const GLubyte* pixels) {
 }
 
 void CBlenderLite::SaveCanvasToImage() {
-	/*HBufC* noteBuf = HBufC::NewLC(100);	
-	_LIT(KFormatString, "Guardando imagen: %dx%d");
-	noteBuf->Des().Format(KFormatString, iScreenWidth,iScreenHeight);
-	DialogAlert(noteBuf);	
-	CleanupStack::PopAndDestroy(noteBuf);*/
+	//redibuja el canvas sin los overlays
+	TBool originalShowOverlays = showOverlays;
+	TBool originalShowUi = ShowUi;
+	ShowUi = false;	
+	showOverlays = false;
+	redibujar = true;
+	AppCycle(0,0,0);
 
     GLubyte* pixels = new GLubyte[iScreenWidth * iScreenHeight * 4]; // 4 para RGBA
     glReadPixels(0, 0, iScreenWidth, iScreenHeight, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
-    SaveAsBMP(iScreenWidth, iScreenHeight, pixels);
-    //SaveAsBMP(iScreenWidth, iScreenHeight, pixels, filename);
 
+	_LIT(KFileName, "E:\\high_resolution_image.bmp");
+	TFileName fileName(KFileName);
+    SaveAsBMP(iScreenWidth, iScreenHeight, pixels, fileName);
+
+	//deja todo como antes
+	showOverlays = originalShowOverlays;
+	ShowUi = originalShowUi;
     delete[] pixels;
+	redibujar = true;
 }
 
 //  End of File

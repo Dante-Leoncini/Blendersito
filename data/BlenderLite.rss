@@ -664,6 +664,8 @@ RESOURCE TBUF256 r_showOutlineSelect{buf = STRING_r_ShowOutlineSelect;}
 RESOURCE TBUF256 r_hideOrigin{buf = STRING_r_HideOrigin;}
 RESOURCE TBUF256 r_showOrigin{buf = STRING_r_ShowOrigin;}
 
+
+
 //-----------------------------------------------------------------------------
 //
 //    r_blenderlite_progress_note
