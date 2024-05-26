@@ -19,6 +19,7 @@
 #include "BlenderLite.h"
 #include "BlenderLiteContainer.h"
 
+#include "Animation.h"
 #include "Mesh.h"
 #include "mono.h" //modelo 3d
 #include "Floor.h" //modelo 3d
@@ -162,7 +163,8 @@ enum{
 	translacionVertex,
 	translacionEdge,
 	translacionFace,
-	edicion
+	edicion,
+	timelineMove
 };
 
 enum{
@@ -289,7 +291,7 @@ void CBlenderLite::ConstructL( void ){
 	showXaxis = true;
 	showOutlineSelect = true;
 	showOrigins = true;
-	PlayAnimation = true;
+	PlayAnimation = false;
 	ShowTimeline = true;
 
 	//tiene que haber un material por defecto siempre
@@ -317,21 +319,25 @@ void CBlenderLite::ConstructL( void ){
 	//AddMesh(monkey);
 	AddMesh(cubo);	
 
-	Animation testAnimation;	
-	testAnimation.Id = 2;
-	testAnimation.Property = AnimPositionX;
+	/*Animation animNew;	
+	Animations.Append(animNew);
+	Animation& anim = Animations[0];	
+	anim.Id = 2;
 
-	keyFrame TestkeyFrame;
-	TestkeyFrame.frame = 1;
-	TestkeyFrame.value = 0;
-	TestkeyFrame.Interpolation = Linear;
-	testAnimation.keyframes.Append(TestkeyFrame);
+	AnimProperty propNew;
+	anim.Propertys.Append(propNew);
+	AnimProperty& prop = anim.Propertys[0];
+	prop.Property = AnimPositionX;
 
-	TestkeyFrame.frame = 251;
-	TestkeyFrame.value = 10000;
-	testAnimation.keyframes.Append(TestkeyFrame);
+	keyFrame key;
+	key.frame = 1;
+	key.value = 0;
+	key.Interpolation = Linear;
+	prop.keyframes.Append(key);
 
-	Animations.Append(testAnimation);
+	key.frame = 251;
+	key.value = 10000;
+	prop.keyframes.Append(key);*/
 }
 
 void CBlenderLite::NewMaterial(){
@@ -812,74 +818,178 @@ void CBlenderLite::RenderObject( TInt objId ){
 	//glPopMatrix(); //reinicia la matrix a donde se guardo	
 }
 
-void CBlenderLite::ReloadAnimation() {
+
+void CBlenderLite::InsertKeyframe(){
+	TBool encontrado = false;
+	TInt index = 0;
     for(TInt a = 0; a < Animations.Count(); a++) {
-        if (Animations[a].keyframes.Count() > 0) {
-            TInt firstFrame = -1;
-            TInt lastFrame = -1;
-            TInt value = 0;
+		if (Animations[a].Id == objSelect){
+			encontrado = true;
+			index = a;
+			break;
+		}
+	}	
 
-            // Encontrar el primer y último frame
-            for(TInt f = 0; f < Animations[a].keyframes.Count(); f++) {
-                if (firstFrame == -1 || Animations[a].keyframes[f].frame < firstFrame) {
-                    firstFrame = Animations[a].keyframes[f].frame;
-                }
-                if (lastFrame == -1 || Animations[a].keyframes[f].frame > lastFrame) {
-                    lastFrame = Animations[a].keyframes[f].frame;
-                }
-            }
+	keyFrame key;
+	key.frame = CurrentFrame;
+	key.Interpolation = Linear;
 
-            // Si el CurrentFrame está fuera de los límites de los keyframes, usar el valor del primer o último frame
-            if (CurrentFrame <= firstFrame) {
-                value = Animations[a].keyframes[0].value;
-            } else if (CurrentFrame >= lastFrame) {
-                value = Animations[a].keyframes[Animations[a].keyframes.Count() - 1].value;
-            } else {
-                // Interpolación entre keyframes
-                for(TInt f = 0; f < Animations[a].keyframes.Count() - 1; f++) {
-                    if (CurrentFrame >= Animations[a].keyframes[f].frame && CurrentFrame <= Animations[a].keyframes[f + 1].frame) {
-                        TInt frame1 = Animations[a].keyframes[f].frame;
-                        TInt value1 = Animations[a].keyframes[f].value;
-                        TInt frame2 = Animations[a].keyframes[f + 1].frame;
-                        TInt value2 = Animations[a].keyframes[f + 1].value;
-                        TInt interpolation = Animations[a].keyframes[f].Interpolation;
+	if (encontrado){
+		for(TInt p = 0; p < Animations[index].Propertys.Count(); p++) {
+			switch (Animations[index].Propertys[p].Property) {
+				case AnimPosition:
+					key.valueX = Objects[objSelect].posX;
+					key.valueY =  Objects[objSelect].posY;
+					key.valueZ =  Objects[objSelect].posZ;
+					break;
+				default:
+					break;
+			}
+			Animations[index].Propertys[p].keyframes.Append(key);	
+			Animations[index].Propertys[p].SortKeyFrames();	
+		}
+	}
+	else {		
+		Animation NewAnim;	
+		Animations.Append(NewAnim);
+		Animation& anim = Animations[Animations.Count()-1];	
+		anim.Id = objSelect;
+		
+		AnimProperty propNew;
+		anim.Propertys.Append(propNew);
+		AnimProperty& prop = anim.Propertys[anim.Propertys.Count()-1];
+		prop.Property = AnimPosition;
 
-                        switch (interpolation) {
-                            case Constant:
-                                value = value1;
-                                break;
-                            case Linear:
-                                value = value1 + ((value2 - value1) * (CurrentFrame - frame1)) / (frame2 - frame1);
-                                break;
-                            default:
-                                value = value1;
-                                break;
-                        }
-                        break;
-                    }
-                }
-            }
+		key.valueX = Objects[objSelect].posX;
+		key.valueY =  Objects[objSelect].posY;
+		key.valueZ =  Objects[objSelect].posZ;
+		prop.keyframes.Append(key);
+	}
+    redibujar = true;	
+}
 
-            // Asignar el valor calculado a la propiedad correspondiente del objeto
-            switch (Animations[a].Property) {
-                case AnimPositionX:
-                    Objects[Animations[a].Id].posX = value;
-                    break;
-                // Otros casos según las propiedades
-                default:
-                    // Manejar cualquier otro caso aquí si es necesario
-                    break;
-            }
-        }
+void CBlenderLite::RemoveKeyframes(){
+    for(TInt a = 0; a < Animations.Count(); a++) {
+		if (Animations[a].Id == objSelect){
+        	if (Animations[a].Propertys.Count() > 0) {
+				for(TInt p = 0; p < Animations[a].Propertys.Count(); p++) {
+					AnimProperty& anim = Animations[a].Propertys[p];
+					if (anim.keyframes.Count() > 0) {
+						TInt firstFrame = 0;
+						TInt firstFrameIndex = 0;
+						// Encontrar el primer frame
+						for(TInt f = 0; f < anim.keyframes.Count(); f++) {
+							if (anim.keyframes[f].frame < CurrentFrame && anim.keyframes[f].frame > firstFrame) {
+								firstFrameIndex = f;
+							}
+						}
+						anim.keyframes.Remove(firstFrameIndex);
+					}
+				}
+			}
+			break;
+		}
+	}	
+    redibujar = true;
+}
+
+void CBlenderLite::ClearKeyframes(){
+    for(TInt a = 0; a < Animations.Count(); a++) {
+		if (Animations[a].Id == objSelect){
+			/*for(TInt p = 0; p < Animations[a].Propertys.Count(); p++){
+				Animations[a].Propertys[p].keyframes.Close();
+			}*/
+			Animations[a].Propertys.Close();
+			Animations.Remove(a);
+			break;
+		}
+	}	
+    redibujar = true;
+}
+
+void CBlenderLite::ReloadAnimation(){
+    for(TInt a = 0; a < Animations.Count(); a++) {
+		for(TInt p = 0; p < Animations[a].Propertys.Count(); p++){
+			AnimProperty& anim = Animations[a].Propertys[p];
+			if (anim.keyframes.Count() > 0){
+				TInt valueX = 0;
+				TInt valueY = 0;
+				TInt valueZ = 0;
+				TInt firstFrameIndex = 0;
+				TInt lastFrameIndex = 0;
+				// Encontrar el primer frame
+				for(TInt f = 0; f < anim.keyframes.Count(); f++) {
+					if (anim.keyframes[f].frame <= CurrentFrame) {
+						firstFrameIndex = f;
+					}
+					if (anim.keyframes[f].frame >= CurrentFrame) {
+						lastFrameIndex = f;
+						break;
+					}
+				}
+
+				// Si el CurrentFrame está fuera de los límites de los keyframes, usar el valor del primer o último frame
+				if (CurrentFrame <= anim.keyframes[firstFrameIndex].frame) {
+					valueX = anim.keyframes[firstFrameIndex].valueX;
+					valueY = anim.keyframes[firstFrameIndex].valueY;
+					valueZ = anim.keyframes[firstFrameIndex].valueZ;
+				} 
+				else if (CurrentFrame >= anim.keyframes[lastFrameIndex].frame) {
+					valueX = anim.keyframes[anim.keyframes.Count() - 1].valueX;
+					valueY = anim.keyframes[anim.keyframes.Count() - 1].valueY;
+					valueZ = anim.keyframes[anim.keyframes.Count() - 1].valueZ;
+				} 
+				// Interpolación entre keyframes
+				else {		
+					// Interpolación entre keyframes
+					TInt frame1 = anim.keyframes[firstFrameIndex].frame;
+					TInt valueX1 = anim.keyframes[firstFrameIndex].valueX;
+					TInt valueY1 = anim.keyframes[firstFrameIndex].valueY;
+					TInt valueZ1 = anim.keyframes[firstFrameIndex].valueZ;
+					TInt frame2 = anim.keyframes[lastFrameIndex].frame;
+					TInt valueX2 = anim.keyframes[lastFrameIndex].valueX;
+					TInt valueY2 = anim.keyframes[lastFrameIndex].valueY;
+					TInt valueZ2 = anim.keyframes[lastFrameIndex].valueZ;
+
+					switch (anim.keyframes[firstFrameIndex].Interpolation) {
+						case Constant:
+							valueX = valueX1;
+							valueY = valueY1;
+							valueZ = valueZ1;
+							break;
+						case Linear:
+							valueX = valueX1 + ((valueX2 - valueX1) * (CurrentFrame - frame1)) / (frame2 - frame1);
+							valueY = valueY1 + ((valueY2 - valueY1) * (CurrentFrame - frame1)) / (frame2 - frame1);
+							valueZ = valueZ1 + ((valueZ2 - valueZ1) * (CurrentFrame - frame1)) / (frame2 - frame1);
+							break;
+						default:
+							valueX = valueX1;
+							valueY = valueY1;
+							valueZ = valueZ1;
+							break;
+					}
+				}
+
+				// Asignar el valor calculado a la propiedad correspondiente del objeto
+				switch (anim.Property) {
+					case AnimPosition:
+						Objects[Animations[a].Id].posX = valueX;
+						Objects[Animations[a].Id].posY = valueY;
+						Objects[Animations[a].Id].posZ = valueZ;
+						break;
+					// Otros casos según las propiedades
+					default:
+						// Manejar cualquier otro caso aquí si es necesario
+						break;
+				}
+			}
+		}
     }
 }
 
 void CBlenderLite::SetCurrentFrame(){
 	Cancelar();
-	HBufC* noteBuf = HBufC::NewLC(100);
-	noteBuf->Des().Copy(_L("Set Current Frame"));
-	CurrentFrame = DialogNumber(CurrentFrame, StartFrame-1, EndFrame+1, noteBuf);	
-	CleanupStack::PopAndDestroy(noteBuf);
+	estado = timelineMove;
     redibujar = true;
 }
 
@@ -896,12 +1006,12 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 		return;
 	}
 
-	ReloadAnimation();
 	if (PlayAnimation){
 		CurrentFrame++;
 		if (CurrentFrame > EndFrame){
 			CurrentFrame = StartFrame;
 		}
+		ReloadAnimation();
 	}
 	
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -1444,6 +1554,12 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 				Objects[objSelect].scaleZ -= 1000;
 			}
 		}
+		else if (estado == timelineMove){
+			CurrentFrame--;
+			if (!PlayAnimation){
+				ReloadAnimation();
+			}
+		}
 		/*else if (estado == movimientoView){
 			posX-= 0.5;					
 		}
@@ -1515,6 +1631,12 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 				Objects[objSelect].scaleY += 1000;
 				Objects[objSelect].scaleZ += 1000;
 			}			
+		}
+		else if (estado == timelineMove){
+			CurrentFrame++;
+			if (!PlayAnimation){
+				ReloadAnimation();
+			}
 		}
 		/*
 		else if (estado == movimientoView){
@@ -1738,6 +1860,13 @@ void CBlenderLite::Tab(){
 	}
 	else if (estado == translacion || estado == rotacion || estado == escala || estado == translacionVertex){
 		InsertarValor();
+	}
+	else if (estado == timelineMove){	
+		HBufC* noteBuf = HBufC::NewLC(100);
+		noteBuf->Des().Copy(_L("Set Current Frame"));
+		CurrentFrame = DialogNumber(CurrentFrame, StartFrame-1, EndFrame+100, noteBuf);	
+		CleanupStack::PopAndDestroy(noteBuf);
+		Aceptar();
 	};
 };
 
@@ -2098,7 +2227,11 @@ void CBlenderLite::Borrar(){
 
 		//si existe animaciones para ese objeto. las borra		
 		for(TInt a = 0; a < Animations.Count(); a++) {
-			if (Animations[a].Id == objSelect) {
+			if (Animations[a].Id == objSelect) {	
+				for(TInt p = 0; p < Animations[a].Propertys.Count(); p++) {
+					Animations[a].Propertys[p].keyframes.Close();
+				}				
+				Animations[a].Propertys.Close();
 				Animations.Remove(a);
 			}
 			// Hace falta cambiar los índices
@@ -2180,6 +2313,13 @@ void CBlenderLite::CursorToSelect(){
 	Cursor3DposX = Objects[objSelect].posX;
 	Cursor3DposY = Objects[objSelect].posY;
 	Cursor3DposZ = Objects[objSelect].posZ;
+	redibujar = true;
+}
+
+void CBlenderLite::SelectToCursor(){
+	Objects[objSelect].posX = Cursor3DposX;
+	Objects[objSelect].posY = Cursor3DposY;
+	Objects[objSelect].posZ = Cursor3DposZ;
 	redibujar = true;
 }
 

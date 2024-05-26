@@ -62,6 +62,7 @@ rls_string STRING_r_blenderlite_EditarMesh     "Edit Mesh"
 rls_string STRING_r_Object               "Object"
 rls_string STRING_r_Snap                 "Snap"
 rls_string STRING_r_cursor_to_selected   "Cursor to Selected"
+rls_string STRING_r_selected_to_cursor   "Selected to Cursor"
 
 rls_string STRING_r_SetParent            "Set Parent"
 rls_string STRING_r_ClearParent          "Clear Parent"
@@ -124,6 +125,11 @@ rls_string STRING_r_Stop             "Stop"
 rls_string STRING_r_SetCurrentFrame  "Set Current Frame"
 rls_string STRING_r_Show_Timeline    "Show Timeline"
 rls_string STRING_r_Hide_Timeline    "Hide Timeline"
+
+rls_string STRING_r_Animation        "Animation"
+rls_string STRING_r_InsertKeyframe   "Insert keyframe"
+rls_string STRING_r_RemoveKeyframes  "Remove keyframes"
+rls_string STRING_r_ClearKeyframes   "Clear keyframes"
 
 
 // End of File

@@ -101,11 +101,17 @@ enum TBlenderLiteMenuCommands
 
     EViewportObjectSnap,
     EViewportCursorToSelect,
+    EViewportSelectToCursor,
 
     ETimelineMenu,
     ETimelinePlayStop,
     ETimelineShowTimeline,
-    ETimelineSetCurrentFrame
+    ETimelineSetCurrentFrame,
+
+    EAnimationMenu,
+    EInsertKeyframe,
+    ERemoveKeyframes,
+    EClearKeyframes
 };
 
 enum TAknExNoteNoteControlIds {

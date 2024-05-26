@@ -118,12 +118,16 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void SetVertexColor();
         void SetSpecular();
         void SetDiffuse();
+        void InsertKeyframe();
+        void RemoveKeyframes();
+        void ClearKeyframes();
         void SetEmission();
         void SetEditMode();
         void Extruir();
         void SetPerspectiva( TBool redibuja = true );
         void EnfocarObject();
         void CursorToSelect();
+        void SelectToCursor();
         void Borrar();
         void changeSelect();
         void ReloadAnimation();

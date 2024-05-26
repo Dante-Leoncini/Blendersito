@@ -140,7 +140,13 @@ RESOURCE MENU_PANE r_blenderlite_menu
                 command = ETimelineMenu;
                 cascade = r_timeline_menu;
                 txt = STRING_r_Timeline;
-            },          
+            },  			
+        	MENU_ITEM
+            {
+                command = EAnimationMenu;
+                cascade = r_animation_menu;
+                txt = STRING_r_Animation;
+            },   
         	MENU_ITEM
             {
                 command = ERenderImage;
@@ -152,6 +158,30 @@ RESOURCE MENU_PANE r_blenderlite_menu
             //    txt = STRING_r_RenderAnimation;
             //}  
         };
+}
+
+//----------------------------------------------------
+//
+//    r_animation_menu
+//
+//----------------------------------------------------
+//
+
+RESOURCE MENU_PANE r_animation_menu {
+    items = { 		
+        MENU_ITEM {
+            command = EInsertKeyframe;
+            txt = STRING_r_InsertKeyframe;
+        },	
+        MENU_ITEM {
+            command = ERemoveKeyframes;
+            txt = STRING_r_RemoveKeyframes;
+        },
+        MENU_ITEM {
+            command = EClearKeyframes;
+            txt = STRING_r_ClearKeyframes;
+        }	
+    };
 }
 
 //----------------------------------------------------
@@ -467,7 +497,12 @@ RESOURCE MENU_PANE r_viewport_object_menu{
             command = EViewportCursorToSelect; //EViewportObjectSnap;
             //cascade = r_viewport_object_snap_menu;
             txt = STRING_r_cursor_to_selected; //STRING_r_Snap;
-        },	
+        },   
+        MENU_ITEM
+        {
+            command = EViewportSelectToCursor;
+            txt = STRING_r_selected_to_cursor;
+        },
 		MENU_ITEM
 		{
 			command = EDuplicatedObject;

@@ -382,6 +382,9 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
         case EViewportCursorToSelect:
             iAppContainer->iBlenderLite->CursorToSelect();
             break;
+        case EViewportSelectToCursor:
+            iAppContainer->iBlenderLite->SelectToCursor();
+            break;            
         case EAddCamera:            
             iAppContainer->iBlenderLite->AddObject(camera);
             break;   
@@ -543,6 +546,15 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             break;  
         case ERemoveTexture:
             iAppContainer->iBlenderLite->RemoveTexture();
+            break; 
+        case EInsertKeyframe:
+            iAppContainer->iBlenderLite->InsertKeyframe();
+            break; 
+        case ERemoveKeyframes:
+            iAppContainer->iBlenderLite->RemoveKeyframes();
+            break; 
+        case EClearKeyframes:
+            iAppContainer->iBlenderLite->ClearKeyframes();
             break; 
             //case EBlenderLiteNavegacion:
             //iAppContainer->iBlenderLite->SetMode();
