@@ -22,6 +22,22 @@ class Light {
 		GLfloat color[4];
 };
 
+typedef enum { Constant, Linear, Bezier };
+class keyFrame { 
+	public:
+		TInt frame;
+		TInt value;
+		TInt Interpolation;
+};
+
+typedef enum { AnimPositionX, AnimPositionY, AnimPositionZ, AnimRotation, AnimScale };
+class Animation { 
+	public:
+		TInt Id;
+		TInt Property;
+		RArray<keyFrame> keyframes;
+};
+
 class Material { 
 	public:
 		TBool textura;

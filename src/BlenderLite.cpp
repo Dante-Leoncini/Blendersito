@@ -202,6 +202,7 @@ RArray<Object> Objects;
 RArray<Material> Materials;
 RArray<Light> Lights;
 RArray<Mesh> Meshes;
+RArray<Animation> Animations;
 TInt objSelect = 0;
 TInt tipoSelect = vertexSelect;
 TInt EditSelect = 0;
@@ -314,7 +315,23 @@ void CBlenderLite::ConstructL( void ){
 	//glLightfv(  nextLightId, GL_POSITION, lightPositionSpot );
 	
 	//AddMesh(monkey);
-	AddMesh(cubo);
+	AddMesh(cubo);	
+
+	Animation testAnimation;	
+	testAnimation.Id = 2;
+	testAnimation.Property = AnimPositionX;
+
+	keyFrame TestkeyFrame;
+	TestkeyFrame.frame = 1;
+	TestkeyFrame.value = 0;
+	TestkeyFrame.Interpolation = Linear;
+	testAnimation.keyframes.Append(TestkeyFrame);
+
+	TestkeyFrame.frame = 251;
+	TestkeyFrame.value = 10000;
+	testAnimation.keyframes.Append(TestkeyFrame);
+
+	Animations.Append(testAnimation);
 }
 
 void CBlenderLite::NewMaterial(){
@@ -795,11 +812,66 @@ void CBlenderLite::RenderObject( TInt objId ){
 	//glPopMatrix(); //reinicia la matrix a donde se guardo	
 }
 
-void CBlenderLite::Animation(){
-	CurrentFrame++;
-	if (CurrentFrame > EndFrame){
-		CurrentFrame = StartFrame;
-	}
+void CBlenderLite::ReloadAnimation() {
+    for(TInt a = 0; a < Animations.Count(); a++) {
+        if (Animations[a].keyframes.Count() > 0) {
+            TInt firstFrame = -1;
+            TInt lastFrame = -1;
+            TInt value = 0;
+
+            // Encontrar el primer y último frame
+            for(TInt f = 0; f < Animations[a].keyframes.Count(); f++) {
+                if (firstFrame == -1 || Animations[a].keyframes[f].frame < firstFrame) {
+                    firstFrame = Animations[a].keyframes[f].frame;
+                }
+                if (lastFrame == -1 || Animations[a].keyframes[f].frame > lastFrame) {
+                    lastFrame = Animations[a].keyframes[f].frame;
+                }
+            }
+
+            // Si el CurrentFrame está fuera de los límites de los keyframes, usar el valor del primer o último frame
+            if (CurrentFrame <= firstFrame) {
+                value = Animations[a].keyframes[0].value;
+            } else if (CurrentFrame >= lastFrame) {
+                value = Animations[a].keyframes[Animations[a].keyframes.Count() - 1].value;
+            } else {
+                // Interpolación entre keyframes
+                for(TInt f = 0; f < Animations[a].keyframes.Count() - 1; f++) {
+                    if (CurrentFrame >= Animations[a].keyframes[f].frame && CurrentFrame <= Animations[a].keyframes[f + 1].frame) {
+                        TInt frame1 = Animations[a].keyframes[f].frame;
+                        TInt value1 = Animations[a].keyframes[f].value;
+                        TInt frame2 = Animations[a].keyframes[f + 1].frame;
+                        TInt value2 = Animations[a].keyframes[f + 1].value;
+                        TInt interpolation = Animations[a].keyframes[f].Interpolation;
+
+                        switch (interpolation) {
+                            case Constant:
+                                value = value1;
+                                break;
+                            case Linear:
+                                value = value1 + ((value2 - value1) * (CurrentFrame - frame1)) / (frame2 - frame1);
+                                break;
+                            default:
+                                value = value1;
+                                break;
+                        }
+                        break;
+                    }
+                }
+            }
+
+            // Asignar el valor calculado a la propiedad correspondiente del objeto
+            switch (Animations[a].Property) {
+                case AnimPositionX:
+                    Objects[Animations[a].Id].posX = value;
+                    break;
+                // Otros casos según las propiedades
+                default:
+                    // Manejar cualquier otro caso aquí si es necesario
+                    break;
+            }
+        }
+    }
 }
 
 void CBlenderLite::SetCurrentFrame(){
@@ -824,8 +896,12 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 		return;
 	}
 
+	ReloadAnimation();
 	if (PlayAnimation){
-		Animation();
+		CurrentFrame++;
+		if (CurrentFrame > EndFrame){
+			CurrentFrame = StartFrame;
+		}
 	}
 	
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -843,7 +919,7 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 
 	//primero hay que colocar las luces en caso de estar en modo render!
 	if (view == MaterialPreview || view == Rendered){
-		for(int o=0; o < Objects.Count(); o++){
+		for(TInt o=0; o < Objects.Count(); o++){
 			Object& obj = Objects[o];
 			if(!obj.visible || obj.type != light ) {continue;}
 			Light& light = Lights[obj.Id];
@@ -2018,6 +2094,17 @@ void CBlenderLite::Borrar(){
 				//ahora se borra el mesh
 				Meshes.Remove(obj.Id);
 			}
+		}
+
+		//si existe animaciones para ese objeto. las borra		
+		for(TInt a = 0; a < Animations.Count(); a++) {
+			if (Animations[a].Id == objSelect) {
+				Animations.Remove(a);
+			}
+			// Hace falta cambiar los índices
+			else if (Animations[a].Id > objSelect) {
+				Animations[a].Id--;
+			}			
 		}
 
 		// Borrar de la colección

@@ -126,7 +126,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void CursorToSelect();
         void Borrar();
         void changeSelect();
-        void Animation();
+        void ReloadAnimation();
         void SetMouse();
         void ToggleValue(TBool& valueToUpdate);
         void InfoObject(TInt opciones);
