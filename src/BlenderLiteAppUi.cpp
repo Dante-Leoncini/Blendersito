@@ -375,6 +375,12 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
         case ETimelineSetCurrentFrame:
             iAppContainer->iBlenderLite->SetCurrentFrame();
             break;
+        case ETimelineSetEndFrame:
+            iAppContainer->iBlenderLite->SetEndFrame();
+            break;
+        case ETimelineSetStartFrame:
+            iAppContainer->iBlenderLite->SetStartFrame();
+            break;
         case EImportOBJ:
             iAppContainer->iBlenderLite->ImportOBJ();
             break;  
@@ -436,10 +442,10 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             iAppContainer->iBlenderLite->ClearParent();
             break;   
         case ERenderImage:
-            iAppContainer->iBlenderLite->SaveCanvasToImage();
+            iAppContainer->iBlenderLite->SaveCanvasToImage(false);
             break; 
         case ERenderAnimation:
-            iAppContainer->iBlenderLite->SaveCanvasToImage();
+            iAppContainer->iBlenderLite->SaveCanvasToImage(true);
             break; 
         case ESetAmbientLight:
             iAppContainer->iBlenderLite->SetAmbientLight();

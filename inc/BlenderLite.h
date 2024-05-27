@@ -147,7 +147,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void DrawTransformAxis(Object& obj);
         void SetViewpoint(TInt opcion);
         TFileName GetRootDirectory(const TDesC& aFilePath);        
-        void SaveCanvasToImage();
+        void SaveCanvasToImage(TBool secuencia);
         void DrawnTimeline();
         void SaveAsBMP(TInt width, TInt height, const GLubyte* pixels, const TDesC& fileName);
         void AddModificador(TInt opcion);
@@ -164,6 +164,8 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void RenderObject( TInt objId );
         void DibujarOrigen();
         void SetCurrentFrame();
+        void SetStartFrame();
+        void SetEndFrame();
         void SetParent();
         void ClearParent();
         void ObtenerUbicacionInstalacionL(TDes& aUbicacion);
@@ -179,8 +181,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         TBool DialogAlert(HBufC* noteBuf);
         TBool DialogAlert(const TDesC& noteBuf);
         TInt DialogNumber( TInt valor, TInt min, TInt max, HBufC* noteBuf); //,TPtrC etiqueta
-        //TInt DialogSelectOption(const TDesC& aPrompt, CDesCArray& aOptions);
-        TInt DialogSelectOption(const TDesC& aPrompt);
+        TInt DialogSelectOption(const TDesC& aPrompt, CDesCArray& aOptions);
         void Tab();
         
         //cambiar el shader en el viewport
@@ -205,6 +206,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
          */
         void SetScreenSize( TUint aWidth, TUint aHeight );
         void SetScreenSize( TUint aWidth, TUint aHeight, TBool widescreen );
+        void SetWidescreen();
 
     protected: // New functions
 

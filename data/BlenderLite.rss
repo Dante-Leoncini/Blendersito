@@ -146,7 +146,12 @@ RESOURCE MENU_PANE r_blenderlite_menu
                 command = EAnimationMenu;
                 cascade = r_animation_menu;
                 txt = STRING_r_Animation;
-            },   
+            },  
+        	MENU_ITEM
+            {
+                command = ERenderAnimation;
+                txt = STRING_r_RenderAnimation;
+            },
         	MENU_ITEM
             {
                 command = ERenderImage;
@@ -204,7 +209,15 @@ RESOURCE MENU_PANE r_timeline_menu {
         MENU_ITEM {
             command = ETimelineShowTimeline;
             txt = STRING_r_ShowTimeline;
-        }	
+        },
+        MENU_ITEM {
+            command = ETimelineSetStartFrame;
+            txt = STRING_r_SetStartFrame;
+        }	,
+        MENU_ITEM {
+            command = ETimelineSetEndFrame;
+            txt = STRING_r_SetEndFrame;
+        }		
     };
 }
 

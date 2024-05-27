@@ -13,7 +13,7 @@
 #include <e32math.h>
 #include <aknglobalnote.h>
 #include <aknwaitdialog.h>
-#include <aknexnote.rsg>
+//#include <aknexnote.rsg>
 #include <eikprogi.h>
 #include <aknnotecontrol.h>
 

@@ -143,6 +143,7 @@ TBool showFloor = true;
 TBool showYaxis = true;
 TBool showXaxis = true;
 TBool showOutlineSelect = true;
+TBool iWidescreenEnabled = false;
 TBool showOrigins = true;
 GLfloat Cursor3DposX = 0.0f;
 GLfloat Cursor3DposZ = 0.0f;
@@ -828,18 +829,17 @@ void CBlenderLite::RenderObject( TInt objId ){
 void CBlenderLite::InsertKeyframe(TInt propertySelect){
     // Crear una lista de opciones
     //CDesCArrayFlat* options = new (ELeave) CDesCArrayFlat(3);
-    //CleanupStack::PushL(options);
-    /*options->AppendL(_L("Opción 1"));
+    /*CleanupStack::PushL(options);
+    options->AppendL(_L("Opción 1"));
     options->AppendL(_L("Opción 2"));
-    options->AppendL(_L("Opción 3"));*/
+    options->AppendL(_L("Opción 3"));
 
     // Mostrar el diálogo de selección de opciones
-    //TInt selectedIndex = DialogSelectOption(_L("Selecciona una opción:"), *options);
-    TInt selectedIndex = DialogSelectOption(_L("Selecciona una opción:"));
+    TInt selectedIndex = DialogSelectOption(_L("Selecciona una opción:"), *options);
+    CleanupStack::PopAndDestroy(options);
 
-    //CleanupStack::PopAndDestroy(options);
 	//si no se selecciono nada
-    if (selectedIndex == -1) {return;}
+    if (selectedIndex == -1) {return;}*/
 
 	TBool encontrado = false;
 	TInt index = 0;
@@ -1054,6 +1054,24 @@ void CBlenderLite::ReloadAnimation(){
 void CBlenderLite::SetCurrentFrame(){
 	Cancelar();
 	estado = timelineMove;
+    redibujar = true;
+}
+
+void CBlenderLite::SetEndFrame(){
+	Cancelar();
+	HBufC* noteBuf = HBufC::NewLC(100);
+	noteBuf->Des().Copy(_L("Set Final Frame"));
+	EndFrame = DialogNumber(EndFrame, 0, 2147483647, noteBuf);	
+	CleanupStack::PopAndDestroy(noteBuf);
+    redibujar = true;
+}
+
+void CBlenderLite::SetStartFrame(){
+	Cancelar();
+	HBufC* noteBuf = HBufC::NewLC(100);
+	noteBuf->Des().Copy(_L("Set Start Frame"));
+	StartFrame = DialogNumber(StartFrame, 0, 2147483647, noteBuf);
+	CleanupStack::PopAndDestroy(noteBuf);
     redibujar = true;
 }
 
@@ -3379,11 +3397,7 @@ TInt CBlenderLite::DialogNumber(TInt valor, TInt min, TInt max, HBufC* noteBuf )
     return number;
 }
 
-//TInt CBlenderLite::DialogSelectOption(const TDesC& aPrompt, CDesCArray& aOptions) {
-TInt CBlenderLite::DialogSelectOption(const TDesC& aPrompt) {	
-    /*options->AppendL(_L("Opción 1"));
-    options->AppendL(_L("Opción 2"));
-    options->AppendL(_L("Opción 3"));*/
+TInt CBlenderLite::DialogSelectOption(const TDesC& aPrompt, CDesCArray& aOptions) {
     // Variable to hold the selected index
     TInt selectedIndex = 0;
 
@@ -3392,7 +3406,7 @@ TInt CBlenderLite::DialogSelectOption(const TDesC& aPrompt) {
 
     // Set the prompt for the dialog
     dlg->PrepareLC(R_AVKON_MESSAGE_QUERY_DIALOG);
-    //dlg->SetItemTextArray(&aOptions);
+    dlg->SetItemTextArray(&aOptions);
     dlg->SetPromptL(aPrompt);
     
     // Execute the dialog and check if an option was selected
@@ -3999,13 +4013,6 @@ struct __attribute__((packed)) TBMPFileHeader {
     TUint16 bfReserved2;
     TUint32 bfOffBits;
 };
-/*struct TBMPFileHeader {
-    TUint16 bfType;
-    TUint32 bfSize;
-    TUint16 bfReserved1;
-    TUint16 bfReserved2;
-    TUint32 bfOffBits;
-};*/
 
 struct TBMPInfoHeader {
     TUint32 biSize;
@@ -4029,7 +4036,15 @@ void CBlenderLite::SaveAsBMP(int width, int height, const GLubyte* pixels, const
         return;
     }
 
-    err = file.Replace(fsSession, fileName, EFileWrite);
+    // Crear la carpeta si no existe
+    _LIT(KDirName, "E:\\blendersito\\");
+    err = fsSession.MkDirAll(KDirName);
+    if (err != KErrNone && err != KErrAlreadyExists) {
+		fsSession.Close();
+		return;
+    }
+
+	err = file.Replace(fsSession, fileName, EFileWrite);
     if (err != KErrNone) {
         fsSession.Close();
         return;
@@ -4092,28 +4107,66 @@ void CBlenderLite::SaveAsBMP(int width, int height, const GLubyte* pixels, const
     fsSession.Close();
 }
 
-void CBlenderLite::SaveCanvasToImage() {
-	//redibuja el canvas sin los overlays
-	TBool originalShowOverlays = showOverlays;
-	TBool originalShowUi = ShowUi;
-	ShowUi = false;	
-	showOverlays = false;
-	redibujar = true;
-	AppCycle(0,0,0);
+void CBlenderLite::SaveCanvasToImage(TBool secuencia)  {
+    // Redibuja el canvas sin los overlays
+    TBool originalShowOverlays = showOverlays;
+    TBool originalShowUi = ShowUi;
+    ShowUi = false;    
+    showOverlays = false;
 
+    // Tamaño temporal del canvas
+    /*TUint temScreenWidth  = iScreenWidth;
+    TUint temScreenHeight = iScreenHeight;
+
+    // Nuevo tamaño del canvas
+    TUint ScreenWidth  = 320; // Puedes cambiar esto al tamaño que desees
+    TUint ScreenHeight = 320; // Puedes cambiar esto al tamaño que desees
+
+    SetScreenSize(ScreenWidth, ScreenHeight, false);*/
+
+    // Captura los píxeles de la pantalla
     GLubyte* pixels = new GLubyte[iScreenWidth * iScreenHeight * 4]; // 4 para RGBA
-    glReadPixels(0, 0, iScreenWidth, iScreenHeight, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
+    _LIT(KFileName, "E:\\blendersito\\render_%04d.bmp");
+    TFileName fileName;	
+	TBuf<256> buffer;
 
-	_LIT(KFileName, "E:\\high_resolution_image.bmp");
-	TFileName fileName(KFileName);
-    SaveAsBMP(iScreenWidth, iScreenHeight, pixels, fileName);
+	if (secuencia){
+		CurrentFrame = StartFrame;
+		ReloadAnimation();
+		for (int r = 0; r < EndFrame; ++r) {	
+			redibujar = true;
+			AppCycle(0, 0, 0);		
+    		glReadPixels(0, 0, iScreenWidth, iScreenHeight, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+			buffer.Format(KFileName, CurrentFrame);
+			fileName.Copy(buffer);
+			SaveAsBMP(iScreenWidth, iScreenHeight, pixels, fileName);
+			CurrentFrame++;
+			ReloadAnimation();
+		}
+	}
+	else {
+		redibujar = true;
+		AppCycle(0, 0, 0);	
+		glReadPixels(0, 0, iScreenWidth, iScreenHeight, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+		buffer.Format(KFileName, CurrentFrame);
+		fileName.Copy(buffer);
+		SaveAsBMP(iScreenWidth, iScreenHeight, pixels, fileName);
+	}
 
-	//deja todo como antes
-	showOverlays = originalShowOverlays;
-	ShowUi = originalShowUi;
+    // Restaura el estado original
+    showOverlays = originalShowOverlays;
+    ShowUi = originalShowUi;
     delete[] pixels;
-	redibujar = true;
+
+    // Restaura el tamaño original del canvas
+    //SetScreenSize(temScreenWidth, temScreenHeight, false);
+    redibujar = true;
+}
+
+void CBlenderLite::SetWidescreen(){
+	iWidescreenEnabled = !iWidescreenEnabled;
+	SetScreenSize( iScreenWidth, iScreenHeight, iWidescreenEnabled );
 }
 
 //  End of File

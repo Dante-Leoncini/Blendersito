@@ -123,6 +123,8 @@ rls_string STRING_r_Timeline         "Timeline"
 rls_string STRING_r_Play             "Play"
 rls_string STRING_r_Stop             "Stop"
 rls_string STRING_r_SetCurrentFrame  "Set Current Frame"
+rls_string STRING_r_SetStartFrame    "Set Start Frame"
+rls_string STRING_r_SetEndFrame      "Set End Frame"
 rls_string STRING_r_Show_Timeline    "Show Timeline"
 rls_string STRING_r_Hide_Timeline    "Hide Timeline"
 

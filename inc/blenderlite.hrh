@@ -106,7 +106,9 @@ enum TBlenderLiteMenuCommands
     ETimelineMenu,
     ETimelinePlayStop,
     ETimelineShowTimeline,
-    ETimelineSetCurrentFrame,
+    ETimelineSetCurrentFrame,    
+    ETimelineSetEndFrame,
+    ETimelineSetStartFrame,
 
     EAnimationMenu,
     EInsertKeyframe,
