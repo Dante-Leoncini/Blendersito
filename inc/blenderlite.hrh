@@ -50,6 +50,9 @@ enum TBlenderLiteMenuCommands
 
     ERenderImage,
     ERenderAnimation,
+    ERenderMenu,
+    ERenderUI,
+    ERenderUIanimation,
     
     EBlenderLiteSeleccionar,
     EBlenderLiteSetTipoVertex,

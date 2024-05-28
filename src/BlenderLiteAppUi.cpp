@@ -62,6 +62,10 @@ enum{
 enum {Solid, MaterialPreview, Wireframe, Rendered};
 
 void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPane ){
+    //para trabajar mas facil
+    CBlenderLite& BL = *(iAppContainer->iBlenderLite); 
+    //BL.estado = ...;
+
     //prepara el menu de materiales    
 	/*if (aResourceId == R_MATERIAL_MENU){
 	//if (aResourceId == R_LISTMATERIALS_MENU){
@@ -94,22 +98,43 @@ void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
     }*/
 	//oculta el SetOrigen si no esta en modo edicion
     if (aResourceId == R_BLENDERLITE_MENU ) {
-        if (iAppContainer->iBlenderLite->estado == edicion) {
+        if (BL.estado == edicion) {
+	        if (BL.Objects.Count() > 0){
+                aMenuPane->SetItemDimmed(EViewportObject, EFalse);
+            }
+            else {
+                aMenuPane->SetItemDimmed(EViewportObject, ETrue);
+            }
             aMenuPane->SetItemDimmed(EBlenderLiteOrigenSetOrigen, EFalse);
             aMenuPane->SetItemDimmed(EBlenderLiteSeleccionar, EFalse);
-            aMenuPane->SetItemDimmed(EViewportObject, ETrue);
             aMenuPane->SetItemDimmed(EViewportAdd, ETrue);
-            aMenuPane->SetItemDimmed(EImportOBJ, ETrue);
-            aMenuPane->SetItemDimmed(EBlenderLiteWidescreen, ETrue);
             
         } else {
             aMenuPane->SetItemDimmed(EBlenderLiteOrigenSetOrigen, ETrue);
             aMenuPane->SetItemDimmed(EBlenderLiteSeleccionar, ETrue);
-            aMenuPane->SetItemDimmed(EViewportObject, EFalse);
             aMenuPane->SetItemDimmed(EViewportAdd, EFalse);
-            aMenuPane->SetItemDimmed(EImportOBJ, EFalse);
-            aMenuPane->SetItemDimmed(EBlenderLiteWidescreen, EFalse);
+
+            //si hay objetos            
+	        if (BL.Objects.Count() > 0){
+                aMenuPane->SetItemDimmed(EViewportObject, EFalse);          
+                Object& obj = BL.Objects[BL.objSelect];
+                //si es una malla 3d
+                if (obj.type == mesh){
+                    aMenuPane->SetItemDimmed(EMaterial, EFalse);
+                    aMenuPane->SetItemDimmed(EBlenderLiteModificadores, EFalse);
+                }
+                else {
+                    aMenuPane->SetItemDimmed(EMaterial, ETrue);
+                    aMenuPane->SetItemDimmed(EBlenderLiteModificadores, ETrue);                    
+                }
+            }
+            else {
+                aMenuPane->SetItemDimmed(EMaterial, ETrue);
+                aMenuPane->SetItemDimmed(EViewportObject, ETrue);
+            }
         }
+    }
+    else if (aResourceId == R_VIEWPORT_OVERLEY_MENU ) {
         // Texto para setear la pantalla ancha
         if ( iAppContainer->iBlenderLite->iWidescreenEnabled ){
             aMenuPane->SetItemTextL( EBlenderLiteWidescreen, R_WIDESCREEN_OFF );
@@ -117,8 +142,6 @@ void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
         else {
             aMenuPane->SetItemTextL( EBlenderLiteWidescreen, R_WIDESCREEN_ON  );
         }
-    }
-    else if (aResourceId == R_VIEWPORT_OVERLEY_MENU ) {
         if ( iAppContainer->iBlenderLite->showOverlays ){
             aMenuPane->SetItemTextL( EViewportSetOverlay, R_HIDEOVERLAY );
         }
@@ -440,12 +463,18 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             break;     
         case EClearParent:
             iAppContainer->iBlenderLite->ClearParent();
-            break;   
+            break;  
+        case ERenderUI:
+            iAppContainer->iBlenderLite->SaveCanvasToImage(false, true);
+            break;  
+        case ERenderUIanimation:
+            iAppContainer->iBlenderLite->SaveCanvasToImage(false, true);
+            break;  
         case ERenderImage:
-            iAppContainer->iBlenderLite->SaveCanvasToImage(false);
+            iAppContainer->iBlenderLite->SaveCanvasToImage(false, false);
             break; 
         case ERenderAnimation:
-            iAppContainer->iBlenderLite->SaveCanvasToImage(true);
+            iAppContainer->iBlenderLite->SaveCanvasToImage(true, false);
             break; 
         case ESetAmbientLight:
             iAppContainer->iBlenderLite->SetAmbientLight();

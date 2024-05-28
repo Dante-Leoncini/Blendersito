@@ -2046,25 +2046,6 @@ void CBlenderLite::OnEnterStateL( TInt /*aState*/ ){
 	// Nothing to do here...
 }
 
-// -----------------------------------------------------------------------------
-// CBlenderLite::ToggleLamp
-// Enable/Disable lamp from the application menu.
-// -----------------------------------------------------------------------------
-//
-void CBlenderLite::ToggleLamp( void )
-    {
-    if ( iLampEnabled )
-        {
-        iLampEnabled = EFalse;
-        glDisable( GL_LIGHT0 );
-        }
-    else
-        {
-        iLampEnabled = ETrue;
-        glEnable( GL_LIGHT0 );
-        }
-    }
-
 void CBlenderLite::InsertarValor(){
 	HBufC* buf = HBufC::NewLC( 20 );
 	if (estado == translacion){
@@ -4093,9 +4074,12 @@ void CBlenderLite::SaveAsBMP(int width, int height, const GLubyte* pixels, const
         for (int x = 0; x < width; ++x) {
             int srcIndex = (y * width + x) * 4;  // Source RGBA index
             int destIndex = y * rowSize + x * 3;  // Destination RGB index with padding
-            rgbPixels[destIndex] = pixels[srcIndex];        // R
+            /*rgbPixels[destIndex] = pixels[srcIndex];        // R
             rgbPixels[destIndex + 1] = pixels[srcIndex + 1]; // G
-            rgbPixels[destIndex + 2] = pixels[srcIndex + 2]; // B
+            rgbPixels[destIndex + 2] = pixels[srcIndex + 2]; // B*/
+            rgbPixels[destIndex] = pixels[srcIndex+2];        // R
+            rgbPixels[destIndex + 1] = pixels[srcIndex + 1]; // G
+            rgbPixels[destIndex + 2] = pixels[srcIndex ]; // B
         }
     }
 
@@ -4107,11 +4091,11 @@ void CBlenderLite::SaveAsBMP(int width, int height, const GLubyte* pixels, const
     fsSession.Close();
 }
 
-void CBlenderLite::SaveCanvasToImage(TBool secuencia)  {
+void CBlenderLite::SaveCanvasToImage(TBool secuencia, TBool showUi)  {
     // Redibuja el canvas sin los overlays
     TBool originalShowOverlays = showOverlays;
     TBool originalShowUi = ShowUi;
-    ShowUi = false;    
+    ShowUi = showUi;    
     showOverlays = false;
 
     // Tamaño temporal del canvas
@@ -4145,10 +4129,19 @@ void CBlenderLite::SaveCanvasToImage(TBool secuencia)  {
 			ReloadAnimation();
 		}
 	}
-	else {
-		redibujar = true;
-		AppCycle(0, 0, 0);	
+	else {   
+		//redibujar = true;
+		//AppCycle(0, 0, 0);	
 		glReadPixels(0, 0, iScreenWidth, iScreenHeight, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+		//prueba de postprocesado
+		/*TInt linea = iScreenWidth*4*10;
+		for (int p = 0; p < iScreenWidth; ++p) {
+			pixels[linea+(p*4)] = 255;
+			pixels[linea+(p*4)+1] = 0;
+			pixels[linea+(p*4)+2] = 0;					
+		}*/
+
 		buffer.Format(KFileName, CurrentFrame);
 		fileName.Copy(buffer);
 		SaveAsBMP(iScreenWidth, iScreenHeight, pixels, fileName);

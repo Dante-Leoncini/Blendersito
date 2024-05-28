@@ -102,6 +102,9 @@ rls_string STRING_r_ImportOBJ   "Import Wavefront (.obj)"
             
 rls_string STRING_r_RenderImage         "Render Image"
 rls_string STRING_r_RenderAnimation     "Render Animation"
+rls_string STRING_r_RenderUI            "Render UI Image"
+rls_string STRING_r_RenderUIanimation   "Render UI Animation"
+rls_string STRING_r_Render              "Render",
 
 rls_string STRING_r_Overlay         "Overlays"
 rls_string STRING_r_ShowOverlay     "Show Overlays"

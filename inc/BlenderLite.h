@@ -147,7 +147,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void DrawTransformAxis(Object& obj);
         void SetViewpoint(TInt opcion);
         TFileName GetRootDirectory(const TDesC& aFilePath);        
-        void SaveCanvasToImage(TBool secuencia);
+        void SaveCanvasToImage(TBool secuencia, TBool showUi);
         void DrawnTimeline();
         void SaveAsBMP(TInt width, TInt height, const GLubyte* pixels, const TDesC& fileName);
         void AddModificador(TInt opcion);
@@ -185,18 +185,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void Tab();
         
         //cambiar el shader en el viewport
-        void SetShading( TInt valor );
-        
-
-        /**
-         * Toggles lamp enabled/disabled.
-         */
-        void ToggleLamp( void );
-
-        /**
-         * Toggles spot light enabled/disabled.
-         */
-        void ToggleSpot( void );
+        void SetShading( TInt valor );        
 
         /**
          * Notifies that the screen size has dynamically changed during execution of
@@ -244,6 +233,8 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         TBool showOrigins;
         TBool ShowTimeline;
         TBool PlayAnimation;
+        RArray<Object> Objects;
+        TInt objSelect;
         
         //RArray<Material> Materials;
 

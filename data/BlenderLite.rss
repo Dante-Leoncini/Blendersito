@@ -75,12 +75,7 @@ RESOURCE MENU_PANE r_blenderlite_exit
 RESOURCE MENU_PANE r_blenderlite_menu
 {
     items =
-        { 			
-        	MENU_ITEM
-            {
-                command = EImportOBJ;
-                txt = STRING_r_ImportOBJ;
-            },  
+        { 		
 			MENU_ITEM
 			{
 				command = EBlenderLiteSeleccionar;
@@ -123,12 +118,7 @@ RESOURCE MENU_PANE r_blenderlite_menu
                 command = EBlenderLiteModificadores;
                 cascade = r_blenderlite_modificadores_menu;
                 txt = STRING_r_blenderlite_Modificadores;
-            },	          
-        	MENU_ITEM
-            {
-                command = EBlenderLiteWidescreen;
-                txt = STRING_r_blenderlite_widescreen_on;
-            },		
+            },	  	
         	MENU_ITEM
             {
                 command = EBlenderLiteModificadores;
@@ -146,24 +136,44 @@ RESOURCE MENU_PANE r_blenderlite_menu
                 command = EAnimationMenu;
                 cascade = r_animation_menu;
                 txt = STRING_r_Animation;
-            },  
+            },  			
         	MENU_ITEM
             {
-                command = ERenderAnimation;
-                txt = STRING_r_RenderAnimation;
-            },
-        	MENU_ITEM
-            {
-                command = ERenderImage;
-                txt = STRING_r_RenderImage;
-            }//,         
-        	//MENU_ITEM
-            //{
-            //    command = ERenderAnimation;
-            //    txt = STRING_r_RenderAnimation;
-            //}  
+                command = ERenderMenu;
+                cascade = r_render_menu;
+                txt = STRING_r_Render;
+            }
         };
 }
+
+//----------------------------------------------------
+//
+//    r_render_menu
+//
+//----------------------------------------------------
+//
+
+RESOURCE MENU_PANE r_render_menu {
+    items = { 		
+        MENU_ITEM {
+            command = ERenderAnimation;
+            txt = STRING_r_RenderAnimation;
+        },  
+        MENU_ITEM {
+            command = ERenderImage;
+            txt = STRING_r_RenderImage;
+        },			
+        MENU_ITEM {
+            command = ERenderUI;
+            txt = STRING_r_RenderUI;
+        },  
+        MENU_ITEM {
+            command = ERenderUIanimation;
+            txt = STRING_r_RenderUIanimation;
+        }	
+    };
+}
+        	
 
 //----------------------------------------------------
 //
@@ -281,6 +291,11 @@ RESOURCE MENU_PANE r_viewport_add_menu{
         MENU_ITEM {
             command = EAddMonkey;
             txt = STRING_r_AddMonkey;
+        },        
+        MENU_ITEM
+        {
+            command = EImportOBJ;
+            txt = STRING_r_ImportOBJ;
         }
     };
 }
@@ -460,7 +475,12 @@ RESOURCE MENU_PANE r_viewport_overley_menu{
         {
             command = EViewportSetOrigins;
             txt = STRING_r_HideOrigin;
-        }        
+        },        
+        MENU_ITEM
+        {
+            command = EBlenderLiteWidescreen;
+            txt = STRING_r_blenderlite_widescreen_on;
+        }	  
     };
 }
 
