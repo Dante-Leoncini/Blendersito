@@ -230,6 +230,7 @@ TKeyResponse CBlenderLiteContainer::OfferKeyEventL( const TKeyEvent& aKeyEvent,T
 // Destructor
 CBlenderLiteContainer::~CBlenderLiteContainer()
     {
+    delete iIdle;
     delete iPeriodic;
 
     if ( iBlenderLite )
@@ -470,31 +471,45 @@ void CBlenderLiteContainer::ShowShowNoteL( TAknGlobalNoteType aType,
 }
 
 // -----------------------------------------------------------------------------
+// CAknExNoteContainer::ShowWaitNoteL()
+// Indicates wait note.
+// -----------------------------------------------------------------------------
+//
+void CBlenderLiteContainer::ShowWaitNoteL( TInt aResourceId, TInt /* aControlId */){        
+    // Create CAknWaitDialog instance
+    CAknWaitDialog* waitDialog =  new ( ELeave ) CAknWaitDialog( NULL, ETrue );
+    
+    // Show the Dialog
+    waitDialog->ExecuteLD( aResourceId ); 
+}
+
+// -----------------------------------------------------------------------------
 // CAknExNoteContainer::ShowProgressNoteUnderSingleProcessL()
 // Show ProgressNote Under Single Process.
 // -----------------------------------------------------------------------------
 //
 void CBlenderLiteContainer::ShowProgressNoteUnderSingleProcessL( 
-                                                          TInt aResourceId, 
-                                                          TInt /* aControlId */){ 
-    // Delete possible previous CAknProgressDialog.
-    delete iProgressDialog;
+        TInt aResourceId, 
+        TInt /* aControlId */)
+{ 
+// Delete possible previous CAknProgressDialog.
+delete iProgressDialog;
 
-    // Create new CAknProgressDialog.
-    iProgressDialog = new ( ELeave ) CAknProgressDialog( reinterpret_cast
-                                                         <CEikDialog**> 
-                                                         ( &iProgressDialog ) );
-    
-    iProgressDialog->SetCallback( this );
-    iProgressDialog->PrepareLC( aResourceId );
-    iProgressInfo = iProgressDialog->GetProgressInfoL();
-    iProgressInfo->SetFinalValue( KBlenderLiteProgressbarFinalValue );
-    iProgressDialog->RunLD();
+// Create new CAknProgressDialog.
+iProgressDialog = new ( ELeave ) CAknProgressDialog( reinterpret_cast
+       <CEikDialog**> 
+       ( &iProgressDialog ) );
 
-    delete iIdle;
-    iIdle = CIdle::NewL( CActive::EPriorityStandard );
-    TCallBack callback( CallbackIncrementProgressNoteL, this );
-    iIdle->Start( callback );
+iProgressDialog->SetCallback( this );
+iProgressDialog->PrepareLC( aResourceId );
+iProgressInfo = iProgressDialog->GetProgressInfoL();
+iProgressInfo->SetFinalValue( KBlenderLiteProgressbarFinalValue );
+iProgressDialog->RunLD();
+
+delete iIdle;
+iIdle = CIdle::NewL( CActive::EPriorityStandard );
+TCallBack callback( CallbackIncrementProgressNoteL, this );
+iIdle->Start( callback );
 }
 
 // -----------------------------------------------------------------------------
@@ -506,7 +521,7 @@ void CBlenderLiteContainer::ShowProgressNoteUnderSingleProcessL(
 //
 TInt CBlenderLiteContainer::CallbackIncrementProgressNoteL( TAny* aThis )
     {
-    return static_cast<CBlenderLiteContainer*>( aThis )->UpdateProgressNote();
+    //return static_cast<CBlenderLiteContainer*>( aThis )->UpdateProgressNote();
     }
 
 // -----------------------------------------------------------------------------
@@ -516,7 +531,7 @@ TInt CBlenderLiteContainer::CallbackIncrementProgressNoteL( TAny* aThis )
 //
 TInt CBlenderLiteContainer::UpdateProgressNote()
     {
-    TTime intervalTime;
+    /*TTime intervalTime;
     intervalTime.HomeTime();
     intervalTime += TTimeIntervalMicroSeconds( 50000 );
     TTime currentTime;
@@ -535,7 +550,7 @@ TInt CBlenderLiteContainer::UpdateProgressNote()
         iProgressDialog = NULL;
         return 0;
         }
-    return 1;
+    return 1;*/
     }
 
 // End of File

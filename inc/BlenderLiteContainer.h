@@ -31,7 +31,7 @@ class CAknExNoteView;
  * Also uses the CBlenderLite class to do the actual OpenGL ES rendering.
  */
 
-class CBlenderLiteContainer : public CCoeControl, MCoeControlObserver , public MProgressDialogCallback
+class CBlenderLiteContainer : public CCoeControl, MCoeControlObserver, public MProgressDialogCallback
     {       
 	private: // Enumerations
 	

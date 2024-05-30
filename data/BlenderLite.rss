@@ -698,34 +698,6 @@ RESOURCE TBUF256 r_hideOrigin{buf = STRING_r_HideOrigin;}
 RESOURCE TBUF256 r_showOrigin{buf = STRING_r_ShowOrigin;}
 
 
-
-//-----------------------------------------------------------------------------
-//
-//    r_blenderlite_progress_note
-//    For progress note.
-//
-//-----------------------------------------------------------------------------
-//
-RESOURCE DIALOG r_blenderlite_progress_note {
-    flags = EAknProgressNoteFlags;
-    buttons = r_blenderlite_softkeys_cancel;
-    items = {
-        DLG_LINE {
-            type = EAknCtNote;
-            //id = EAknExNoteCtrlIdProgressNote;
-            id = EBlenderLiteProgressNote;            
-            control = AVKON_NOTE {
-                layout = EProgressLayout;
-                singular_label = STRING_r_exnt_progress_singular;
-                plural_label = STRING_r_exnt_progress_plural;
-                imagefile = AVKON_BMPFILE_NAME;
-                imageid = EMbmAvkonQgn_note_progress;
-                imagemask = EMbmAvkonQgn_note_progress_mask;
-            };
-        }
-    };
-}
-
 //-----------------------------------------------------------------------------
 //
 //    r_blenderlite_softkeys_cancel
@@ -839,3 +811,60 @@ RESOURCE DIALOG r_aknexnote_error_note
     }
 
 // End of File
+
+//-----------------------------------------------------------------------------
+//
+//    r_blenderlite_wait_note_softkey_cancel
+//    Wait note with softkey Cancel.
+//
+//-----------------------------------------------------------------------------
+//
+RESOURCE DIALOG r_blenderlite_wait_note_softkey_cancel
+    {
+    flags = EAknWaitNoteFlags;
+    buttons = r_blenderlite_softkeys_cancel;
+    items =
+        {
+        DLG_LINE
+            {
+            type = EAknCtNote;
+            id = EAknExNoteCtrlIdWaitNote;
+            control= AVKON_NOTE 
+                { 
+                layout = EWaitLayout;
+                singular_label = STRING_r_exnt_wait_prompt;
+                imagefile = AVKON_BMPFILE_NAME;
+                imageid = EMbmAvkonQgn_note_voice;
+                imagemask = EMbmAvkonQgn_note_voice_mask;
+                animation = R_QGN_GRAF_WAIT_BAR_ANIM;
+                };
+            }
+        };
+    }
+
+//-----------------------------------------------------------------------------
+//
+//    r_blenderlite_progress_note
+//    For progress note.
+//
+//-----------------------------------------------------------------------------
+//
+RESOURCE DIALOG r_blenderlite_progress_note {
+    flags = EAknProgressNoteFlags;
+    buttons = r_blenderlite_softkeys_cancel;
+    items = {
+        DLG_LINE {
+            type = EAknCtNote;
+            //id = EAknExNoteCtrlIdProgressNote;
+            id = EBlenderLiteProgressNote;            
+            control = AVKON_NOTE {
+                layout = EProgressLayout;
+                singular_label = STRING_r_exnt_progress_singular;
+                plural_label = STRING_r_exnt_progress_plural;
+                imagefile = AVKON_BMPFILE_NAME;
+                imageid = EMbmAvkonQgn_note_progress;
+                imagemask = EMbmAvkonQgn_note_progress_mask;
+            };
+        }
+    };
+}

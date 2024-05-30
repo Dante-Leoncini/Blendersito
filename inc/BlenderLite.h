@@ -17,6 +17,7 @@
 #include "BlenderLiteinput.h"
 
 // Forward declaration de Object
+class CBlenderLiteContainer;
 class Object;
 
 // MACROS
@@ -49,8 +50,17 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
          * Destructor. Does nothing.
          */
         virtual ~CBlenderLite();
-
+            
     public:  // New functions
+        
+        //RArray<Material> Materials;
+        /**
+		* CallbackIncrementProgressNoteL
+		* Callback function to increment progress note
+		* @param aThis
+		* @return TInt Return 0 when work is done, otherwise return 1.
+		*/
+		static TInt CallbackIncrementProgressNoteL( TAny* aThis );
 
         /**
          * Initializes OpenGL ES, sets the vertex and color
@@ -159,9 +169,10 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void NewTexture();   
         void RemoveMaterial();
 		void RemoveTexture();
-        void CloseWaitNoteL();
         void RenderMesh( TInt objId );
         void RenderObject( TInt objId );
+        void applyBlur(GLubyte* pixels, int width, int height, int radius);
+        int clamp(int value, int min, int max);
         void DibujarOrigen();
         void SetCurrentFrame();
         void SetStartFrame();
@@ -171,7 +182,6 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void ObtenerUbicacionInstalacionL(TDes& aUbicacion);
         void SetTipoSelect(TInt tipo);
         void SetOrigen( TInt opcion );
-        void OpenWaitNoteL( TFileName file );
         void LoadTextureFromFile(const TDesC& aFileName);
         void LoadFile(const TFileName& aFileName,
                                        const TSize &aSize,
@@ -181,7 +191,10 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         TBool DialogAlert(HBufC* noteBuf);
         TBool DialogAlert(const TDesC& noteBuf);
         TInt DialogNumber( TInt valor, TInt min, TInt max, HBufC* noteBuf); //,TPtrC etiqueta
-        TInt DialogSelectOption(const TDesC& aPrompt, CDesCArray& aOptions);
+        TPtr DialogText(HBufC* textBuf, HBufC* noteBuf);
+        //void ShowProgressNoteUnderSingleProcessL( TInt aResourceId, TInt aControlId );
+        //TInt DialogSelectOption(const TDesC& aPrompt, CDesCArray& aOptions);
+        TInt ShowOptionsDialogL();
         void Tab();
         
         //cambiar el shader en el viewport
@@ -235,8 +248,6 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         TBool PlayAnimation;
         RArray<Object> Objects;
         TInt objSelect;
-        
-        //RArray<Material> Materials;
 
 		/**
 		 * Application states:
@@ -260,6 +271,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         TInt estado;
 
     private:  // Data
+        CBlenderLiteContainer*    iContainer;
 
 		/** Texture manager that is used to load the used textures. */
 		CTextureManager * iTextureManager;
@@ -283,12 +295,6 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         TTexture iShaderRendered;
         TTexture iShaderSolid;
         TTexture iShaderWireframe;
-
-		/** Particle coordinates */
-		//GLfixed *iParticleCoords;
-		// Wait note dialog for indicating refresh operation
-		// of the List Model (owned)
-		CAknWaitDialog* iWaitDialog;
 
 		/**
 		 * Input handler that maps keycodes to inputs and stores the current state

@@ -23,20 +23,23 @@
 #include "Mesh.h"
 #include "mono.h" //modelo 3d
 #include "Floor.h" //modelo 3d
-//#include "sprite.h" //sprite 2D
 #include "Primitivas.h" //sprite 2D
 #include "GeometriaUI.h" //elementos de la UI
 
-//#include "blenderlite.hrh"
-#include <blenderlite.rsg>
-#include <aknmessagequerydialog.h>		// DialogAlertL
+#include "blenderlite.rsg"
+#include "blenderlite.hrh"
+//#include <aknmessagequerydialog.h>		// DialogAlertL
 #include <aknnotewrappers.h> 
 #include <akncommondialogs.h>
 
 //nuevo apra el nuevo dialogo con opciones
-#include <aknlists.h>
-#include <aknpopup.h>
-#include <eikclbd.h>
+//#include <eikprogi.h>
+//#include <aknlists.h>
+//#include <aknpopup.h>
+//#include <aknapp.h>
+//#include <aknutils.h>
+//#include <eikclbd.h>
+//#include <aknselectionlist.h> // Para CAknListQueryDialog
 
 // MACROS
 #define MATERIAL_MAX 1
@@ -92,7 +95,7 @@ enum{
 	azulUI,
 	grisUI
 };
-int colorBordeSelect = 1;
+TInt colorBordeSelect = 1;
 
 //Piso
 static const GLfloat LineaPiso[4]  =      { MATERIALCOLOR(0.29, 0.29, 0.29, 1.0) };
@@ -145,6 +148,7 @@ TBool showXaxis = true;
 TBool showOutlineSelect = true;
 TBool iWidescreenEnabled = false;
 TBool showOrigins = true;
+TBool SimularZBuffer = false;
 GLfloat Cursor3DposX = 0.0f;
 GLfloat Cursor3DposZ = 0.0f;
 GLfloat Cursor3DposY = 0.0f;
@@ -152,7 +156,7 @@ TInt nextLightId = GL_LIGHT1;
 
 //animacion
 TInt StartFrame = 1;
-TInt EndFrame = 250;
+TInt EndFrame = 10;
 TInt CurrentFrame = 1;
 TBool PlayAnimation = true;
 TBool ShowTimeline = true;
@@ -276,7 +280,7 @@ GLfloat CBlenderLite::sin(GLfloat aRad){
 // -----------------------------------------------------------------------------
 //
 CBlenderLite::CBlenderLite( TUint aWidth, TUint aHeight, CBlenderLiteInput* aInputHandler )
-    : CFiniteStateMachine()
+: iContainer( NULL ),CFiniteStateMachine()
 	{
     iScreenWidth  = aWidth;
     iScreenHeight = aHeight;	
@@ -348,6 +352,22 @@ void CBlenderLite::ConstructL( void ){
 }
 
 void CBlenderLite::NewMaterial(){
+	/*HBufC* inicialBuf = HBufC::NewLC(100);
+	_LIT(Kinicial, "Material.%03d");
+	inicialBuf->Des().Format(Kinicial, Materials.Count()+1);
+	
+	HBufC* tituloBuf = HBufC::NewLC(100);
+	_LIT(Ktitulo, "Ingrese el nombre del Material");
+	tituloBuf->Des().Copy(Ktitulo);
+	TPtr nombre = DialogText(inicialBuf, tituloBuf);
+	
+	HBufC* noteBuf = HBufC::NewLC(100);//textoingresado.AllocLC();
+	noteBuf->Des().Copy(textoingresado);
+	DialogAlert(noteBuf);
+	CleanupStack::PopAndDestroy(noteBuf);	
+	CleanupStack::PopAndDestroy(tituloBuf);	
+	CleanupStack::PopAndDestroy(inicialBuf);	*/
+	
 	Material mat;	
 	mat.specular[0] = mat.specular[1] = mat.specular[2] = mat.specular[3] = 0.3;
 	mat.diffuse[0] = mat.diffuse[1] = mat.diffuse[2] = mat.diffuse[3] = 1.0;
@@ -397,6 +417,7 @@ CBlenderLite* CBlenderLite::NewL( TUint aWidth, TUint aHeight, CBlenderLiteInput
 
 // Destructor.
 CBlenderLite::~CBlenderLite(){
+    delete iContainer;
 }
 
 
@@ -563,7 +584,16 @@ void CBlenderLite::RenderMesh( TInt objId ){
 	else {glDisable( GL_CULL_FACE );}	
 	
 	//modelo con textura
-	if (view == MaterialPreview || view == Rendered){
+	if (SimularZBuffer){
+		glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
+		glDisable( GL_LIGHTING );
+		glDisable(GL_BLEND);
+		glDisable( GL_TEXTURE_2D );
+		for(int f=0; f < pMesh.materialsSize; f++){
+			glDrawElements( GL_TRIANGLES, pMesh.facesGroupsSize[f]*3, GL_UNSIGNED_SHORT, pMesh.faces[f] );
+		}
+	}
+	else if (view == MaterialPreview || view == Rendered){
 		//material
 		glTexCoordPointer( 2, GL_BYTE, 0, pMesh.uv );
 		
@@ -827,6 +857,7 @@ void CBlenderLite::RenderObject( TInt objId ){
 
 
 void CBlenderLite::InsertKeyframe(TInt propertySelect){
+	ShowOptionsDialogL();
     // Crear una lista de opciones
     //CDesCArrayFlat* options = new (ELeave) CDesCArrayFlat(3);
     /*CleanupStack::PushL(options);
@@ -1095,6 +1126,20 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 		}
 		ReloadAnimation();
 	}
+
+	if (SimularZBuffer){
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Color negro
+		glEnable(GL_FOG);
+		glFogf(GL_FOG_MODE, GL_LINEAR); // Tipo de niebla lineal
+		glFogf(GL_FOG_START, FRUSTUM_NEAR);  // Distancia inicial de la niebla
+		glFogf(GL_FOG_END, FRUSTUM_FAR);     // Distancia final de la niebla
+		GLfloat fogColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
+		glFogfv(GL_FOG_COLOR, fogColor); // Color de la niebla
+	}
+	else {
+		glDisable(GL_FOG);
+		glClearColor( 0.23f, 0.23f, 0.23f, 1.f );
+	}
 	
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     glLoadIdentity();
@@ -1110,7 +1155,7 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
     glEnable(GL_NORMALIZE);	
 
 	//primero hay que colocar las luces en caso de estar en modo render!
-	if (view == MaterialPreview || view == Rendered){
+	if (!SimularZBuffer && view == MaterialPreview || view == Rendered){
 		for(TInt o=0; o < Objects.Count(); o++){
 			Object& obj = Objects[o];
 			if(!obj.visible || obj.type != light ) {continue;}
@@ -1134,6 +1179,11 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 		}
 	}
 	//fin del dibujado de objetos
+	//si estaba simulando el zbuffer. el resto no hace falta
+	if (SimularZBuffer){		
+		redibujar = false;
+		return;
+	};
 
 	//el resto de objetos no usan materiales ni luces
 	glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  ListaColores[negro] );
@@ -2452,9 +2502,9 @@ void CBlenderLite::AddMesh( int modelo ){
 	
 	Mesh tempMesh;
 	tempMesh.materialsSize = 1;
+	tempMesh.facesGroupsSize = new TInt[tempMesh.materialsSize];
 	if (modelo == cubo){ 
-    	tempMesh.vertexSize = 24;	
-
+    	tempMesh.vertexSize = 24;
 		tempMesh.vertex = new GLshort[tempMesh.vertexSize*3];
 		tempMesh.vertexColor = new GLubyte[tempMesh.vertexSize*4];
 		tempMesh.normals = new GLbyte[tempMesh.vertexSize*3];
@@ -2471,9 +2521,7 @@ void CBlenderLite::AddMesh( int modelo ){
 			tempMesh.uv[i] = CuboUV[i];
 		}
 
-		tempMesh.facesGroupsSize = new TInt[tempMesh.materialsSize];
 		tempMesh.facesGroupsSize[0] = 12;
-
 		tempMesh.faces = new GLushort*[tempMesh.materialsSize];
 		tempMesh.faces[0] = new GLushort[tempMesh.facesGroupsSize[0]*3];
 		for (int i = 0; i < tempMesh.facesGroupsSize[0]*3; i++) {
@@ -2481,28 +2529,30 @@ void CBlenderLite::AddMesh( int modelo ){
 		}
 	}	
 	else if (modelo == monkey){  
-    	tempMesh.vertexSize = MonkeyVertexSize;
-		//tempMesh.facesSize = MonkeyFaceSize;	
-		tempMesh.facesGroupsSize[0] = MonkeyFaceSize;
 		obj.rotZ = 180;
+    	tempMesh.vertexSize = MonkeyVertexSize;
+
 		tempMesh.vertex = new GLshort[MonkeyVertexSize*3];
-		tempMesh.vertexColor = new GLubyte[MonkeyVertexSize*4];
-		tempMesh.normals = new GLbyte[MonkeyVertexSize*3];
+		tempMesh.normals = new GLbyte[MonkeyVertexSize*3];		
 		for(int a=0; a < MonkeyVertexSize*3; a++){
 			tempMesh.vertex[a] = MonkeyVertex[a];	
 			tempMesh.normals[a] = MonkeyNormal[a];	
 		}
+
+		tempMesh.vertexColor = new GLubyte[MonkeyVertexSize*4];
 		for(int a=0; a < MonkeyVertexSize*4; a++){
 			tempMesh.vertexColor[a] = 255;
 		}	
+		
+		tempMesh.facesGroupsSize[0] = MonkeyFaceSize;
 		tempMesh.faces = new GLushort*[tempMesh.materialsSize];
-		tempMesh.faces[0] = new GLushort[MonkeyFaceSize*3];
-		for(int a=0; a < MonkeyFaceSize*3; a++){
+		tempMesh.faces[0] = new GLushort[tempMesh.facesGroupsSize[0]*3];
+		for(int a=0; a < tempMesh.facesGroupsSize[0]*3; a++){
 			tempMesh.faces[0][a] = MonkeyFace[a];	
 		}
 		//tempMesh.edges = new GLushort[tempMesh.edgesSize];
-		tempMesh.uv = new GLbyte[MonkeyVertexSize*2];
-		for(int a=0; a < MonkeyVertexSize*2; a++){
+		tempMesh.uv = new GLbyte[tempMesh.vertexSize*2];
+		for(int a=0; a < tempMesh.vertexSize*2; a++){
 			tempMesh.uv[a] = MonkeyUV[a];			
 		}
 	}
@@ -3378,25 +3428,45 @@ TInt CBlenderLite::DialogNumber(TInt valor, TInt min, TInt max, HBufC* noteBuf )
     return number;
 }
 
-TInt CBlenderLite::DialogSelectOption(const TDesC& aPrompt, CDesCArray& aOptions) {
-    // Variable to hold the selected index
-    TInt selectedIndex = 0;
-
-    // Create the list query dialog
-    CAknListQueryDialog* dlg = new (ELeave) CAknListQueryDialog(&selectedIndex);
-
-    // Set the prompt for the dialog
-    dlg->PrepareLC(R_AVKON_MESSAGE_QUERY_DIALOG);
-    dlg->SetItemTextArray(&aOptions);
-    dlg->SetPromptL(aPrompt);
+TPtr CBlenderLite::DialogText(HBufC* textBuf, HBufC* noteBuf) {
+    TPtr textPtr = textBuf->Des();
     
-    // Execute the dialog and check if an option was selected
-    if (dlg->RunLD()) {
-        return selectedIndex;
-    } else {
-        // Return -1 if no option was selected
-        return -1;
-    }
+    CAknTextQueryDialog* dlg = CAknTextQueryDialog::NewL(textPtr);
+    dlg->PrepareLC(R_AVKON_DIALOG_QUERY_VALUE_TEXT);
+    dlg->SetPromptL(*noteBuf);    
+    dlg->RunLD();
+	return textPtr;
+}
+
+TInt CBlenderLite::ShowOptionsDialogL() {	
+	
+	///iContainer->ShowProgressNoteUnderSingleProcessL(R_BLENDERLITE_PROGRESS_NOTE, EAknExNoteCtrlIdProgressNote);
+    iContainer->ShowWaitNoteL(R_BLENDERLITE_PROGRESS_NOTE, EAknExNoteCtrlIdWaitNote);
+    //R_BLENDERLITE_WAIT_NOTE_SOFTKEY_CANCEL r_blenderlite_wait_note_softkey_cancel
+	
+	TInt blee = 1;
+	return blee;
+    /*TInt index = 0; // Variable para almacenar el �ndice seleccionado
+    CAknListQueryDialog* dialog = new (ELeave) CAknListQueryDialog(&index); // Crear una instancia de CAknListQueryDialog
+
+    const TInt KNumberOfItems = 3;
+    CDesC16ArrayFlat* itemTextArray = new (ELeave) CDesC16ArrayFlat(KNumberOfItems);
+    CleanupStack::PushL(itemTextArray);
+
+    // Agregar los textos de las opciones al array de texto
+    itemTextArray->AppendL(_L("Option 1"));
+    itemTextArray->AppendL(_L("Option 2"));
+    itemTextArray->AppendL(_L("Option 3"));
+
+    dialog->PrepareLC(R_AVKON_DIALOG_POPUP_LIST); // Preparar el di�logo
+    dialog->SetItemTextArray(itemTextArray); // Establecer el array de texto como opciones
+    dialog->SetOwnershipType(ELbmOwnsItemArray);
+
+    dialog->RunLD(); // Ejecutar el di�logo
+
+    CleanupStack::PopAndDestroy(itemTextArray); // Limpiar el array de texto
+
+    return index;*/
 }
 
 // -----------------------------------------------------------------------------
@@ -3918,24 +3988,6 @@ void CBlenderLite::ImportOBJ(){
     }
 };
 
-void CBlenderLite::CloseWaitNoteL(){
-    // Close and delete the wait note dialog,
-    // if it has not been dismissed yet
-	if( iWaitDialog ){
-		iWaitDialog->ProcessFinishedL();
-	}
-}
-
-void CBlenderLite::OpenWaitNoteL( TFileName file ){
-    //CloseWaitNoteL();
-
-    // Create and view the wait note dialog
-	//iWaitDialog = new (ELeave) CAknWaitDialog(reinterpret_cast<CEikDialog**>( &iWaitDialog ), ETrue);
-	//iWaitDialog->SetTextL(_L("Cargando archivo: "));
-	//iWaitDialog->SetTextL(file.Name());
-	//iWaitDialog->RunLD();
-	//iWaitDialog->TryExitL(ETrue);
-}
 
 void CBlenderLite::SetOrigen( TInt opcion ){
 	if (estado != edicion){
@@ -4112,6 +4164,7 @@ void CBlenderLite::SaveCanvasToImage(TBool secuencia, TBool showUi)  {
     GLubyte* pixels = new GLubyte[iScreenWidth * iScreenHeight * 4]; // 4 para RGBA
 
     _LIT(KFileName, "E:\\blendersito\\render_%04d.bmp");
+    _LIT(KFileNameZbuffer, "E:\\blendersito\\renderZbuffer_%04d.bmp");
     TFileName fileName;	
 	TBuf<256> buffer;
 
@@ -4130,21 +4183,26 @@ void CBlenderLite::SaveCanvasToImage(TBool secuencia, TBool showUi)  {
 		}
 	}
 	else {   
-		//redibujar = true;
-		//AppCycle(0, 0, 0);	
+		redibujar = true;
+		AppCycle(0, 0, 0);
 		glReadPixels(0, 0, iScreenWidth, iScreenHeight, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
-		//prueba de postprocesado
-		/*TInt linea = iScreenWidth*4*10;
-		for (int p = 0; p < iScreenWidth; ++p) {
-			pixels[linea+(p*4)] = 255;
-			pixels[linea+(p*4)+1] = 0;
-			pixels[linea+(p*4)+2] = 0;					
-		}*/
+		//postprocesado
+		//applyBlur(pixels, iScreenWidth, iScreenHeight, 3);
 
 		buffer.Format(KFileName, CurrentFrame);
 		fileName.Copy(buffer);
 		SaveAsBMP(iScreenWidth, iScreenHeight, pixels, fileName);
+
+		SimularZBuffer = true;
+		redibujar = true;
+		AppCycle(0, 0, 0);	
+		glReadPixels(0, 0, iScreenWidth, iScreenHeight, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+		buffer.Format(KFileNameZbuffer, CurrentFrame);
+		fileName.Copy(buffer);
+		SaveAsBMP(iScreenWidth, iScreenHeight, pixels, fileName);
+		SimularZBuffer = false;
 	}
 
     // Restaura el estado original
@@ -4155,6 +4213,48 @@ void CBlenderLite::SaveCanvasToImage(TBool secuencia, TBool showUi)  {
     // Restaura el tamaño original del canvas
     //SetScreenSize(temScreenWidth, temScreenHeight, false);
     redibujar = true;
+}
+
+void CBlenderLite::applyBlur(GLubyte* pixels, int width, int height, int radius) {
+    // Calcula el tamaño del área del kernel
+    int kernelSize = 2 * radius + 1;
+    
+    // Itera sobre cada píxel de la imagen
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            float r = 0.0f, g = 0.0f, b = 0.0f;
+            
+            // Itera sobre cada píxel en el área del kernel
+            for (int ky = -radius; ky <= radius; ++ky) {
+                for (int kx = -radius; kx <= radius; ++kx) {
+                    int pixelX = clamp(x + kx, 0, width - 1);
+                    int pixelY = clamp(y + ky, 0, height - 1);
+                    
+                    // Obtiene el valor del píxel original
+                    int index = (pixelY * width + pixelX) * 4;
+                    r += pixels[index];
+                    g += pixels[index + 1];
+                    b += pixels[index + 2];
+                }
+            }
+            
+            // Calcula el promedio de los valores RGB en el área del kernel
+            int index = (y * width + x) * 4;
+            pixels[index] = static_cast<GLubyte>(r / (kernelSize * kernelSize));
+            pixels[index + 1] = static_cast<GLubyte>(g / (kernelSize * kernelSize));
+            pixels[index + 2] = static_cast<GLubyte>(b / (kernelSize * kernelSize));
+        }
+    }
+}
+
+int CBlenderLite::clamp(int value, int min, int max) {
+    if (value < min) {
+        return min;
+    } else if (value > max) {
+        return max;
+    } else {
+        return value;
+    }
 }
 
 void CBlenderLite::SetWidescreen(){
