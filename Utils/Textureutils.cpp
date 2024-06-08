@@ -774,8 +774,8 @@ void CTextureManager::ImageOperationCompleteL(TInt aError)
 		TextureDataWithAlphaChannel[j + 2] = TextureData[i + 2];
 		}
 
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA,
-			iCurrentRequest->iTextureWidth, iCurrentRequest->iTextureHeight,
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
+		    iCurrentRequest->iTextureWidth, iCurrentRequest->iTextureHeight,
 			0, GL_RGBA, GL_UNSIGNED_BYTE, TextureDataWithAlphaChannel );
 
 		delete [] TextureDataWithAlphaChannel;
@@ -876,6 +876,7 @@ void CTextureManager::Blit( TTexture & aTexture, GLuint aX1, GLuint aY1,
 
 	glVertexPointer( 3, GL_FLOAT, 0, Vertices );
 	glTexCoordPointer( 2, GL_SHORT, 0, BlitTextureCoords );
+	//glTexCoordPointer( 2, GL_FLOAT, 0, BlitTextureCoords );
     glDrawElements( GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, BlitIndices );
 
     glEnable( GL_DEPTH_TEST );

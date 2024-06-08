@@ -26,6 +26,8 @@
 #include "Primitivas.h" //sprite 2D
 #include "GeometriaUI.h" //elementos de la UI
 
+#include <utf.h>       // Para CnvUtfConverter
+
 #include "blenderlite.rsg"
 #include "blenderlite.hrh"
 //#include <aknmessagequerydialog.h>		// DialogAlertL
@@ -329,6 +331,7 @@ void CBlenderLite::ConstructL( void ){
 	
 	//AddMesh(monkey);
 	AddMesh(cubo);	
+	//ImportOBJ();
 
 	/*Animation animNew;	
 	Animations.Append(animNew);
@@ -374,10 +377,14 @@ void CBlenderLite::NewMaterial(){
 	mat.emission[0] = mat.emission[1] = mat.emission[2] = mat.emission[3] = 0.0;
 	mat.textura = false;
 	mat.color = false;
+	mat.repeat = true;
 	mat.lighting = true;
 	mat.transparent = false;
 	mat.interpolacion = lineal;
 	mat.textureID = 0;
+	mat.name = HBufC::NewL(12);
+	_LIT(KMatName, "Material.%03d");
+	mat.name->Des().Format(KMatName, Materials.Count()+1);
 	Materials.Append(mat);
 }
 
@@ -595,7 +602,7 @@ void CBlenderLite::RenderMesh( TInt objId ){
 	}
 	else if (view == MaterialPreview || view == Rendered){
 		//material
-		glTexCoordPointer( 2, GL_BYTE, 0, pMesh.uv );
+		glTexCoordPointer( 2, GL_FLOAT, 0, pMesh.uv );
 		
 		for(int f=0; f < pMesh.materialsSize; f++){
 			Material& mat = Materials[pMesh.materials[f]];	
@@ -630,6 +637,15 @@ void CBlenderLite::RenderMesh( TInt objId ){
 				else if (mat.interpolacion == closest){
 					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				}	
+				//si la textura se repite
+				if (mat.repeat){
+					glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+					glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+				}
+				else {
+					glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+					glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 				}	
 			}
 			else {glDisable( GL_TEXTURE_2D );}
@@ -1391,8 +1407,11 @@ void CBlenderLite::dibujarUI(){
 	//glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //hace que sea pixelada
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); //hace que sea pixelada
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	
 	
     glVertexPointer( 3, GL_SHORT, 0, SpriteVertices );
 	glTexCoordPointer( 2, GL_BYTE, 0, SpriteUV ); //SpriteUvSize
@@ -2508,7 +2527,7 @@ void CBlenderLite::AddMesh( int modelo ){
 		tempMesh.vertex = new GLshort[tempMesh.vertexSize*3];
 		tempMesh.vertexColor = new GLubyte[tempMesh.vertexSize*4];
 		tempMesh.normals = new GLbyte[tempMesh.vertexSize*3];
-		tempMesh.uv = new GLbyte[tempMesh.vertexSize*2];
+		tempMesh.uv = new GLfloat[tempMesh.vertexSize*2];
 
 		for (int i = 0; i < tempMesh.vertexSize*3; i++) {
 			tempMesh.vertex[i] = CuboVertices[i];
@@ -2518,7 +2537,8 @@ void CBlenderLite::AddMesh( int modelo ){
 			tempMesh.vertexColor[i] = 255;
 		}
 		for (int i = 0; i < tempMesh.vertexSize*2; i++) {
-			tempMesh.uv[i] = CuboUV[i];
+			//tempMesh.uv[i] = (GLfloat)((CuboUV[i]+128)/255)*1280;
+			tempMesh.uv[i] = (GLfloat)CuboUV[i];
 		}
 
 		tempMesh.facesGroupsSize[0] = 12;
@@ -2551,9 +2571,10 @@ void CBlenderLite::AddMesh( int modelo ){
 			tempMesh.faces[0][a] = MonkeyFace[a];	
 		}
 		//tempMesh.edges = new GLushort[tempMesh.edgesSize];
-		tempMesh.uv = new GLbyte[tempMesh.vertexSize*2];
+		tempMesh.uv = new GLfloat[tempMesh.vertexSize*2];
 		for(int a=0; a < tempMesh.vertexSize*2; a++){
-			tempMesh.uv[a] = MonkeyUV[a];			
+			//tempMesh.uv[a] = (GLfloat)(MonkeyUV+128)[a]/255;	
+			tempMesh.uv[a] = (GLfloat)MonkeyUV[a];			
 		}
 	}
 	else {
@@ -2731,6 +2752,38 @@ void CBlenderLite::SetTransparencia(){
 	}
 	else {
 		mat.transparent = false;	
+	}
+	CleanupStack::PopAndDestroy(noteBuf);	
+    redibujar = true;
+}
+
+void CBlenderLite::SetTextureRepeat(){
+	//si no hay objetos
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[objSelect];
+	//si no es un mesh
+	if (obj.type != mesh){return;}	
+	Mesh& pMesh = Meshes[obj.Id];
+
+	Cancelar();
+	TInt MaterialID = 1;
+	HBufC* noteBuf = HBufC::NewLC(100);
+	if (pMesh.materialsSize > 1){
+		_LIT(KFormatString, "Material 1 to %d");
+		noteBuf->Des().Format(KFormatString, pMesh.materialsSize);
+		MaterialID = DialogNumber(1, 1, pMesh.materialsSize, noteBuf);		
+	}
+
+	Material& mat = Materials[pMesh.materials[MaterialID-1]];
+
+	Cancelar();
+	//activa o desactiva las Transparencias
+	noteBuf->Des().Copy(_L("Activar Repeticion de Textura?"));
+	if (DialogAlert(noteBuf)){	
+		mat.repeat = true;
+	}
+	else {
+		mat.repeat = false;	
 	}
 	CleanupStack::PopAndDestroy(noteBuf);	
     redibujar = true;
@@ -2993,7 +3046,8 @@ void CBlenderLite::DuplicatedObject(){
 		tempMesh2.vertex = new GLshort[tempMesh.vertexSize*3];
 		tempMesh2.normals = new GLbyte[tempMesh.vertexSize*3];
 		tempMesh2.vertexColor = new GLubyte[tempMesh.vertexSize*4];
-		tempMesh2.uv = new GLbyte[tempMesh.vertexSize*2];
+		//tempMesh2.uv = new GLbyte[tempMesh.vertexSize*2];
+		tempMesh2.uv = new GLfloat[tempMesh.vertexSize*2];
 		tempMesh2.materials = new TInt[tempMesh.materialsSize];
 		tempMesh2.faces = new GLushort*[tempMesh.materialsSize];
 		
@@ -3446,7 +3500,7 @@ TInt CBlenderLite::ShowOptionsDialogL() {
 	
 	TInt blee = 1;
 	return blee;
-    /*TInt index = 0; // Variable para almacenar el �ndice seleccionado
+    /*TInt index = 0; // Variable para almacenar el �ndice seleccionado
     CAknListQueryDialog* dialog = new (ELeave) CAknListQueryDialog(&index); // Crear una instancia de CAknListQueryDialog
 
     const TInt KNumberOfItems = 3;
@@ -3458,11 +3512,11 @@ TInt CBlenderLite::ShowOptionsDialogL() {
     itemTextArray->AppendL(_L("Option 2"));
     itemTextArray->AppendL(_L("Option 3"));
 
-    dialog->PrepareLC(R_AVKON_DIALOG_POPUP_LIST); // Preparar el di�logo
+    dialog->PrepareLC(R_AVKON_DIALOG_POPUP_LIST); // Preparar el di�logo
     dialog->SetItemTextArray(itemTextArray); // Establecer el array de texto como opciones
     dialog->SetOwnershipType(ELbmOwnsItemArray);
 
-    dialog->RunLD(); // Ejecutar el di�logo
+    dialog->RunLD(); // Ejecutar el di�logo
 
     CleanupStack::PopAndDestroy(itemTextArray); // Limpiar el array de texto
 
@@ -3641,7 +3695,7 @@ void CBlenderLite::ImportOBJ(){
 		RArray<GLshort> ListVertices;
 		RArray<GLubyte> ListColors;
 		RArray<GLbyte> ListNormals;
-		RArray<GLbyte> ListUVs;
+		RArray<GLfloat> ListUVs;
 		RArray<TInt> ListCaras;
 		RArray<TInt> MaterialesNuevos;
 		RArray<TInt> MeshsGroups;
@@ -3655,7 +3709,6 @@ void CBlenderLite::ImportOBJ(){
 		TInt fileSize;
 		rFile.Size(fileSize);
  
-		//while (continuarLeyendo) {
 		while (startPos < fileSize) {
 			// Leer una línea del archivo desde la posición actual
 			err = rFile.Read(startPos, buffer, buffer.MaxLength());
@@ -3762,12 +3815,13 @@ void CBlenderLite::ImportOBJ(){
 							if (err == KErrNone) {		
 								if (contador == 1) {
 									number = -number+1;
-								}			
+								}		
 								number = number * 255.0 - 128.0;
-								if (number > 127.0){number = 127.0;}
-								else if (number < -128.0){number = -128.0;}
-								GLbyte glNumber = static_cast<GLbyte>(number); // Conversión a GLbyte
-								ListUVs.Append(glNumber);
+								/*if (number > 127.0){number = 127.0;}
+								else if (number < -128.0){number = -128.0;}*/
+								//GLbyte glNumber = static_cast<GLbyte>(number); // Conversión a GLbyte
+								GLfloat glNumber = static_cast<GLfloat>(number); // Conversión a GLbyte
+								ListUVs.Append(glNumber);	
 							}
 							else if (contador < 2){
 								ListUVs.Append(0);
@@ -3823,33 +3877,42 @@ void CBlenderLite::ImportOBJ(){
 						}
 						MeshsGroups[MeshsGroups.Count()-1]++;
 					}
-					else if (line.Left(7) == _L8("usemtl ")) {
-						/*TLex8 lex(line.Mid(7));
-						if (!lex.Eos()){
-							TPtrC8 currentString = lex.NextToken();
-							materiales++;		
+					else if (line.Left(7) == _L8("usemtl ")) {							
+						//agrega un nuevo material
+						MaterialesNuevos.Append(Materials.Count());
+						MeshsGroups.Append(0);
+						
+						Material mat;	
+						mat.specular[0] = mat.specular[1] = mat.specular[2] = mat.specular[3] = 0.3;
+						mat.diffuse[0] = mat.diffuse[1] = mat.diffuse[2] = mat.diffuse[3] = 1.0;
+						mat.emission[0] = mat.emission[1] = mat.emission[2] = mat.emission[3] = 0.0;
+						mat.textura = false;
+						mat.color = false;
+						mat.repeat = true;
+						mat.lighting = true;
+						mat.transparent = false;
+						mat.interpolacion = lineal;
+						mat.textureID = 0;
 
-							HBufC* noteBuf3 = HBufC::NewLC(180);
-							_LIT(KFormatString3, "Material: %d\nNombre: %S");
-							noteBuf3->Des().Format(KFormatString3, materiales, &line);
-							DialogAlert(noteBuf3);*/
-							
-							//agrega un nuevo material
-							MaterialesNuevos.Append(Materials.Count());
-							MeshsGroups.Append(0);
-							
-							Material mat;	
-							mat.specular[0] = mat.specular[1] = mat.specular[2] = mat.specular[3] = 0.3;
-							mat.diffuse[0] = mat.diffuse[1] = mat.diffuse[2] = mat.diffuse[3] = 1.0;
-							mat.emission[0] = mat.emission[1] = mat.emission[2] = mat.emission[3] = 0.0;
-							mat.textura = false;
-							mat.color = false;
-							mat.lighting = true;
-							mat.transparent = false;
-							mat.interpolacion = lineal;
-							mat.textureID = 0;
-							Materials.Append(mat);
-						//}
+						TLex8 lex(line.Mid(7));
+						if (!lex.Eos()){
+							TPtrC8 currentString = lex.NextToken();							
+							mat.name = HBufC::NewL(currentString.Length());
+							mat.name->Des().Copy(currentString);
+						}
+						else {	
+							mat.name = HBufC::NewL(100);						
+							_LIT(KMatName, "Material.%03d");
+							mat.name->Des().Format(KMatName, Materials.Count()+1);
+						}
+
+						/*HBufC* noteBuf3 = HBufC::NewLC(180);
+						_LIT(KFormatString3, "Material: %d\nNombre: %S");
+						noteBuf3->Des().Format(KFormatString3, Materials.Count(), mat.name);
+						DialogAlert(noteBuf3);
+						CleanupStack::PopAndDestroy(noteBuf3);*/
+
+						Materials.Append(mat);
 					}
 				}
 
@@ -3872,9 +3935,11 @@ void CBlenderLite::ImportOBJ(){
 
 		// Cerrar el archivo
 		rFile.Close();
+		fsSession.Close();
 
 		//liberar memoria			
-		CleanupStack::PopAndDestroy(&rFile);
+		//parece que no ahce falta ya que hago "close". pero no estoy seguro con la pila de limpieza
+		//CleanupStack::PopAndDestroy(&rFile);
 		//CleanupStack::PopAndDestroy(&fsSession);
 
 		//obj.edges = new GLushort[obj.edgesSize];
@@ -3883,7 +3948,7 @@ void CBlenderLite::ImportOBJ(){
 			_LIT(KFormatString, "indice: %d, color: %d, %d, %d");
 			noteBuf->Des().Format(KFormatString, v+1, ListColors[v*3],ListColors[v*3+1],ListColors[v*3+2]);
 			DialogAlert(noteBuf);
-		}*/		
+		}*/
 		
 		// cuantos vertices tiene
 		
@@ -3896,7 +3961,7 @@ void CBlenderLite::ImportOBJ(){
 		tempMesh.vertex = new GLshort[tempMesh.vertexSize*3];
 		tempMesh.vertexColor = new GLubyte[tempMesh.vertexSize*4];
 		tempMesh.normals = new GLbyte[tempMesh.vertexSize*3];
-		tempMesh.uv = new GLbyte[tempMesh.vertexSize*2];
+		tempMesh.uv = new GLfloat[tempMesh.vertexSize*2];
 		tempMesh.smooth = true;
 		tempMesh.culling = true;			
 
@@ -3927,10 +3992,10 @@ void CBlenderLite::ImportOBJ(){
 			TInt limite = ultimoIndice + MeshsGroups[m];			
 			TInt ultimoIndiceinicio = ultimoIndice;
 				
-			HBufC* noteBuf3 = HBufC::NewLC(180);
+			/*HBufC* noteBuf3 = HBufC::NewLC(180);
 			_LIT(KFormatString3, "Mesh: %d/%d\nfaces %d");
 			noteBuf3->Des().Format(KFormatString3, m+1, MeshsGroups.Count(), MeshsGroups[m], ListCaras.Count()/9);
-			DialogAlert(noteBuf3);	
+			DialogAlert(noteBuf3);*/	
 
 			for(TInt a=ultimoIndice; a < limite; a++){			
 				for(TInt f=0; f < 3; f++){
@@ -3954,11 +4019,6 @@ void CBlenderLite::ImportOBJ(){
 			}
 		}
 		Meshes.Append(tempMesh);
-
-		HBufC* noteBuf = HBufC::NewLC(180);
-		_LIT(KFormatString, "se creo la malla 3D");
-		noteBuf->Des().Format(KFormatString);
-		DialogAlert(noteBuf);
 		
 		obj.Id = Meshes.Count()-1;
 		Objects.Append(obj);
@@ -3978,6 +4038,24 @@ void CBlenderLite::ImportOBJ(){
 		MeshsGroups.Close();
 		//Objects[objSelect].RecalcularBordes();
 
+		// Intenta leer el archivo .mtl
+		TFileName mtlFile = file;
+		mtlFile.Replace(file.Length() - 4, 4, _L(".mtl"));
+		TRAP(err, LeerMTL(mtlFile));
+		if (err != KErrNone) {
+			_LIT(KFormatString, "Error al leer el archivo .mtl");
+			HBufC* noteBuf = HBufC::NewLC(100);
+			noteBuf->Des().Format(KFormatString);
+			MensajeError(noteBuf);
+			CleanupStack::PopAndDestroy(noteBuf);
+		}
+
+		/*HBufC* noteBuf = HBufC::NewLC(180);
+		_LIT(KFormatString, "se creo la malla 3D");
+		noteBuf->Des().Format(KFormatString);
+		DialogAlert(noteBuf);
+		CleanupStack::PopAndDestroy(noteBuf);*/
+
 		redibujar = true;
     }	
     else {
@@ -3987,6 +4065,194 @@ void CBlenderLite::ImportOBJ(){
 		MensajeError(noteBuf);  
     }
 };
+
+void CBlenderLite::LeerMTL(const TFileName& aFile) {
+	RFs fsSession2;	
+	User::LeaveIfError(fsSession2.Connect());
+	//CleanupClosePushL(fsSession2);
+
+	RFile rFile;
+	TInt err;
+	TRAP(err,rFile.Open(fsSession2, aFile, EFileRead));
+	if (err != KErrNone){
+		_LIT(KFormatString, "Error al abrir: %S");
+        HBufC* noteBuf = HBufC::NewLC(aFile.Length() + 16);
+        noteBuf->Des().Format(KFormatString, &aFile);
+        MensajeError(noteBuf);
+        //CleanupStack::PopAndDestroy(&fsSession);
+        return;
+    }
+
+	TBuf8<2048> buffer;
+	TInt pos = 0;
+	TInt lineas = 0;
+	TInt64 startPos = 0; // Variable para mantener la posición de lectura en el archivo
+	TInt fileSize;
+	rFile.Size(fileSize);
+
+	//necesario para modificar el material correcto	
+	Object& obj = Objects[objSelect];
+	Mesh& pMesh = Meshes[obj.Id];
+	Material* mat = NULL; 
+	HBufC* materialName16 = HBufC::NewLC(100);
+	HBufC* noteBuf3 = HBufC::NewLC(100);
+	TBool encontrado = false;
+
+	while (startPos < fileSize) {
+		// Leer una línea del archivo desde la posición actual
+		err = rFile.Read(startPos, buffer, buffer.MaxLength());
+		if (err != KErrNone) {
+			_LIT(KFormatString, "Error al leer linea");
+			HBufC* noteBuf = HBufC::NewLC(100);
+			noteBuf->Des().Format(KFormatString);
+			MensajeError(noteBuf);
+    		rFile.Close();	
+    		fsSession2.Close();	
+            //CleanupStack::PopAndDestroy(&fsSession);
+			break;
+		}        
+
+        while ((pos = buffer.Locate('\n')) != KErrNotFound || (pos = buffer.Locate('\r')) != KErrNotFound) {
+			//TInt indice = 0;
+            TPtrC8 line = buffer.Left(pos);
+
+            if (line.Length() > 0) {
+                if (line.Left(7) == _L8("newmtl ")) {
+                    TLex8 lex(line.Mid(7));
+                    TPtrC8 materialName = lex.NextToken();
+
+					// Convertir materialName de TPtrC8 (8 bits) a HBufC (16 bits)
+					materialName16 = CnvUtfConverter::ConvertToUnicodeFromUtf8L(materialName);
+
+					//buscar el material con el mismo nombre
+					encontrado = false;
+					for(int f=0; f < pMesh.materialsSize; f++){
+						//como hago esta comparacion???
+						if (Materials[pMesh.materials[f]].name->Compare(*materialName16) == 0){
+							mat = &Materials[pMesh.materials[f]];
+							/*_LIT(KFormatString3, "newmtl %S encontrado\nMaterial: %d");
+							noteBuf3->Des().Format(KFormatString3, materialName16, pMesh.materials[f]+1);
+							DialogAlert(noteBuf3);*/
+							encontrado = true;
+							break;
+						}
+					}	
+                } 
+				//specular
+				else if (line.Left(3) == _L8("Ns ")) {
+                    TLex8 lex(line.Mid(3));
+                    TReal nsValue;
+                    lex.Val(nsValue, '.');
+					GLfloat resultado = nsValue/1000.0f;
+					mat->specular[0] = resultado;
+					mat->specular[1] = resultado;
+					mat->specular[2] = resultado;
+					mat->specular[3] = resultado;
+					
+					/*_LIT(KFormatString3, "newmtl %S encontrado\nSpecular: %f");
+					noteBuf3->Des().Format(KFormatString3, materialName16, resultado);
+					DialogAlert(noteBuf3);*/
+                } 
+				//difusso, Aquí manejas el color ambiental Ka (kaR, kaG, kaB)			
+				else if (line.Left(3) == _L8("Ka ")) {
+                    TLex8 lex(line.Mid(3));
+                    TReal kaR, kaG, kaB;
+                    lex.Val(kaR, '.');
+                    lex.SkipSpace();
+                    lex.Val(kaG, '.');
+                    lex.SkipSpace();
+                    lex.Val(kaB, '.');
+
+					mat->diffuse[0] = (GLfloat)kaR;
+					mat->diffuse[1] = (GLfloat)kaG;
+					mat->diffuse[2] = (GLfloat)kaB;
+                } 
+				/*else if (line.Left(3) == _L8("Ks ")) {
+                    TLex8 lex(line.Mid(3));
+                    TReal ksR, ksG, ksB;
+                    lex.Val(ksR, '.');
+                    lex.SkipSpace();
+                    lex.Val(ksG, '.');
+                    lex.SkipSpace();
+                    lex.Val(ksB, '.');
+                    // Aquí manejas el color especular Ks (ksR, ksG, ksB)
+                }*/
+				// Aquí manejas el color de emisión Ke (keR, keG, keB)
+				else if (line.Left(3) == _L8("Ke ")) {
+                    TLex8 lex(line.Mid(3));
+                    TReal keR, keG, keB;
+                    lex.Val(keR, '.');
+                    lex.SkipSpace();
+                    lex.Val(keG, '.');
+                    lex.SkipSpace();
+                    lex.Val(keB, '.');	
+					mat->emission[0] = (GLfloat)keR;
+					mat->emission[1] = (GLfloat)keG;
+					mat->emission[2] = (GLfloat)keB;
+                } 
+				/*else if (line.Left(3) == _L8("Ni ")) {
+                    TLex8 lex(line.Mid(3));
+                    TReal niValue;
+                    lex.Val(niValue, '.');
+                    // Aquí manejas el índice de refracción Ni
+                } else if (line.Left(2) == _L8("d ")) {
+                    TLex8 lex(line.Mid(2));
+                    TReal dValue;
+                    lex.Val(dValue, '.');
+                    // Aquí manejas la opacidad d
+                } else if (line.Left(6) == _L8("illum ")) {
+                    TLex8 lex(line.Mid(6));
+                    TInt illumValue;
+                    lex.Val(illumValue);
+                    // Aquí manejas el modelo de iluminación illum
+                }*/
+				// Aquí manejas la textura difusa map_Kd
+				else if (line.Left(7) == _L8("map_Kd ")) {
+                    TLex8 lex(line.Mid(7));
+                    TPtrC8 texturePath = lex.NextToken();
+
+					HBufC* texturePath16 = HBufC::NewLC(180);
+					texturePath16 = CnvUtfConverter::ConvertToUnicodeFromUtf8L(texturePath);
+
+					 // Convertir la ruta relativa a una ruta absoluta
+                    TParse fileParser;
+                    fileParser.Set(aFile, NULL, NULL);
+                    TFileName absolutePath = fileParser.DriveAndPath();
+                    absolutePath.Append(*texturePath16);
+
+					/*_LIT(KFormatString3, "newmtl %S\nPath: %S");
+					noteBuf3->Des().Format(KFormatString3, materialName16, &absolutePath);// texturePath16);
+					DialogAlert(noteBuf3);*/
+
+					 // Cargar la textura desde la ruta absoluta
+                    iTextureManager = CTextureManager::NewL(iScreenWidth, iScreenHeight,
+                                                            FRUSTUM_TOP, FRUSTUM_BOTTOM, FRUSTUM_RIGHT, FRUSTUM_LEFT, FRUSTUM_NEAR,
+                                                            this);
+                    TTexture newTexture;
+                    newTexture.iTextureName = *texturePath16;
+                    Textures.Append(newTexture);
+                    mat->textura = true;
+                    mat->textureID = Textures.Count();
+
+                    iTextureManager->RequestToLoad(newTexture.iTextureName, fileParser.DriveAndPath(), &Textures[Textures.Count() - 1], false);
+                    iTextureManager->DoLoadL();
+
+                    CleanupStack::PopAndDestroy(texturePath16);
+                }
+            }
+
+            startPos += pos + 1;
+            buffer.Delete(0, pos + 1);
+            buffer.TrimLeft();
+            lineas++;
+        }
+    }
+	CleanupStack::PopAndDestroy(materialName16);
+	CleanupStack::PopAndDestroy(noteBuf3);
+    rFile.Close();	
+    fsSession2.Close();	
+    //CleanupStack::PopAndDestroy(&fsSession);
+}
 
 
 void CBlenderLite::SetOrigen( TInt opcion ){

@@ -47,7 +47,7 @@ LIBRARY         efsrv.lib
 LIBRARY         ImageConversion.lib
 LIBRARY         libgles_cm.lib
 LIBRARY         ws32.lib commondialogs.lib
-LIBRARY         estor.lib eikctl.lib aknnotify.lib apgrfx.lib eikdlg.lib 
+LIBRARY         estor.lib eikctl.lib aknnotify.lib apgrfx.lib eikdlg.lib charconv.lib 
 
 START RESOURCE ..\data\blenderlite_reg.rss
 #ifdef WINSCW

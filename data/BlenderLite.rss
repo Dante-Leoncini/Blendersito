@@ -370,14 +370,14 @@ RESOURCE MENU_PANE r_Material_menu{
             command = ESetTexture;
             txt = STRING_r_setTexture;
         }, 
-        MENU_ITEM {
-            command = ERemoveMaterial;
-            txt = STRING_r_removeMaterial;
-        }, 
-        MENU_ITEM {
-            command = ERemoveTexture;
-            txt = STRING_r_removeTexture;
-        }, 
+        //MENU_ITEM {
+        //    command = ERemoveMaterial;
+        //    txt = STRING_r_removeMaterial;
+        //}, 
+        //MENU_ITEM {
+        //    command = ERemoveTexture;
+        //    txt = STRING_r_removeTexture;
+        //}, 
         MENU_ITEM {
             command = ENewMaterial;
             txt = STRING_r_newMaterial;
@@ -414,6 +414,10 @@ RESOURCE MENU_PANE r_Material_menu{
             command = ESetTransparent;
             txt = STRING_r_setTransparent;
         },  
+        MENU_ITEM {
+            command = ESetTextureRepeat;
+            txt = STRING_r_setTextureRepeat;
+        },        
         MENU_ITEM {
             command = ESetCulling;
             txt = STRING_r_setCulling;

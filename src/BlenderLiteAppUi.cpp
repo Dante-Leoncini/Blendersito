@@ -497,6 +497,9 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
         case ESetTransparent:
             iAppContainer->iBlenderLite->SetTransparencia();
             break; 
+        case ESetTextureRepeat:
+            iAppContainer->iBlenderLite->SetTextureRepeat();
+            break;             
         case ESetSmooth:
             iAppContainer->iBlenderLite->SetSmooth();
             break;  

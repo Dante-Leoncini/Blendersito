@@ -32,6 +32,7 @@ enum TBlenderLiteMenuCommands
     ESetDiffuse,
     ESetInterpolation,
     ESetTransparent, 
+    ESetTextureRepeat,
     ESetSmooth,
     ESetCulling,
     ESetLighting,

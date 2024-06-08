@@ -28,11 +28,13 @@ class Material {
 		TBool transparent;
 		TBool color;
 		TBool lighting;
+		TBool repeat;
 		TInt interpolacion;
 		GLuint textureID;
 		GLfloat diffuse[4];		
 		GLfloat specular[4];	
 		GLfloat emission[4];
+		HBufC* name;
 };
 
 class Mesh { 
@@ -43,7 +45,7 @@ class Mesh {
 		GLshort* vertex;
 		GLubyte* vertexColor;
 		GLbyte* normals;
-		GLbyte* uv;
+		GLfloat* uv;
 		TInt* materials;
 		//TInt material;
 		TInt materialsSize;

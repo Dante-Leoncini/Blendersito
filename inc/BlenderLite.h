@@ -140,6 +140,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void SelectToCursor();
         void Borrar();
         void changeSelect();
+        void LeerMTL(const TFileName& aFile);
         void ReloadAnimation();
         void SetMouse();
         void ToggleValue(TBool& valueToUpdate);
@@ -147,6 +148,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void SetUvSprite(GLshort x, GLshort y, GLshort ancho, GLshort alto);
         void SetSpriteSize(GLshort ancho, GLshort alto);
         void DrawnRectangle();
+        void SetTextureRepeat();
         void IconSelect(TBool activo);
         void UiMoveTo(GLshort x, GLshort y);
         void DrawnLines(TInt LineWidth, TInt cantidad, GLshort* vertexlines, GLushort* lineasIndices);
