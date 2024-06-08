@@ -4154,18 +4154,18 @@ void CBlenderLite::LeerMTL(const TFileName& aFile) {
 					DialogAlert(noteBuf3);*/
                 } 
 				//difusso, Aquí manejas el color ambiental Ka (kaR, kaG, kaB)			
-				else if (line.Left(3) == _L8("Ka ")) {
+				else if (line.Left(3) == _L8("Kd ")) {
                     TLex8 lex(line.Mid(3));
-                    TReal kaR, kaG, kaB;
-                    lex.Val(kaR, '.');
+                    TReal kdR, kdG, kdB;
+                    lex.Val(kdR, '.');
                     lex.SkipSpace();
-                    lex.Val(kaG, '.');
+                    lex.Val(kdG, '.');
                     lex.SkipSpace();
-                    lex.Val(kaB, '.');
+                    lex.Val(kdB, '.');
 
-					mat->diffuse[0] = (GLfloat)kaR;
-					mat->diffuse[1] = (GLfloat)kaG;
-					mat->diffuse[2] = (GLfloat)kaB;
+					mat->diffuse[0] = (GLfloat)kdR;
+					mat->diffuse[1] = (GLfloat)kdG;
+					mat->diffuse[2] = (GLfloat)kdB;
                 } 
 				/*else if (line.Left(3) == _L8("Ks ")) {
                     TLex8 lex(line.Mid(3));
