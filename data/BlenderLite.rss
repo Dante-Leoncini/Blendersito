@@ -640,7 +640,6 @@ RESOURCE MENU_PANE r_blenderlite_editarOrigen_menu{
 RESOURCE TBUF256 r_blenderlite_perspectiva{buf = STRING_r_blenderlite_perspectiva;}
 RESOURCE TBUF256 r_blenderlite_ObjFocus{buf = STRING_r_blenderlite_ObjFocus;}
 RESOURCE TBUF256 r_blenderlite_CambiarObject{buf = STRING_r_blenderlite_CambiarObject;}
-RESOURCE TBUF256 r_blenderlite_SetNavegacion{buf = STRING_r_blenderlite_SetNavegacion;}
 
 RESOURCE TBUF256 r_blenderlite_BorrarObject{buf = STRING_r_blenderlite_BorrarObject;}
 

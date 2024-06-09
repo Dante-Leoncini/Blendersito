@@ -599,9 +599,9 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
         case EClearKeyframes:
             iAppContainer->iBlenderLite->ClearKeyframes();
             break; 
-            //case EBlenderLiteNavegacion:
-            //iAppContainer->iBlenderLite->SetMode();
-            //break;            
+        case EBlenderLiteNavegacion:
+            iAppContainer->iBlenderLite->SetNavigation();
+            break;            
         default:
             break;
         }

@@ -136,6 +136,9 @@ GLfloat rotY = 20.0; //66.2
 GLfloat posX = 0;
 GLfloat posY = 0;
 GLfloat posZ = 0;
+GLfloat PivotX = 0;
+GLfloat PivotY = 0;
+GLfloat PivotZ = 0;
 
 //vista 3d
 GLshort mouseX = 0;
@@ -178,6 +181,11 @@ enum{
 	translacionFace,
 	edicion,
 	timelineMove
+};
+
+enum{
+	Orbit,
+	Fly
 };
 
 enum{
@@ -256,6 +264,16 @@ void CBlenderLite::SetTipoSelect(TInt tipo){
     redibujar = true;
 }
 
+void CBlenderLite::SetNavigation(){
+	if (navegacionMode == Orbit){
+		navegacionMode = Fly;
+	}
+	else {
+		navegacionMode = Orbit;
+	}
+    redibujar = true;
+}
+
 // ============================= LOCAL FUNCTIONS ===============================
 
 // -----------------------------------------------------------------------------
@@ -297,6 +315,7 @@ CBlenderLite::CBlenderLite( TUint aWidth, TUint aHeight, CBlenderLiteInput* aInp
 //
 void CBlenderLite::ConstructL( void ){
 	estado = navegacion;
+	navegacionMode = Orbit;
 	showOverlays = true;
 	show3DCursor = true;
 	showFloor = true;
@@ -1166,6 +1185,7 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	glRotatef(rotX, 0, 1, 0); //angulo, X Y Z
 	// Use some magic numbers to scale the head model to fit the screen.
 	glScalex( 1 << 10, 1 << 10, 1 << 10 );
+	glTranslatef( PivotX, PivotZ, PivotY);
 
     // Habilitar la normalizaci�n de las normales
     glEnable(GL_NORMALIZE);	
@@ -1217,6 +1237,13 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 
 	//dibujar las lineas del piso y el piso
 	if (showOverlays && (showFloor || showXaxis || showYaxis)){
+		glEnable(GL_FOG);
+		glFogf(GL_FOG_MODE, GL_LINEAR); // Tipo de niebla lineal
+		glFogf(GL_FOG_START, FRUSTUM_NEAR);  // Distancia inicial de la niebla
+		glFogf(GL_FOG_END, FRUSTUM_FAR);     // Distancia final de la niebla
+		GLfloat fogColor[] = {0.23f, 0.23f, 0.23f, 1.f};
+		glFogfv(GL_FOG_COLOR, fogColor); // Color de la niebla
+
 		glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
 		//glNormalPointer( GL_BYTE, 0, objNormaldataFloor );
 
@@ -1248,6 +1275,7 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 			glColor4f(LineaPiso[0],LineaPiso[1],LineaPiso[2],LineaPiso[3]);
 			glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeVerde );
 		}	
+		glDisable(GL_FOG);
 	}
 
 	//dibujo de objetos nuevo!
@@ -1659,7 +1687,12 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 
 		//rotX += fixedMul( 0.1, aDeltaTimeSecs );
 		if (estado == navegacion || estado == edicion){
-			rotX-= 0.5;			
+			if (navegacionMode == Orbit){
+				rotX-= 0.5;		
+			}
+			else if (navegacionMode == Fly){
+				PivotX-= 30;
+			}	
 		}
 		else if (estado == translacionVertex){	
 			Mesh& pMesh = Meshes[Objects[objSelect].Id];	
@@ -1736,8 +1769,13 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 		}
 
 		//rotX -= fixedMul( 1, aDeltaTimeSecs );
-		if (estado == navegacion || estado == edicion){
-			rotX+= 0.5;			
+		if (estado == navegacion || estado == edicion){					
+			if (navegacionMode == Orbit){
+				rotX+= 0.5;			
+			}
+			else if (navegacionMode == Fly){
+				PivotX+= 30;
+			}
 		}
 		else if (estado == translacionVertex){	
 			Mesh& pMesh = Meshes[Objects[objSelect].Id];		
@@ -1814,8 +1852,13 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 			if (mouseY > 0){mouseY = 0;};
 		}
 
-		if (estado == navegacion || estado == edicion){
-			rotY-= 0.5;			
+		if (estado == navegacion || estado == edicion){			
+			if (navegacionMode == Orbit){
+				rotY-= 0.5;		
+			}
+			else if (navegacionMode == Fly){
+				PivotY+= 30;
+			}		
 		}
 		else if (estado == translacionVertex){	
 			Mesh& pMesh = Meshes[Objects[objSelect].Id];	
@@ -1857,8 +1900,13 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 			if (mouseY < -iScreenHeight-17){mouseY = -iScreenHeight-17;};
 		}
 
-		if (estado == navegacion || estado == edicion){
-			rotY+= 0.5;			
+		if (estado == navegacion || estado == edicion){					
+			if (navegacionMode == Orbit){
+				rotY+= 0.5;		
+			}
+			else if (navegacionMode == Fly){
+				PivotY-= 30;
+			}
 		}
 		else if (estado == translacionVertex){	
 			Mesh& pMesh = Meshes[Objects[objSelect].Id];	
@@ -3015,15 +3063,11 @@ void CBlenderLite::SetEditMode(){
 
 void CBlenderLite::EnfocarObject(){
 	//si no hay objetos
-	/*if (Objects.Count() < 1){return;}
-	HBufC* buf = HBufC::NewLC( 25 );
-	buf->Des().Copy(_L("Posicion X de Camara"));
-	posX = DialogNumber((TInt)posX, -100000, 100000, buf);
-	CleanupStack::PopAndDestroy(buf);
-    redibujar = true;*/
-	//posX = Objects[objSelect].posX;
-	//posY = Objects[objSelect].posY;
-	//posZ = Objects[objSelect].posZ;
+	if (Objects.Count() < 1){return;}
+    redibujar = true;
+	PivotX = -Objects[objSelect].posX;
+	PivotY = -Objects[objSelect].posY;
+	PivotZ = -Objects[objSelect].posZ;
 }
 
 
@@ -3963,7 +4007,7 @@ void CBlenderLite::ImportOBJ(){
 		NewListCaras.ReserveL(ListCaras.Count()/3);
 		for (TInt m = 0; m < MeshsGroups.Count(); m++) {
 			TInt limite = ultimoIndice + MeshsGroups[m];
-			TInt ultimoIndiceinicio = ultimoIndice;
+			//TInt ultimoIndiceinicio = ultimoIndice;
 			for (TInt a = ultimoIndice; a < limite; a++) {
 				for (TInt f = 0; f < 3; f++) {
 					TInt indiceCara = a * 9 + f * 3;
@@ -4294,6 +4338,14 @@ void CBlenderLite::LeerMTL(const TFileName& aFile) {
                     iTextureManager->RequestToLoad(newTexture.iTextureName, fileParser.DriveAndPath(), &Textures[Textures.Count() - 1], false);
                     iTextureManager->DoLoadL();
 
+        			/*while (GetState() == ELoadingTextures) {
+						// Suspende el hilo actual por 100000 microsegundos (0.1 segundos)
+    					User::After(0);
+					}
+					_LIT(KFormatString3, "textura cargada\nnewmtl %S\nPath: %S");
+					noteBuf3->Des().Format(KFormatString3, materialName16, &absolutePath);// texturePath16);
+					DialogAlert(noteBuf3);*/
+
                     CleanupStack::PopAndDestroy(texturePath16);
                 }
             }
@@ -4361,7 +4413,7 @@ void CBlenderLite::OldImportOBJ(){
 		RArray<TInt> ListCaras;
 		RArray<TInt> MaterialesNuevos;
 		RArray<TInt> MeshsGroups;
-		TInt materiales = 0;	
+		//TInt materiales = 0;	
 
 		TBool continuarLeyendo = ETrue; // Variable para controlar la lectura del archivo
 		TBuf8<2048> buffer;

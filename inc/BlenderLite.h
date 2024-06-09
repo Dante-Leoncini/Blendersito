@@ -170,6 +170,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void ImportOBJ();
         void OldImportOBJ();
         void NewTexture();   
+        void SetNavigation();
         void RemoveMaterial();
 		void RemoveTexture();
         void RenderMesh( TInt objId );
@@ -272,6 +273,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         TBool iSpotEnabled;
         
         TInt estado;
+        TInt navegacionMode;
 
     private:  // Data
         CBlenderLiteContainer*    iContainer;
