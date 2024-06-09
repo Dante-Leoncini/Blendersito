@@ -185,7 +185,8 @@ enum{
 
 enum{
 	Orbit,
-	Fly
+	Fly,
+	Apuntar
 };
 
 enum{
@@ -267,6 +268,10 @@ void CBlenderLite::SetTipoSelect(TInt tipo){
 void CBlenderLite::SetNavigation(){
 	if (navegacionMode == Orbit){
 		navegacionMode = Fly;
+	}
+	else if (navegacionMode == Fly){
+		navegacionMode = Apuntar;
+		navegacionMode = Orbit;
 	}
 	else {
 		navegacionMode = Orbit;
@@ -3265,16 +3270,20 @@ void CBlenderLite::SetDiffuse(){
 	Material& mat = Materials[pMesh.materials[MaterialID-1]];
 
 	noteBuf->Des().Copy(_L("Rojo (0 - 100)"));
-	TInt valorR = DialogNumber((TInt)(mat.diffuse[0]*100.f), 0, 100, noteBuf);
-	mat.diffuse[0] = (GLfloat)valorR/100.0f;
+	TInt valor = DialogNumber((TInt)(mat.diffuse[0]*100.f), 0, 100, noteBuf);
+	mat.diffuse[0] = (GLfloat)valor/100.0f;
     redibujar = true;	
 	noteBuf->Des().Copy(_L("Verde (0 - 100)"));
-	TInt valorG = DialogNumber((TInt)(mat.diffuse[1]*100.f), 0, 100, noteBuf);
-	mat.diffuse[1] = (GLfloat)valorG/100.0f;
+	valor = DialogNumber((TInt)(mat.diffuse[1]*100.f), 0, 100, noteBuf);
+	mat.diffuse[1] = (GLfloat)valor/100.0f;
     redibujar = true;	
 	noteBuf->Des().Copy(_L("Azul (0 - 100)"));
-	TInt valorB = DialogNumber((TInt)(mat.diffuse[2]*100.f), 0, 100, noteBuf);
-	mat.diffuse[2] = (GLfloat)valorB/100.0f;
+	valor = DialogNumber((TInt)(mat.diffuse[2]*100.f), 0, 100, noteBuf);
+	mat.diffuse[2] = (GLfloat)valor/100.0f;
+    redibujar = true;	
+	noteBuf->Des().Copy(_L("Alpha (0 - 100)"));
+	valor = DialogNumber((TInt)(mat.diffuse[3]*100.f), 0, 100, noteBuf);
+	mat.diffuse[3] = (GLfloat)valor/100.0f;
 	CleanupStack::PopAndDestroy(noteBuf);
     redibujar = true;
 }
