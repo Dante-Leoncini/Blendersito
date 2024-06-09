@@ -3281,9 +3281,13 @@ void CBlenderLite::SetDiffuse(){
 	valor = DialogNumber((TInt)(mat.diffuse[2]*100.f), 0, 100, noteBuf);
 	mat.diffuse[2] = (GLfloat)valor/100.0f;
     redibujar = true;	
-	noteBuf->Des().Copy(_L("Alpha (0 - 100)"));
+	noteBuf->Des().Copy(_L("Alpha (0 - 100)"));	
 	valor = DialogNumber((TInt)(mat.diffuse[3]*100.f), 0, 100, noteBuf);
+	//setea la transparencia deacuerdo al alpha
+	if (valor < 100){mat.transparent = true;}
+	else {mat.transparent = false;}
 	mat.diffuse[3] = (GLfloat)valor/100.0f;
+	
 	CleanupStack::PopAndDestroy(noteBuf);
     redibujar = true;
 }
@@ -4331,12 +4335,18 @@ void CBlenderLite::LeerMTL(const TFileName& aFile) {
                     TReal niValue;
                     lex.Val(niValue, '.');
                     // Aquí manejas el índice de refracción Ni
-                } else if (line.Left(2) == _L8("d ")) {
+                }*/
+				//opacidad 
+				else if (line.Left(2) == _L8("d ")) {
                     TLex8 lex(line.Mid(2));
                     TReal dValue;
-                    lex.Val(dValue, '.');
-                    // Aquí manejas la opacidad d
-                } else if (line.Left(6) == _L8("illum ")) {
+                    lex.Val(dValue, '.');					
+					mat->diffuse[3] = (GLfloat)dValue;
+					//setea la transparencia deacuerdo al alpha
+					if (dValue < 1.f){mat->transparent = true;}
+					else {mat->transparent = false;}
+                } 
+				/*else if (line.Left(6) == _L8("illum ")) {
                     TLex8 lex(line.Mid(6));
                     TInt illumValue;
                     lex.Val(illumValue);
