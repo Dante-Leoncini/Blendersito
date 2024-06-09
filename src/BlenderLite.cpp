@@ -1691,7 +1691,16 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 				rotX-= 0.5;		
 			}
 			else if (navegacionMode == Fly){
-				PivotX-= 30;
+				// Convertir el ángulo de rotX a radianes
+				GLfloat radRotX = rotX * PI / 180.0;
+
+				// Calcular el vector de dirección hacia la izquierda (90 grados a la izquierda del ángulo actual)
+				GLfloat leftX = cos(radRotX);
+				GLfloat leftY = sin(radRotX);
+
+				// Mover hacia la izquierda
+				PivotX += 30 * leftX;
+				PivotY += 30 * leftY;
 			}	
 		}
 		else if (estado == translacionVertex){	
@@ -1774,7 +1783,16 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 				rotX+= 0.5;			
 			}
 			else if (navegacionMode == Fly){
-				PivotX+= 30;
+				// Convertir el ángulo de rotX a radianes
+				GLfloat radRotX = rotX * PI / 180.0;
+
+				// Calcular el vector de dirección hacia la izquierda (90 grados a la izquierda del ángulo actual)
+				GLfloat leftX = cos(radRotX);
+				GLfloat leftY = sin(radRotX);
+
+				// Mover hacia la izquierda
+				PivotX -= 30 * leftX;
+				PivotY -= 30 * leftY;
 			}
 		}
 		else if (estado == translacionVertex){	
@@ -1857,7 +1875,11 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 				rotY-= 0.5;		
 			}
 			else if (navegacionMode == Fly){
-				PivotY+= 30;
+				// Convertir el ángulo de rotX a radianes
+				float radRotX = rotX * PI / 180.0;
+
+				PivotY+= 30 * cos(radRotX);
+				PivotX-= 30 * sin(radRotX);
 			}		
 		}
 		else if (estado == translacionVertex){	
@@ -1905,7 +1927,11 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 				rotY+= 0.5;		
 			}
 			else if (navegacionMode == Fly){
-				PivotY-= 30;
+				// Convertir el ángulo de rotX a radianes
+				float radRotX = rotX * PI / 180.0;
+
+				PivotY-= 30 * cos(radRotX);
+				PivotX+= 30 * sin(radRotX);
 			}
 		}
 		else if (estado == translacionVertex){	
