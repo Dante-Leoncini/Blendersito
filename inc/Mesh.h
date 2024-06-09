@@ -47,7 +47,6 @@ class Mesh {
 		GLbyte* normals;
 		GLfloat* uv;
 		TInt* materials;
-		//TInt material;
 		TInt materialsSize;
 		TInt* facesGroupsSize;
    		GLushort** faces;

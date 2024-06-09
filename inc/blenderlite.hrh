@@ -78,6 +78,7 @@ enum TBlenderLiteMenuCommands
 
     EBlenderLiteWidescreen,
     EImportOBJ,
+    EOldImportOBJ,
     ENewTexture,
 
     EBlenderLiteProgressNote,

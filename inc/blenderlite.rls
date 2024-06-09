@@ -99,7 +99,8 @@ rls_string STRING_r_blenderlite_OrigenToCursor   "Origen al cursor 3D"
 rls_string STRING_r_blenderlite_widescreen_on    "Pantalla Ancha on"
 rls_string STRING_r_blenderlite_widescreen_off   "Pantalla Ancha off"
 
-rls_string STRING_r_ImportOBJ   "Import Wavefront (.obj)"
+rls_string STRING_r_ImportOBJ     "Import Wavefront (.obj)"
+rls_string STRING_r_OldImportOBJ  "Old Import Wavefront (.obj)"
             
 rls_string STRING_r_RenderImage         "Render Image"
 rls_string STRING_r_RenderAnimation     "Render Animation"

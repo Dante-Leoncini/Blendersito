@@ -296,7 +296,12 @@ RESOURCE MENU_PANE r_viewport_add_menu{
         {
             command = EImportOBJ;
             txt = STRING_r_ImportOBJ;
-        }
+        },        
+        MENU_ITEM
+        {
+            command = EOldImportOBJ;
+            txt = STRING_r_OldImportOBJ;
+        }        
     };
 }
 

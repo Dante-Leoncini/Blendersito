@@ -406,7 +406,10 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
             break;
         case EImportOBJ:
             iAppContainer->iBlenderLite->ImportOBJ();
-            break;  
+            break; 
+        case EOldImportOBJ:
+            iAppContainer->iBlenderLite->OldImportOBJ();
+            break; 
         case EBlenderLiteWidescreen:
             iAppContainer->SetWidescreen();
             break;    

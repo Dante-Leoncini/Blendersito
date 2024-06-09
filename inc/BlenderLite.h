@@ -168,6 +168,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void TecladoNumerico(TInt numero);
         void InsertarValor();
         void ImportOBJ();
+        void OldImportOBJ();
         void NewTexture();   
         void RemoveMaterial();
 		void RemoveTexture();

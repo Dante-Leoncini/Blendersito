@@ -3,9 +3,9 @@ class keyFrame {
 	public:
 		TInt frame;
 		//TInt value;
-		TInt valueX;
-		TInt valueY;
-		TInt valueZ;
+		GLfloat valueX;
+		GLfloat valueY;
+		GLfloat valueZ;
 		//TBool boolean;
 		TInt Interpolation;
 };
