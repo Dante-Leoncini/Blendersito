@@ -1,4 +1,4 @@
-# Blendersito
+# Blendersito (el nombre se va a cambiar)
 Una version INSPIRADA en Blender. pero creada desde cero para Symbian s60v3
 
 (Actualmente no hay soporte para s60v5 o Symbian belle. Pero en teoria no seria dificil de lograr)
@@ -6,7 +6,7 @@ Una version INSPIRADA en Blender. pero creada desde cero para Symbian s60v3
 En video se ve mas bonito: [Primera Demo en Video](https://youtu.be/dMe-Vit5OT0)
 
 Fue optimizado para funcionar en un Nokia N95-3 con 128mb de ram.
-Puede funcionar en otros Nokia s60v3 con 64mb o menos. pero como la mayoria no tiene aceleracion grafica, no se va a ver tan fluido como en las semos que estoy mostrando.
+Puede funcionar en otros Nokia s60v3 con 64mb o menos. pero como la mayoria no tiene aceleracion grafica, no se va a ver tan fluido como en las demos que estoy mostrando.
 
 Novedades 20/06/2023:
 1) se quito el logo de Blender ya que tiene derechos de autor y le pertenece a la Blender Foundation.
