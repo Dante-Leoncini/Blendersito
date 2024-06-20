@@ -10,7 +10,7 @@ Puede funcionar en otros Nokia s60v3 con 64mb o menos. pero como la mayoria no t
 
 Novedades 20/06/2023:
 1) se quito el logo de Blender ya que tiene derechos de autor y le pertenece a la Blender Foundation.
-2) se arreglaron mujltiples errores al importar OBJ.
+2) se arreglaron multiples errores al importar OBJ.
 3) Se agrego soporte de Quads y Ngones en el importador de obj
 4) se puede hacer renders del viewport
 5) se puede hacer animaciones basicas lineales
