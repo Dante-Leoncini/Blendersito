@@ -3,10 +3,32 @@
    version="1.1"
    viewBox="0 0 88 87.999"
    id="svg3"
+   sodipodi:docname="qgn_menu_blenderlite.svg"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
      id="defs3" />
+  <sodipodi:namedview
+     id="namedview3"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="4.6648257"
+     inkscape:cx="5.5736273"
+     inkscape:cy="44.481833"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg3" />
   <path
      id="path1"
      style="clip-rule:evenodd;fill:#0c479c;fill-opacity:1;stroke-linejoin:round;stroke-miterlimit:2"
@@ -16,7 +38,8 @@
      fill="#ffffff"
      stroke-width="2.81684"
      id="path2"
-     style="clip-rule:evenodd;fill:#ffffff;fill-opacity:1;stroke-linejoin:round;stroke-miterlimit:2" />
+     style="clip-rule:evenodd;fill:#ffffff;fill-opacity:1;stroke-linejoin:round;stroke-miterlimit:2"
+     sodipodi:nodetypes="sssss" />
   <path
      d="m 32.554011,45.098619 c 0.175719,-3.133162 1.707468,-5.901674 4.028456,-7.857889 2.27114,-1.923065 5.321549,-3.100011 8.670185,-3.100011 3.332184,0 6.382472,1.175374 8.653612,3.100011 2.320865,1.956215 3.84613,4.724727 4.028455,7.857889 0.175719,3.216159 -1.119007,6.216721 -3.381909,8.438136 -2.320865,2.254565 -5.603324,3.680258 -9.300158,3.680258 -3.696832,0 -6.995867,-1.415748 -9.300157,-3.680258 -2.27114,-2.221415 -3.564233,-5.205402 -3.381909,-8.421561 z"
      fill="#265787"

@@ -4602,14 +4602,30 @@ void CBlenderLite::OldImportOBJ(){
     	User::LeaveIfError(fsSession.Connect());
     	CleanupClosePushL(fsSession);
 
+		// Revisar la extensión del archivo
+		TPtrC extension = file.Right(4);  // Obtiene las últimas 4 letras del nombre del archivo
+		if (extension.CompareF(_L(".obj")) != 0) {
+			_LIT(KExtensionError, "Error: El archivo seleccionado no tiene la extensión .obj");
+			HBufC* noteBuf = HBufC::NewLC(180);
+			noteBuf->Des().Format(KExtensionError);
+			MensajeError(noteBuf);
+			CleanupStack::PopAndDestroy(noteBuf);
+			fsSession.Close();
+			return;
+		}
+
     	RFile rFile;
-    	TInt err;
+    	TInt err;	
+
     	TRAP(err,rFile.Open(fsSession, file, EFileRead));
 		if (err != KErrNone){
 			_LIT(KFormatString, "Error al abrir: %S");
 			HBufC* noteBuf = HBufC::NewLC(file.Length()+16);
 			noteBuf->Des().Format(KFormatString, &file);
-			MensajeError(noteBuf); 
+			MensajeError(noteBuf);
+			CleanupStack::PopAndDestroy(noteBuf); 
+			rFile.Close();
+			fsSession.Close();
 			return;
 		}	
 		/*if (file){
