@@ -4128,10 +4128,8 @@ void CBlenderLite::ImportOBJ(){
 						}
 						MeshsGroups[MeshsGroups.Count()-1]++;
 					}
-					else if (line.Left(7) == _L8("usemtl ")) {							
-						//agrega un nuevo material
-						MaterialesNuevos.Append(Materials.Count());
-						MeshsGroups.Append(0);
+					else if (line.Left(7) == _L8("usemtl ")) {	
+						MaterialesNuevos[MaterialesNuevos.Count()-1] = Materials.Count();
 						
 						Material mat;	
 						mat.specular[0] = mat.specular[1] = mat.specular[2] = mat.specular[3] = 0.3;
@@ -4574,9 +4572,9 @@ void CBlenderLite::LeerMTL(const TFileName& aFile) {
 							iTextureManager->DoLoadL();
 						} else {
 							// El archivo no existe, manejar el error
-							_LIT(KFileNotFound, "La textura '%S' no existe");
+							_LIT(KFileNotFound, "No existe la textura '%S'");
 							noteBuf3->Des().Format(KFileNotFound, texturePath16);
-							DialogAlert(noteBuf3);
+							MensajeError(noteBuf3);
 						}
 						fs.Close();
 						CleanupStack::PopAndDestroy(texturePath16);
@@ -4737,6 +4735,11 @@ TBool CBlenderLite::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 			TInt contador = 0;
 			if (line.Length() > 0) {
 				if (!NombreEncontrado && line.Left(2) == _L8("o ")) {
+					//evita el crasheo en caso de que no tenga materiales
+					//se le asigna el material por defecto
+					MaterialesNuevos.Append(0);
+					MeshsGroups.Append(0);
+
 					TLex8 lex(line.Mid(2));
 					if (!lex.Eos()){
 						TPtrC8 currentString = lex.NextToken();							
