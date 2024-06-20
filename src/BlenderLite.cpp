@@ -4332,8 +4332,8 @@ void CBlenderLite::ImportOBJ(){
 		Objects.Append(obj);
 		Collection.Append(Objects.Count()-1);
 		objSelect = Objects.Count()-1;
-		//Meshes[obj.Id].VaciarGrupoVertices();
-		Meshes[obj.Id].AgruparVertices();
+		Meshes[obj.Id].VaciarGrupoVertices();
+		//Meshes[obj.Id].AgruparVertices();
 
 		//libero memoria	
 		NewListVertices.Close();
@@ -4350,45 +4350,59 @@ void CBlenderLite::ImportOBJ(){
 		// Intenta leer el archivo .mtl
 		TFileName mtlFile = file;
 		mtlFile.Replace(file.Length() - 4, 4, _L(".mtl"));
-		TRAP(err, LeerMTL(mtlFile));
-		if (err != KErrNone) {
-			_LIT(KFormatString, "Error al leer el archivo .mtl");
-			HBufC* noteBuf = HBufC::NewLC(100);
-			noteBuf->Des().Format(KFormatString);
-			MensajeError(noteBuf);
-			CleanupStack::PopAndDestroy(noteBuf);
-		}
 
-		/*HBufC* noteBuf = HBufC::NewLC(180);
-		_LIT(KFormatString, "se creo la malla 3D");
-		noteBuf->Des().Format(KFormatString);
-		DialogAlert(noteBuf);
-		CleanupStack::PopAndDestroy(noteBuf);*/
+		RFs fs;
+	    User::LeaveIfError(fs.Connect()); // Asegurarse de que fs se conecta correctamente
+	    CleanupClosePushL(fs);
+	    
+		TEntry entry;
+		err = fs.Entry(mtlFile, entry);
+
+		//si el archivo existe. no tendria que marcar error
+		if (err == KErrNone) {
+			TRAP(err, LeerMTL(mtlFile));
+			//si ocurrio algun error al leerlo
+			if (err != KErrNone) {
+				_LIT(KFormatString, "Error al leer el archivo .mtl");
+				HBufC* noteBuf = HBufC::NewLC(100);
+				noteBuf->Des().Format(KFormatString);
+				MensajeError(noteBuf);
+				CleanupStack::PopAndDestroy(noteBuf);
+			}
+		} else {
+            // El archivo no existe, manejar el error
+            _LIT(KFileNotFound, "El archivo .mtl no existe");
+            HBufC* noteBuf = HBufC::NewLC(100);
+            noteBuf->Des().Format(KFileNotFound);
+            MensajeError(noteBuf);
+            CleanupStack::PopAndDestroy(noteBuf);
+        }
+		fs.Close();
 
 		redibujar = true;
     }	
-    else {
+    else {		
     	_LIT(KFormatString, "Error al leer el Archivo");
 		HBufC* noteBuf = HBufC::NewLC(24);
 		noteBuf->Des().Format(KFormatString);
-		MensajeError(noteBuf);  
+		MensajeError(noteBuf);
+        CleanupStack::PopAndDestroy(noteBuf);
     }
 };
 
 void CBlenderLite::LeerMTL(const TFileName& aFile) {
 	RFs fsSession2;	
 	User::LeaveIfError(fsSession2.Connect());
-	//CleanupClosePushL(fsSession2);
 
 	RFile rFile;
 	TInt err;
+	
 	TRAP(err,rFile.Open(fsSession2, aFile, EFileRead));
 	if (err != KErrNone){
 		_LIT(KFormatString, "Error al abrir: %S");
         HBufC* noteBuf = HBufC::NewLC(aFile.Length() + 16);
         noteBuf->Des().Format(KFormatString, &aFile);
         MensajeError(noteBuf);
-        //CleanupStack::PopAndDestroy(&fsSession);
         return;
     }
 
@@ -4402,8 +4416,8 @@ void CBlenderLite::LeerMTL(const TFileName& aFile) {
 	Object& obj = Objects[objSelect];
 	Mesh& pMesh = Meshes[obj.Id];
 	Material* mat = NULL; 
-	HBufC* materialName16 = HBufC::NewLC(100);
-	HBufC* noteBuf3 = HBufC::NewLC(100);
+	HBufC* materialName16 = HBufC::NewLC(180);
+	HBufC* noteBuf3 = HBufC::NewLC(180);
 	TBool encontrado = false;
 
 	while (startPos < fileSize) {
@@ -4430,7 +4444,12 @@ void CBlenderLite::LeerMTL(const TFileName& aFile) {
                     TPtrC8 materialName = lex.NextToken();
 
 					// Convertir materialName de TPtrC8 (8 bits) a HBufC (16 bits)
+					//delete materialName16;
 					materialName16 = CnvUtfConverter::ConvertToUnicodeFromUtf8L(materialName);
+
+					/*_LIT(KFormatString3, "newmtl %S");
+					noteBuf3->Des().Format(KFormatString3, materialName16);
+					DialogAlert(noteBuf3);*/
 
 					//buscar el material con el mismo nombre
 					encontrado = false;
@@ -4526,40 +4545,40 @@ void CBlenderLite::LeerMTL(const TFileName& aFile) {
 						TLex8 lex(line.Mid(7));
 						TPtrC8 texturePath = lex.NextToken();
 
+						// Convertir la ruta relativa a una ruta absoluta
 						HBufC* texturePath16 = HBufC::NewLC(180);
 						texturePath16 = CnvUtfConverter::ConvertToUnicodeFromUtf8L(texturePath);
-
-						// Convertir la ruta relativa a una ruta absoluta
 						TParse fileParser;
 						fileParser.Set(aFile, NULL, NULL);
 						TFileName absolutePath = fileParser.DriveAndPath();
 						absolutePath.Append(*texturePath16);
 
-						/*_LIT(KFormatString3, "newmtl %S\nPath: %S");
-						noteBuf3->Des().Format(KFormatString3, materialName16, &absolutePath);// texturePath16);
-						DialogAlert(noteBuf3);*/
+						// Comprobar si la textura existe
+						RFs fs;
+						fs.Connect();
+						//User::LeaveIfError(fs.Connect());
+						TEntry entry;
+						TInt err = fs.Entry(absolutePath, entry);
+						if (err == KErrNone) {						
+							// Cargar la textura desde la ruta absoluta
+							iTextureManager = CTextureManager::NewL(iScreenWidth, iScreenHeight,
+																	FRUSTUM_TOP, FRUSTUM_BOTTOM, FRUSTUM_RIGHT, FRUSTUM_LEFT, FRUSTUM_NEAR,
+																	this);
+							TTexture newTexture;
+							newTexture.iTextureName = *texturePath16;
+							Textures.Append(newTexture);
+							mat->textura = true;
+							mat->textureID = Textures.Count();
 
-						// Cargar la textura desde la ruta absoluta
-						iTextureManager = CTextureManager::NewL(iScreenWidth, iScreenHeight,
-																FRUSTUM_TOP, FRUSTUM_BOTTOM, FRUSTUM_RIGHT, FRUSTUM_LEFT, FRUSTUM_NEAR,
-																this);
-						TTexture newTexture;
-						newTexture.iTextureName = *texturePath16;
-						Textures.Append(newTexture);
-						mat->textura = true;
-						mat->textureID = Textures.Count();
-
-						iTextureManager->RequestToLoad(newTexture.iTextureName, fileParser.DriveAndPath(), &Textures[Textures.Count() - 1], false);
-						iTextureManager->DoLoadL();
-
-						/*while (GetState() == ELoadingTextures) {
-							// Suspende el hilo actual por 100000 microsegundos (0.1 segundos)
-							User::After(0);
+							iTextureManager->RequestToLoad(newTexture.iTextureName, fileParser.DriveAndPath(), &Textures[Textures.Count() - 1], false);
+							iTextureManager->DoLoadL();
+						} else {
+							// El archivo no existe, manejar el error
+							_LIT(KFileNotFound, "La textura '%S' no existe");
+							noteBuf3->Des().Format(KFileNotFound, texturePath16);
+							DialogAlert(noteBuf3);
 						}
-						_LIT(KFormatString3, "textura cargada\nnewmtl %S\nPath: %S");
-						noteBuf3->Des().Format(KFormatString3, materialName16, &absolutePath);// texturePath16);
-						DialogAlert(noteBuf3);*/
-
+						fs.Close();
 						CleanupStack::PopAndDestroy(texturePath16);
 					}				
 				}
@@ -4620,17 +4639,36 @@ void CBlenderLite::OldImportOBJ(){
 		rFile.Close();
 		fsSession.Close();
 
-		// Intenta leer el archivo .mtl
 		TFileName mtlFile = file;
 		mtlFile.Replace(file.Length() - 4, 4, _L(".mtl"));
-		TRAP(err, LeerMTL(mtlFile));
-		if (err != KErrNone) {
-			_LIT(KFormatString, "Error al leer el archivo .mtl");
-			HBufC* noteBuf = HBufC::NewLC(100);
-			noteBuf->Des().Format(KFormatString);
-			MensajeError(noteBuf);
-			CleanupStack::PopAndDestroy(noteBuf);
-		}
+
+		RFs fs;
+	    User::LeaveIfError(fs.Connect()); // Asegurarse de que fs se conecta correctamente
+	    CleanupClosePushL(fs);
+	    
+		TEntry entry;
+		err = fs.Entry(mtlFile, entry);
+
+		//si el archivo existe. no tendria que marcar error
+		if (err == KErrNone) {
+			TRAP(err, LeerMTL(mtlFile));
+			//si ocurrio algun error al leerlo
+			if (err != KErrNone) {
+				_LIT(KFormatString, "Error al leer el archivo .mtl");
+				HBufC* noteBuf = HBufC::NewLC(100);
+				noteBuf->Des().Format(KFormatString);
+				MensajeError(noteBuf);
+				CleanupStack::PopAndDestroy(noteBuf);
+			}
+		} else {
+            // El archivo no existe, manejar el error
+            _LIT(KFileNotFound, "El archivo .mtl no existe");
+            HBufC* noteBuf = HBufC::NewLC(100);
+            noteBuf->Des().Format(KFileNotFound);
+            MensajeError(noteBuf);
+            CleanupStack::PopAndDestroy(noteBuf);
+        }
+		fs.Close();
 
 		redibujar = true;
 	}	
