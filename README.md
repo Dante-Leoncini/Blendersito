@@ -1,6 +1,22 @@
 # Blendersito
-Una version de Blender creada desde cero para Symbian s60v3 (puede llegar a andar en s60v5 o Symbian belle. pero no esta testeado ni programado para pantallas tactiles)
+Una version INSPIRADA en Blender. pero creada desde cero para Symbian s60v3
+
+(Actualmente no hay soporte para s60v5 o Symbian belle. Pero en teoria no seria dificil de lograr)
+
 En video se ve mas bonito: [Primera Demo en Video](https://youtu.be/dMe-Vit5OT0)
+
+Novedades 20/06/2023:
+1) se quito el logo de Blender ya que tiene derechos de autor y le pertenece a la Blender Foundation.
+2) se arreglaron mujltiples errores al importar OBJ.
+3) Se agrego soporte de Quads y Ngones en el importador de obj
+4) se puede hacer renders del viewport
+5) se puede hacer animaciones basicas lineales
+6) se puede renderizar secuencias de imagenes
+7) es posible hacer multiples pases de render, como el zbuffer para poder usar en composicion
+8) se avanza en el arreglo del modo edicion, pero aun falta.
+9) se experimento con un modo de postprocesado por cpu. falta terminar pero parece dar buenos resultados
+10) se agrego un modo de render. pero las luces aun no funcionan correctamente
+11) se agrego "fog" para que la apariencia de la UI sea mas parecida
 
 Novedades 8/5/2023:
 1) Ya se puede importar archivos obj!
