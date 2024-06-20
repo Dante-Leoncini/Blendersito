@@ -13,6 +13,7 @@ class Object {
 		GLfixed scaleX; GLfixed scaleY; GLfixed scaleZ;
 		TInt Id;
 		RArray<TInt> Childrens;
+		HBufC* name;
 };
 
 class Light { 
@@ -37,6 +38,12 @@ class Material {
 		HBufC* name;
 };
 
+
+class VertexGroup { 
+	public:
+        RArray<GLushort> indices;
+};
+
 class Mesh { 
 	public:
 		TBool smooth;
@@ -51,22 +58,60 @@ class Mesh {
 		TInt* facesGroupsSize;
    		GLushort** faces;
 
-		//grupo de vertices
-   		TInt vertexGroupSize;
-		GLushort* vertexGroup;
-		TInt* vertexGroupIndiceSize;
-		GLushort** vertexGroupIndice;
+		//nuevo vertex group
+		GLshort* vertexGroupUI;
+        RArray<VertexGroup> vertexGroups;	
 
-		void Mesh::AgruparVerticesVacio() {
-   			vertexGroupSize = 0;
-			vertexGroup = new GLushort[0];
-			vertexGroupIndiceSize = new TInt[0];
-			vertexGroupIndice = new GLushort*[0];
-		}
+		
+		void Mesh::InvertirNormales() {
 
-		void Mesh::AgruparVertices() {
+		}	
+
+		void Mesh::VaciarGrupoVertices() {
+			if (vertexGroupUI != NULL){
+				delete[] vertexGroupUI; 
+				vertexGroupUI = NULL;
+			}
+			for(TInt i=0; i < vertexGroups.Count(); i++){
+				vertexGroups[i].indices.Close();
+			}
+			vertexGroups.Close();
+		};
+
+		void Mesh::AgruparVertices(){	
+			VaciarGrupoVertices();
+			for(TInt a=0; a < vertexSize; a++){
+		    	TBool iguales = false;
+				//busca copias
+				for(TInt s=0; s < vertexGroups.Count(); s++){
+					TInt indiceVertex = vertexGroups[s].indices[0];
+					if (vertex[indiceVertex*3] == vertex[a*3] &&
+						vertex[indiceVertex*3+1] == vertex[a*3+1] &&
+						vertex[indiceVertex*3+2] == vertex[a*3+2]){
+						iguales = true;
+						vertexGroups[s].indices.Append(a);
+						break;
+					}
+				}				
+				//si no se encontro el vertice en ningun grupo. crea uno y lo guarda adentro
+				if (!iguales){
+					VertexGroup newVertexGroups;
+					vertexGroups.Append(newVertexGroups);
+					vertexGroups[vertexGroups.Count()-1].indices.Append(a);
+				}
+			}
+
+			//ahora crea los vertices que openGL lee.			
+			vertexGroupUI = new GLshort[vertexGroups.Count()*3];
+			for(TInt s=0; s < vertexGroups.Count(); s++){
+				TInt indiceVertex = vertexGroups[s].indices[0];
+				vertexGroupUI[s*3] = vertex[indiceVertex*3];
+				vertexGroupUI[s*3+1] = vertex[indiceVertex*3+1];
+				vertexGroupUI[s*3+2] = vertex[indiceVertex*3+2];
+			}
+
 			//agrupar vertices
-		    GLshort* TempVertexPos = new GLshort[vertexSize];
+		    /*GLshort* TempVertexPos = new GLshort[vertexSize];
 		    GLushort* TempVertexIndice = new GLushort[vertexSize];
 		    TInt* TempVertexIndiceGroupSize = new TInt[vertexSize];
 		    GLushort** TempVertexIndiceGroup = new GLushort*[vertexSize];
@@ -138,8 +183,8 @@ class Mesh {
 			for (TInt k = 0; k < vertexSize; ++k) {
 				delete[] TempVertexIndiceGroup[k];
 			}
-			delete[] TempVertexIndiceGroup;
-		}
+			delete[] TempVertexIndiceGroup;*/
+		};
 };
 
 /*

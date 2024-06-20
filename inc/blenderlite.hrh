@@ -49,6 +49,8 @@ enum TBlenderLiteMenuCommands
     ESetParent,
 	EClearParent,
 
+    EFlipNormals,
+
     ERenderImage,
     ERenderAnimation,
     ERenderMenu,

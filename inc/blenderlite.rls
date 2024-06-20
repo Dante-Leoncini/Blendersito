@@ -68,6 +68,8 @@ rls_string STRING_r_selected_to_cursor   "Selected to Cursor"
 rls_string STRING_r_SetParent            "Set Parent"
 rls_string STRING_r_ClearParent          "Clear Parent"
 
+rls_string STRING_r_FlipNormals          "Flip Normals"
+
 rls_string STRING_r_DuplicatedObject               "Duplicate Object"
 rls_string STRING_r_DuplicatedLinked               "Duplicate Linked"
 

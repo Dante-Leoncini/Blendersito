@@ -467,6 +467,9 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
         case EClearParent:
             iAppContainer->iBlenderLite->ClearParent();
             break;  
+        case EFlipNormals:
+            iAppContainer->iBlenderLite->FlipNormals();
+            break;  
         case ERenderUI:
             iAppContainer->iBlenderLite->SaveCanvasToImage(false, true);
             break;  

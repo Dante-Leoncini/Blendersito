@@ -32,6 +32,7 @@ class Object;
 #define FRUSTUM_FAR  1000.f     //far depth clipping plane
 
 // CLASS DECLARATION
+class Mesh;
 
 /**
  * Class that does the actual OpenGL ES rendering.
@@ -122,6 +123,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void SetInterpolation();
         void SetTransparencia();
         void SetAmbientLight();
+        void FlipNormals();
         void SetSmooth();
         void SetCulling();
         void SetLighting();
@@ -169,11 +171,20 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void InsertarValor();
         void ImportOBJ();
         void OldImportOBJ();
+        TBool LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt64* startPos, 
+                        TInt* acumuladoVertices,
+                        TInt* acumuladoNormales,
+                        TInt* acumuladoUVs);
         void NewTexture();   
         void SetNavigation();
         void RemoveMaterial();
 		void RemoveTexture();
         void RenderMesh( TInt objId );
+
+        void calculateReflectionUVs(Mesh& pMesh);
+        void createRotationMatrix(GLfloat pitch, GLfloat yaw, GLfloat* matrix);
+        void multiplyMatrixVec(const GLfloat* matrix, const GLfloat* vec, GLfloat* result);
+
         void RenderObject( TInt objId );
         void applyBlur(GLubyte* pixels, int width, int height, int radius);
         int clamp(int value, int min, int max);
@@ -236,7 +247,9 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
          * @param aRad Radian angle whose sine is to be calculated.
          * @return The sine of the given angle or 0 if error occured while calculating the sine.
          */
-        GLfloat sin( GLfloat aRad );
+        GLfloat sin( GLfloat aRad );        
+        GLfloat aSin(GLfloat value);
+        GLfloat atan2(GLfloat y, GLfloat x);
 
     public:  // Data
         /** para el menu de la app */

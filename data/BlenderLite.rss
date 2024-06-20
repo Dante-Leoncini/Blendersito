@@ -564,6 +564,11 @@ RESOURCE MENU_PANE r_viewport_object_menu{
 		{
 			command = EClearParent;
 			txt = STRING_r_ClearParent;
+        } , 
+		MENU_ITEM
+		{
+			command = EFlipNormals;
+			txt = STRING_r_FlipNormals;
         } 
     };
 }
