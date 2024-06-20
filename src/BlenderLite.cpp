@@ -4864,13 +4864,18 @@ TBool CBlenderLite::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 					}
 					else if (line.Left(2) == _L8("f ")) {
 						contador = 0;
-						ListCaras.ReserveL(ListCaras.Count() +9); // Reservar espacio para los elementos
 						TInt conTBarras = 0;
 
 						TLex8 lex(line.Mid(2));  // Inicializa TLex con la subcadena a partir del tercer carácter
 
+						// Lista temporal para almacenar los índices de los vértices
+    					RArray<TInt> tempIndices;	
+						tempIndices.ReserveL(9);				
+						
+						HBufC* noteBuf3 = HBufC::NewLC(180);
 						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
-						while (!lex.Eos() && contador < 3) {				
+						//while (!lex.Eos() && contador < 3) {			
+						while (!lex.Eos()) {		
 							TPtrC8 currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador
 
 							TInt startPos2 = 0; // Posición inicial
@@ -4897,17 +4902,61 @@ TBool CBlenderLite::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 								TInt number = 0;
 								TInt err = testLex.Val(number);
 								if (err == KErrNone && conTBarras < 3) {
-									ListCaras.Append(number-1);
+                					tempIndices.Append(number-1);
 								}
 
 								// Actualiza la posición inicial para el próximo token
 								startPos2 += tokenLength + 1; // Suma 1 para omitir la barra diagonal
 								conTBarras++;
 							}	
+
 							lex.SkipSpace();
-							contador++;
+							contador++;				
 						}
-						MeshsGroups[MeshsGroups.Count()-1]++;
+
+						// Crear triángulos de la lista temporal de índices
+						TInt numIndices = tempIndices.Count();
+						contador -= 2;
+
+						/*_LIT(KFormatString4, "Num. indices: %d\nCaras: %d");
+						noteBuf3->Des().Format(KFormatString4, numIndices, contador);
+						DialogAlert(noteBuf3);*/
+
+						// Esto resuelve tanto triangulos, quads como ngones
+						ListCaras.ReserveL(ListCaras.Count() +3*contador); // Reservar espacio para los elementos
+						for (TInt c = 0; c < contador; ++c) {
+							for (TInt i = 0; i < 3; ++i) {
+								//el primer vertice de los triangulos es el primero
+								if (i == 0){
+									ListCaras.Append(tempIndices[i*3  ]);
+									ListCaras.Append(tempIndices[i*3+1]);
+									ListCaras.Append(tempIndices[i*3+2]);
+								}
+								else {									
+									ListCaras.Append(tempIndices[3*c+ i*3  ]);
+									ListCaras.Append(tempIndices[3*c+ i*3+1]);
+									ListCaras.Append(tempIndices[3*c+ i*3+2]);
+								}
+
+								/*_LIT(KFormatString4, "Face %d: %d/%d/%d");
+								TInt contC= ListCaras.Count();
+								noteBuf3->Des().Format(KFormatString4, i+1, ListCaras[contC-3]+1, ListCaras[contC-2]+1, ListCaras[contC-1]+1);
+								DialogAlert(noteBuf3);*/
+							}
+						}	
+						// Limpiar la lista temporal de índices
+						tempIndices.Close();
+
+						// Actualizar el contador de caras en el último grupo de mallas
+						//MeshsGroups[MeshsGroups.Count()-1] += (contador - 2);
+						MeshsGroups[MeshsGroups.Count()-1] += contador;
+
+						/*_LIT(KFormatString5, "Terminado.\nCaras indices: %d\nmeshsGroups: %d");
+						noteBuf3->Des().Format(KFormatString5, ListCaras.Count(), MeshsGroups[MeshsGroups.Count()-1]);
+						DialogAlert(noteBuf3);
+						CleanupStack::PopAndDestroy(noteBuf3);*/
+
+						//MeshsGroups[MeshsGroups.Count()-1]++;
 					}
 					else if (line.Left(7) == _L8("usemtl ")) {							
 						//agrega un nuevo material
