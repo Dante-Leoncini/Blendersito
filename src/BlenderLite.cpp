@@ -442,9 +442,16 @@ void CBlenderLite::NewMaterial(){
 	mat.transparent = false;
 	mat.interpolacion = lineal;
 	mat.textureID = 0;
-	mat.name = HBufC::NewL(12);
-	_LIT(KMatName, "Material.%03d");
-	mat.name->Des().Format(KMatName, Materials.Count()+1);
+	if (Materials.Count() < 1){
+		mat.name = HBufC::NewL(15);
+		_LIT(KMatNameDefault, "DefaultMaterial");
+		mat.name->Des().Format(KMatNameDefault, Materials.Count()+1);
+	}
+	else {
+		mat.name = HBufC::NewL(12);
+		_LIT(KMatName, "Material.%03d");
+		mat.name->Des().Format(KMatName, Materials.Count()+1);
+	}
 	Materials.Append(mat);
 }
 
@@ -4145,7 +4152,7 @@ void CBlenderLite::ImportOBJ(){
 
 						TLex8 lex(line.Mid(7));
 						if (!lex.Eos()){
-							TPtrC8 currentString = lex.NextToken();							
+							TPtrC8 currentString = lex.NextToken();	
 							mat.name = HBufC::NewL(currentString.Length());
 							mat.name->Des().Copy(currentString);
 						}
@@ -4452,8 +4459,8 @@ void CBlenderLite::LeerMTL(const TFileName& aFile) {
 					//buscar el material con el mismo nombre
 					encontrado = false;
 					for(int f=0; f < pMesh.materialsSize; f++){
-						//como hago esta comparacion???
-						if (Materials[pMesh.materials[f]].name->Compare(*materialName16) == 0){
+						//no se puede usar el material 0. ese el que es por defecto y no se toca por mas que se llame igual
+						if (Materials[pMesh.materials[f]].name->Compare(*materialName16) == 0 && pMesh.materials[f] != 0){
 							mat = &Materials[pMesh.materials[f]];
 							/*_LIT(KFormatString3, "newmtl %S encontrado\nMaterial: %d");
 							noteBuf3->Des().Format(KFormatString3, materialName16, pMesh.materials[f]+1);
@@ -4641,11 +4648,11 @@ void CBlenderLite::OldImportOBJ(){
 		TInt64 startPos = 0; // Variable para mantener la posición de lectura en el archivo
 		//esto se hace para no cerrar el archivo y por cada nuevo obj encontrado simplemente volvemos a usar leerOBJ con el archivo donde quedo
 		//TBool hayMasObjetos;
-		TInt objetosCargados = 1;		
+		TInt objetosCargados = 0;		
 		TInt acumuladoVertices = 0;
 		TInt acumuladoNormales = 0;
 		TInt acumuladoUVs = 0;
-		while (LeerOBJ(&fsSession, &rFile, &file, &startPos, &acumuladoVertices, &acumuladoNormales, &acumuladoUVs) && objetosCargados < 2) {
+		while (LeerOBJ(&fsSession, &rFile, &file, &startPos, &acumuladoVertices, &acumuladoNormales, &acumuladoUVs)) { // && objetosCargados < 1
 			objetosCargados++;
 		}
 
@@ -4753,8 +4760,8 @@ TBool CBlenderLite::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 				if (!NombreEncontrado && line.Left(2) == _L8("o ")) {
 					//evita el crasheo en caso de que no tenga materiales
 					//se le asigna el material por defecto
-					MaterialesNuevos.Append(0);
-					MeshsGroups.Append(0);
+					//MaterialesNuevos.Append(0);
+					//MeshsGroups.Append(0);
 
 					TLex8 lex(line.Mid(2));
 					if (!lex.Eos()){
@@ -4763,11 +4770,11 @@ TBool CBlenderLite::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 						obj.name->Des().Copy(currentString);
 					}
 					
-					HBufC* noteBuf3 = HBufC::NewLC(180);
+					/*HBufC* noteBuf3 = HBufC::NewLC(180);
 					_LIT(KFormatString3, "Nombre de objeto: %S");
 					noteBuf3->Des().Format(KFormatString3, obj.name);
 					DialogAlert(noteBuf3);
-					CleanupStack::PopAndDestroy(noteBuf3);
+					CleanupStack::PopAndDestroy(noteBuf3);*/
 
 					NombreEncontrado = true;
 				}
@@ -4965,6 +4972,9 @@ TBool CBlenderLite::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 
 						// Actualizar el contador de caras en el último grupo de mallas
 						//MeshsGroups[MeshsGroups.Count()-1] += (contador - 2);
+						if (MeshsGroups.Count() < 1){
+							MeshsGroups.Append(0);
+						}
 						MeshsGroups[MeshsGroups.Count()-1] += contador;
 
 						/*_LIT(KFormatString5, "Terminado.\nCaras indices: %d\nmeshsGroups: %d");
@@ -4974,11 +4984,9 @@ TBool CBlenderLite::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 
 						//MeshsGroups[MeshsGroups.Count()-1]++;
 					}
-					else if (line.Left(7) == _L8("usemtl ")) {							
-						//agrega un nuevo material
-						MaterialesNuevos.Append(Materials.Count());
-						MeshsGroups.Append(0);
-						
+					else if (line.Left(7) == _L8("usemtl ")) {	
+						MaterialesNuevos.Append(0);
+						MeshsGroups.Append(0);					
 						Material mat;	
 						mat.specular[0] = mat.specular[1] = mat.specular[2] = mat.specular[3] = 0.3;
 						mat.diffuse[0] = mat.diffuse[1] = mat.diffuse[2] = mat.diffuse[3] = 1.0;
@@ -4990,12 +4998,23 @@ TBool CBlenderLite::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 						mat.transparent = false;
 						mat.interpolacion = lineal;
 						mat.textureID = 0;
+						HBufC* materialName16 = HBufC::NewLC(180);
 
+						TInt encontrado = -1;	
 						TLex8 lex(line.Mid(7));
 						if (!lex.Eos()){
 							TPtrC8 currentString = lex.NextToken();							
 							mat.name = HBufC::NewL(currentString.Length());
 							mat.name->Des().Copy(currentString);
+
+							//busca si existe el material
+							materialName16 = CnvUtfConverter::ConvertToUnicodeFromUtf8L(currentString);
+							for(int f=0; f < Materials.Count(); f++){
+								if (Materials[f].name->Compare(*materialName16) == 0 && f != 0){
+									encontrado = f;
+									break;
+								}
+							}
 						}
 						else {	
 							mat.name = HBufC::NewL(100);						
@@ -5009,7 +5028,23 @@ TBool CBlenderLite::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 						DialogAlert(noteBuf3);
 						CleanupStack::PopAndDestroy(noteBuf3);*/
 
-						Materials.Append(mat);
+						//si se encontro no crea el nuevo material
+						if (encontrado > -1){
+							/*HBufC* noteBuf3 = HBufC::NewLC(180);
+							_LIT(KFormatString3, "newmtl %S\nencontrado %d\nmateriales num: %d");
+							noteBuf3->Des().Format(KFormatString3, materialName16, encontrado, Materials.Count());
+							DialogAlert(noteBuf3);*/
+							MaterialesNuevos[MaterialesNuevos.Count()-1] = encontrado;
+						}
+						else {
+							/*HBufC* noteBuf3 = HBufC::NewLC(180);
+							_LIT(KFormatString3, "no encontrado %S");
+							noteBuf3->Des().Format(KFormatString3, materialName16);
+							DialogAlert(noteBuf3);*/
+							Materials.Append(mat);
+							MaterialesNuevos[MaterialesNuevos.Count()-1] = Materials.Count()-1;
+						}
+						CleanupStack::PopAndDestroy(materialName16);
 					}
 				}
 			}
@@ -5055,9 +5090,21 @@ TBool CBlenderLite::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 	noteBuf3->Des().Format(KFormatString3, ListVertices.Count()/3, ListCaras.Count()/9, ListNormals.Count()/3, ListUVs.Count()/2, ListColors.Count()/3);
 	DialogAlert(noteBuf3);*/	
 
+	
+	/*HBufC* noteBuf3 = HBufC::NewLC(180);
+	_LIT(KFormatString33, "Num Vertices: %d\nNormales: %d\nUVs: %d"); //\nvalores: %d/%f/%d"
+	noteBuf3->Des().Format(KFormatString33, ListVertices.Count()/3, ListNormals.Count()/3, ListUVs.Count()/2);
+	DialogAlert(noteBuf3);*/
+
 	tempMesh.faces = new GLushort*[tempMesh.materialsSize];
 	for(TInt m=0; m < MeshsGroups.Count(); m++){	
-		tempMesh.materials[m] = MaterialesNuevos[m];	
+		//se asigna el material por defecto en caso de no existir materiales en el obj
+		if (MaterialesNuevos.Count() < 1){
+			tempMesh.materials[m] = 0;
+		}
+		else {
+			tempMesh.materials[m] = MaterialesNuevos[m];
+		}
 		tempMesh.facesGroupsSize[m] = MeshsGroups[m];
 
 		//valores defecto caras
@@ -5082,21 +5129,32 @@ TBool CBlenderLite::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 				/*HBufC* noteBuf3 = HBufC::NewLC(180);
 				_LIT(KFormatString3, "indiceCara: %d\nNuevoIndiceCara: %d\nindiceVertice: %d\nindiceUV: %d\nindiceColor: %d");
 				noteBuf3->Des().Format(KFormatString3, ListCaras[indiceCara]+1, ListCaras[indiceCara]-*acumuladoVertices+1,indiceVertice, indiceUV, indiceColor);
+				DialogAlert(noteBuf3);*/				
+
+				/*HBufC* noteBuf3 = HBufC::NewLC(180);
+				_LIT(KFormatString3, "cara: %d vertice: %d\nindices viejo: %d\nindice nuevo: %d");
+				noteBuf3->Des().Format(KFormatString3, a+1, f+1, ListCaras[indiceCara]-*acumuladoVertices, ListCaras[indiceCara]-*acumuladoVertices);*/
+				/*_LIT(KFormatString3, "cara: %d vertice: %d\nindices: %d/%d/%d\nvertice: %f\n%f\n%f");//\nuv: %f/%f\nnormal: %d/%d/%d"); //\nvalores: %d/%f/%d"
+				noteBuf3->Des().Format(KFormatString3, a+1, f+1, 
+					ListCaras[indiceCara]-*acumuladoVertices+1, ListCaras[indiceCara+1]-*acumuladoUVs+1, ListCaras[indiceCara+2]-*acumuladoNormales+1, 
+					(GLfloat)ListVertices[(ListCaras[indiceCara]-*acumuladoVertices)*3]/2000,
+					(GLfloat)ListVertices[(ListCaras[indiceCara]-*acumuladoVertices)*3+1]/2000,
+					(GLfloat)ListVertices[(ListCaras[indiceCara]-*acumuladoVertices)*3+2]/2000
+					ListUVs[(ListCaras[indiceCara+1]-*acumuladoUVs)*3],
+					ListUVs[(ListCaras[indiceCara+1]-*acumuladoUVs)*3+1],
+					ListNormals[(ListCaras[indiceCara+2]-*acumuladoNormales)*3],
+					ListNormals[(ListCaras[indiceCara+2]-*acumuladoNormales)*3+1],
+					ListNormals[(ListCaras[indiceCara+2]-*acumuladoNormales)*3+2]
+				);
 				DialogAlert(noteBuf3);*/
 
-				tempMesh.faces[m][(a-ultimoIndiceinicio)*3+f] = ListCaras[indiceCara];
-				
+				tempMesh.faces[m][(a-ultimoIndiceinicio)*3+f] = ListCaras[indiceCara]-*acumuladoVertices;				
 				for(TInt v=0; v < 3; v++){
 					//a*9 es que ListCaras tiene 9 valores por cara, 3 vertices, 3 normales y 3 UV
 					//f*3 es para ir por las distintas "/" 1/1/1
 					tempMesh.vertex[indiceVertice+v]  = ListVertices[(ListCaras[indiceCara]-*acumuladoVertices)*3+v];	
 					tempMesh.normals[indiceNormales+v] = ListNormals[(ListCaras[indiceCara+2]-*acumuladoNormales)*3+v];
 					tempMesh.vertexColor[indiceColor+v] = ListColors[(ListCaras[indiceCara]-*acumuladoVertices)*3+v];
-
-					/*HBufC* noteBuf3 = HBufC::NewLC(180);
-					_LIT(KFormatString3, "vertice: %d\nindice guarda: %d/%d\nindiceCara: %d\nvalor: %f");
-					noteBuf3->Des().Format(KFormatString3, v+1, indiceVertice+v+1,tempMesh.vertexSize*3, (ListCaras[indiceCara]-*acumuladoVertices)*3+v+1,(GLfloat)ListVertices[(ListCaras[indiceCara]-*acumuladoVertices)*3+v]/2000.0f);
-					DialogAlert(noteBuf3);*/
 				}
 				for(TInt uv=0; uv < 2; uv++){
 					tempMesh.uv[indiceUV+uv] = ListUVs[(ListCaras[indiceCara+1]-*acumuladoUVs)*2+uv];
@@ -5108,11 +5166,11 @@ TBool CBlenderLite::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 
 	Meshes.Append(tempMesh);	
 
-	HBufC* noteBuf = HBufC::NewLC(180);
+	/*HBufC* noteBuf = HBufC::NewLC(180);
 	_LIT(KFormatString, "se creo la malla 3D");
 	noteBuf->Des().Format(KFormatString);
 	DialogAlert(noteBuf);
-	CleanupStack::PopAndDestroy(noteBuf);
+	CleanupStack::PopAndDestroy(noteBuf);*/
 	
 	obj.Id = Meshes.Count()-1;
 	Objects.Append(obj);
