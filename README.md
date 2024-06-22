@@ -2,6 +2,8 @@
 
 ENGLISH: Blendersito is a Blender clone, developed from scratch for Symbian s60v3.
 
+YouTube: [Youtube Video](https://youtu.be/dMe-Vit5OT0)
+
 Clarifications:
 1) Not a port: This program does not share any code with the original Blender.
 2) Basic functionality: The program is basic, and some media have exaggerated its current capabilities.
