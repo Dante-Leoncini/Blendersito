@@ -21,7 +21,7 @@ I am quite indignant about the many negative comments towards Blender, calling i
 
 I highly recommend using Linux, installing an SSD in your PCs, and optimizing your projects according to your hardware and needs. You'll see that it's possible to work with old hardware without any issues.
 
-Thank You!
+# Thank You!
 Thank you to everyone who shared the project. I hope this effort helps raise awareness and urge companies to manufacture more durable and sustainable phones.
 
 ESPAÑOL: Blendersito es un clon de Blender, desarrollado desde cero para Symbian s60v3.
@@ -44,7 +44,7 @@ Me indigna bastante la gran cantidad de comentarios negativos hacia Blender, cal
 
 Realmente recomiendo usar Linux, instalar un disco SSD en sus PCs, y optimizar sus proyectos de acuerdo a su hardware y necesidades. Verán que se puede trabajar sin problemas con hardware antiguo.
 
-#Gracias!
+# Gracias!
 Gracias a todos los que compartieron el proyecto. Espero que este esfuerzo sirva para aumentar la conciencia y exigir a las empresas que fabriquen teléfonos más duraderos y sostenibles.
 
 (Actualmente no hay soporte para s60v5 o Symbian belle. Pero en teoria no seria dificil de lograr)
