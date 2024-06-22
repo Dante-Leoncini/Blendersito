@@ -13,6 +13,8 @@ aclaraciones:
 
 ![](https://pbs.twimg.com/media/GPawZAKWsAA7Rw9?format=png) ![](https://pbs.twimg.com/media/GPawalTWUAAe-J1?format=png)
 
+9) Este proyecto funciona en todos los Nokia s60v3. Sin embargo, muchos teléfonos, incluso modelos lanzados posteriormente, no tienen aceleración gráfica debido a la mala decisión de Nokia de ahorrar dinero eliminando esta característica. Aunque estos teléfonos puedan parecer más rápidos en papel que el N95, en la práctica son más lentos y económicos debido a la falta de aceleración gráfica.
+
 Gracias a todos los que compartieron el proyecto. Espero que este esfuerzo sirva para aumentar la conciencia y exigir a las empresas que fabriquen teléfonos más duraderos y sostenibles.
 
 (Actualmente no hay soporte para s60v5 o Symbian belle. Pero en teoria no seria dificil de lograr)
