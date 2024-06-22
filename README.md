@@ -13,7 +13,8 @@ Clarifications:
 8) Graphics performance: Blendersito runs smoothly thanks to the N95's hardware graphics acceleration (PowerVR MBX Lite) and its FPU, which allows it to handle complex 3D models like Arthur Morgan from Red Dead Redemption 2.
    
  ![](https://pbs.twimg.com/media/GPawZAKWsAA7Rw9?format=png) ![](https://pbs.twimg.com/media/GPawalTWUAAe-J1?format=png)
-10) Project compatibility: This project works on all Nokia s60v3 devices. However, many phones, including later models, lack graphics acceleration due to Nokia's poor decision to save money by removing this feature. Although these phones may seem faster on paper than the N95, they are slower and more economical in practice due to the lack of graphics acceleration.
+
+9) Project compatibility: This project works on all Nokia s60v3 devices. However, many phones, including later models, lack graphics acceleration due to Nokia's poor decision to save money by removing this feature. Although these phones may seem faster on paper than the N95, they are slower and more economical in practice due to the lack of graphics acceleration.
 
 # About Blender
 I am quite indignant about the many negative comments towards Blender, calling it heavy and inefficient on their computers. Blender is an extremely powerful program and can still run on fairly modest PC configurations. I've been using it for years and it's a software I love. You can even download older versions of Blender that work very well on older computers. I've used modern versions that also run excellently on computers from 10-15 years ago, solely with CPU graphics acceleration.
