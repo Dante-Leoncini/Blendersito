@@ -832,28 +832,24 @@ RESOURCE DIALOG r_aknexnote_error_note
 //
 //-----------------------------------------------------------------------------
 //
-RESOURCE DIALOG r_blenderlite_wait_note_softkey_cancel
-    {
+RESOURCE DIALOG r_blenderlite_wait_note_softkey_cancel{
     flags = EAknWaitNoteFlags;
     buttons = r_blenderlite_softkeys_cancel;
-    items =
-        {
-        DLG_LINE
-            {
+    items = {
+        DLG_LINE {
             type = EAknCtNote;
             id = EAknExNoteCtrlIdWaitNote;
-            control= AVKON_NOTE 
-                { 
+            control= AVKON_NOTE { 
                 layout = EWaitLayout;
                 singular_label = STRING_r_exnt_wait_prompt;
                 imagefile = AVKON_BMPFILE_NAME;
                 imageid = EMbmAvkonQgn_note_voice;
                 imagemask = EMbmAvkonQgn_note_voice_mask;
                 animation = R_QGN_GRAF_WAIT_BAR_ANIM;
-                };
-            }
-        };
-    }
+            };
+        }
+    };
+}
 
 //-----------------------------------------------------------------------------
 //

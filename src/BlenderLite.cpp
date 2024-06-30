@@ -2540,6 +2540,15 @@ void CBlenderLite::FlipNormals(){
 	for(TInt a = 0; a < pMesh.vertexSize*3; a++) {
 		pMesh.normals[a] = (GLbyte)-pMesh.normals[a];
 	}
+
+	TInt temIndiceFace = 0;
+	for(TInt m = 0; m < pMesh.materialsSize; m++) {
+		for(TInt f = 0; f < pMesh.facesGroupsSize[m]; f++) {
+			temIndiceFace = pMesh.faces[m][f*3];
+			pMesh.faces[m][f*3] = pMesh.faces[m][f*3+2];
+			pMesh.faces[m][f*3+2] = temIndiceFace;
+		}
+	}
 	redibujar = true;
 }
 
@@ -3054,15 +3063,16 @@ void CBlenderLite::SetSmooth(){
 
 	Cancelar();
 	//activa o desactiva las Transparencias
-	HBufC* buf = HBufC::NewLC( 22 );
-	buf->Des().Copy(_L("Activar Smooth?"));
-	if (DialogAlert(buf)){	
+	HBufC* noteBuf = HBufC::NewLC( 22 );
+	noteBuf->Des().Copy(_L("Activar Smooth?"));
+	if (DialogAlert(noteBuf)){	
 		pMesh.smooth = true;
 	}
 	else {
 		pMesh.smooth = false;	
 	}
     redibujar = true;
+	CleanupStack::PopAndDestroy(noteBuf);	
 }
 
 void CBlenderLite::SetCulling(){
@@ -3751,10 +3761,37 @@ TPtr CBlenderLite::DialogText(HBufC* textBuf, HBufC* noteBuf) {
 	return textPtr;
 }
 
+void CBlenderLite::ShowWaitDialogL(){
+	iWaitDialog = new (ELeave) CAknWaitDialog((REINTERPRET_CAST(CEikDialog**, &iWaitDialog)), ETrue);
+	//iWaitDialog->SetCallback(this); // Opcional: establece un callback para eventos del dialogo
+	iWaitDialog->ExecuteLD(R_BLENDERLITE_WAIT_NOTE_SOFTKEY_CANCEL);
+};
+
+void CBlenderLite::CloseWaitDialog(){
+    if (iWaitDialog){
+        iWaitDialog->ProcessFinishedL(); // Esto cierra el cuadro de espera.
+        iWaitDialog = NULL; // Asegúrate de que el puntero sea nulo después de cerrar el cuadro de espera.
+    }
+};
+
+void CBlenderLite::DialogWait(HBufC* noteBuf){
+    ShowWaitDialogL(); // Mostrar el cuadro de espera
+
+    // Aquí puedes agregar el código que necesita tiempo para ejecutarse.
+    /*User::After(2000000); // Simular una espera de 2 segundos.
+
+    CloseWaitDialog(); // Cerrar el cuadro de espera*/
+}
+
 TInt CBlenderLite::ShowOptionsDialogL() {	
+	/*HBufC* noteBuf = HBufC::NewLC(100);	
+	noteBuf->Des().Copy(_L("Ver wait?"));
+	DialogWait(noteBuf);*/
+	ShowWaitDialogL();
+	//CleanupStack::PopAndDestroy(noteBuf);	
 	
 	///iContainer->ShowProgressNoteUnderSingleProcessL(R_BLENDERLITE_PROGRESS_NOTE, EAknExNoteCtrlIdProgressNote);
-    iContainer->ShowWaitNoteL(R_BLENDERLITE_PROGRESS_NOTE, EAknExNoteCtrlIdWaitNote);
+    //iContainer->ShowWaitNoteL(R_BLENDERLITE_PROGRESS_NOTE, EAknExNoteCtrlIdWaitNote);
     //R_BLENDERLITE_WAIT_NOTE_SOFTKEY_CANCEL r_blenderlite_wait_note_softkey_cancel
 	
 	TInt blee = 1;

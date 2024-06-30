@@ -16,6 +16,9 @@
 #include "Glutils.h" // Misc GLU and GLUT functions
 #include "BlenderLiteinput.h"
 
+//para el cuadro de wait
+#include <AknWaitDialog.h>
+
 // Forward declaration de Object
 class CBlenderLiteContainer;
 class Object;
@@ -140,6 +143,9 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         void EnfocarObject();
         void CursorToSelect();
         void SelectToCursor();
+        void ShowWaitDialogL();
+        void CloseWaitDialog();
+        void DialogWait(HBufC* noteBuf);
         void Borrar();
         void changeSelect();
         void LeerMTL(const TFileName& aFile);
@@ -289,6 +295,8 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
         TInt navegacionMode;
 
     private:  // Data
+        CAknWaitDialog* iWaitDialog;
+
         CBlenderLiteContainer*    iContainer;
 
 		/** Texture manager that is used to load the used textures. */
