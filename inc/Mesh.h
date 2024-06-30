@@ -27,9 +27,10 @@ class Material {
 	public:
 		TBool textura;
 		TBool transparent;
-		TBool color;
+		TBool vertexColor;
 		TBool lighting;
 		TBool repeat;
+		TBool culling;
 		TInt interpolacion;
 		GLuint textureID;
 		GLfloat diffuse[4];		
@@ -47,7 +48,6 @@ class VertexGroup {
 class Mesh { 
 	public:
 		TBool smooth;
-		TBool culling;
 		TInt vertexSize;
 		GLshort* vertex;
 		GLubyte* vertexColor;

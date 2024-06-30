@@ -436,9 +436,10 @@ void CBlenderLite::NewMaterial(){
 	mat.diffuse[0] = mat.diffuse[1] = mat.diffuse[2] = mat.diffuse[3] = 1.0;
 	mat.emission[0] = mat.emission[1] = mat.emission[2] = mat.emission[3] = 0.0;
 	mat.textura = false;
-	mat.color = false;
+	mat.vertexColor = false;
 	mat.repeat = true;
 	mat.lighting = true;
+	mat.culling = true;
 	mat.transparent = false;
 	mat.interpolacion = lineal;
 	mat.textureID = 0;
@@ -667,10 +668,6 @@ void CBlenderLite::RenderMesh( TInt objId ){
 	//glShadeModel( GL_SMOOTH );
 	if (pMesh.smooth){glShadeModel( GL_SMOOTH );}
 	else {glShadeModel( GL_FLAT );}
-
-	//si usa culling
-	if (pMesh.culling){glEnable( GL_CULL_FACE );}
-	else {glDisable( GL_CULL_FACE );}	
 	
 	//modelo con textura
 	if (SimularZBuffer){
@@ -695,11 +692,22 @@ void CBlenderLite::RenderMesh( TInt objId ){
 			glMaterialfv(   GL_FRONT_AND_BACK, GL_SPECULAR, mat.specular );
 
 			//vertex color
-			if (mat.color){
+			if (mat.vertexColor){
+				//glEnable(GL_VERTEX_ARRAY);
 				glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);
 				glEnableClientState( GL_COLOR_ARRAY );
+				glEnable(GL_COLOR_MATERIAL);
 			}
-			else {glDisableClientState( GL_COLOR_ARRAY );}	 
+			else {
+				glColor4f(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2], mat.diffuse[3]);
+				//glDisable(GL_VERTEX_ARRAY);
+				glDisable(GL_COLOR_MATERIAL);
+				glDisableClientState( GL_COLOR_ARRAY );
+			}		
+
+			//si usa culling
+			if (mat.culling){glEnable( GL_CULL_FACE );}
+			else {glDisable( GL_CULL_FACE );}		 
 
 			//si tiene iluminacion	
 			if (mat.lighting){glEnable( GL_LIGHTING );}
@@ -749,7 +757,13 @@ void CBlenderLite::RenderMesh( TInt objId ){
 		glDisable(GL_BLEND);
 		glMaterialfv(   GL_FRONT_AND_BACK, GL_DIFFUSE,  mat.diffuse   ); 
 		//glDrawElements( GL_TRIANGLES, pMesh.facesSize*3, GL_UNSIGNED_SHORT, pMesh.faces );	
-		for(int f=0; f < pMesh.materialsSize; f++){			
+		for(int f=0; f < pMesh.materialsSize; f++){	
+			Material& mat = Materials[pMesh.materials[f]];
+
+			//si usa culling
+			if (mat.culling){glEnable( GL_CULL_FACE );}
+			else {glDisable( GL_CULL_FACE );}	
+
 			glDrawElements( GL_TRIANGLES, pMesh.facesGroupsSize[f]*3, GL_UNSIGNED_SHORT, pMesh.faces[f] );	
 		}
 	}
@@ -1300,6 +1314,10 @@ void CBlenderLite::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 			RenderMeshAndChildren(obj);
 		}
 	}
+	//el valor que tiene que tener para dibujar el resto correctamente
+	//glDisable(GL_COLOR_MATERIAL);
+	glDisableClientState( GL_COLOR_ARRAY );
+
 	//fin del dibujado de objetos
 	//si estaba simulando el zbuffer. el resto no hace falta
 	if (SimularZBuffer){		
@@ -2844,7 +2862,6 @@ void CBlenderLite::AddMesh( int modelo ){
 		return;
 	}
 	tempMesh.smooth = true;
-	tempMesh.culling = true;
 	tempMesh.materials = new TInt[1];
 	tempMesh.materials[0] = 0;
 	tempMesh.vertexGroupUI = NULL;
@@ -3040,7 +3057,6 @@ void CBlenderLite::SetTextureRepeat(){
 
 	Material& mat = Materials[pMesh.materials[MaterialID-1]];
 
-	Cancelar();
 	//activa o desactiva las Transparencias
 	noteBuf->Des().Copy(_L("Activar Repeticion de Textura?"));
 	if (DialogAlert(noteBuf)){	
@@ -3084,14 +3100,22 @@ void CBlenderLite::SetCulling(){
 	Mesh& pMesh = Meshes[obj.Id];
 
 	Cancelar();
-	//activa o desactiva las Transparencias
-	HBufC* noteBuf = HBufC::NewLC( 22 );
+	TInt MaterialID = 1;
+	HBufC* noteBuf = HBufC::NewLC(100);
+	if (pMesh.materialsSize > 1){
+		_LIT(KFormatString, "Material 1 to %d");
+		noteBuf->Des().Format(KFormatString, pMesh.materialsSize);
+		MaterialID = DialogNumber(1, 1, pMesh.materialsSize, noteBuf);		
+	}
+	Material& mat = Materials[pMesh.materials[MaterialID-1]];
+
+	//activa o desactiva culling de caras
 	noteBuf->Des().Copy(_L("Activar Culling?"));
 	if (DialogAlert(noteBuf)){	
-		pMesh.culling = true;
+		mat.culling = true;
 	}
 	else {
-		pMesh.culling = false;	
+		mat.culling = false;	
 	}
 	CleanupStack::PopAndDestroy(noteBuf);	
     redibujar = true;
@@ -3148,10 +3172,10 @@ void CBlenderLite::SetVertexColor(){
 	//activa o desactiva las Transparencias
 	noteBuf->Des().Copy(_L("Activar Vertex Color?"));
 	if (DialogAlert(noteBuf)){	
-		mat.color = true;
+		mat.vertexColor = true;
 	}
 	else {
-		mat.color = false;	
+		mat.vertexColor = false;	
 	}
 	CleanupStack::PopAndDestroy(noteBuf);	
     redibujar = true;
@@ -4180,9 +4204,10 @@ void CBlenderLite::ImportOBJ(){
 						mat.diffuse[0] = mat.diffuse[1] = mat.diffuse[2] = mat.diffuse[3] = 1.0;
 						mat.emission[0] = mat.emission[1] = mat.emission[2] = mat.emission[3] = 0.0;
 						mat.textura = false;
-						mat.color = false;
+						mat.vertexColor = false;
 						mat.repeat = true;
 						mat.lighting = true;
+						mat.culling = true;
 						mat.transparent = false;
 						mat.interpolacion = lineal;
 						mat.textureID = 0;
@@ -4331,7 +4356,6 @@ void CBlenderLite::ImportOBJ(){
 		tempMesh.normals = new GLbyte[tempMesh.vertexSize*3];
 		tempMesh.uv = new GLfloat[tempMesh.vertexSize*2];
 		tempMesh.smooth = true;
-		tempMesh.culling = true;	
 		tempMesh.vertexGroupUI = NULL;		
 
 		//valores defecto
@@ -4583,6 +4607,15 @@ void CBlenderLite::LeerMTL(const TFileName& aFile) {
 						// Aquí manejas el modelo de iluminación illum
 					}*/
 					// Aquí manejas la textura difusa map_Kd
+					else if (line.Left(18) == _L8("BackfaceCullingOff")){
+						mat->culling = false;
+					}
+					else if (line.Left(7) == _L8("NoLight")){
+						mat->lighting = false;
+					}
+					else if (line.Left(6) == _L8("map_d ")){
+						mat->transparent = true;
+					}
 					else if (line.Left(7) == _L8("map_Kd ")) {
 						TLex8 lex(line.Mid(7));
 						TPtrC8 texturePath = lex.NextToken();
@@ -4766,6 +4799,7 @@ TBool CBlenderLite::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 	RArray<TInt> ListCaras;
 	RArray<TInt> MaterialesNuevos;
 	RArray<TInt> MeshsGroups;
+	TBool tieneVertexColor = false;
 	//TInt materiales = 0;	
 
 	TBool continuarLeyendo = true; // Variable para controlar la lectura del archivo
@@ -4848,6 +4882,7 @@ TBool CBlenderLite::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 								if (number > 255.0){number = 255.0;}	
 								GLshort glNumber = static_cast<GLubyte>(number); // Conversión a GLbyte
 								ListColors.Append(glNumber);
+								tieneVertexColor = true;
 							}
 
 							// Avanzar al siguiente "string" que no sea espacio en blanco
@@ -5029,9 +5064,10 @@ TBool CBlenderLite::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 						mat.diffuse[0] = mat.diffuse[1] = mat.diffuse[2] = mat.diffuse[3] = 1.0;
 						mat.emission[0] = mat.emission[1] = mat.emission[2] = mat.emission[3] = 0.0;
 						mat.textura = false;
-						mat.color = false;
+						mat.vertexColor = tieneVertexColor;
 						mat.repeat = true;
 						mat.lighting = true;
+						mat.culling = true;
 						mat.transparent = false;
 						mat.interpolacion = lineal;
 						mat.textureID = 0;
@@ -5107,7 +5143,6 @@ TBool CBlenderLite::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 	tempMesh.normals = new GLbyte[tempMesh.vertexSize*3];
 	tempMesh.uv = new GLfloat[tempMesh.vertexSize*2];
 	tempMesh.smooth = true;
-	tempMesh.culling = true;	
 	tempMesh.vertexGroupUI = NULL;
 
 	//valores defecto
