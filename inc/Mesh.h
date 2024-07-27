@@ -100,6 +100,22 @@ class Mesh {
 			}
 			edgesGroups.Close();
 		};
+		
+		void Mesh::UpdateVertexUI(TInt EditSelect){	
+			TInt indiceVertex = vertexGroups[EditSelect].indices[0]*3;
+			vertexGroupUI[EditSelect*3] = vertex[indiceVertex];
+			vertexGroupUI[EditSelect*3+1] = vertex[indiceVertex+1];
+			vertexGroupUI[EditSelect*3+2] = vertex[indiceVertex+2];
+		}
+
+		void Mesh::UpdateVertexUI(){	
+			for(TInt s=0; s < vertexGroups.Count(); s++){
+				TInt indiceVertex = vertexGroups[s].indices[0]*3;
+				vertexGroupUI[s*3] = vertex[indiceVertex];
+				vertexGroupUI[s*3+1] = vertex[indiceVertex+1];
+				vertexGroupUI[s*3+2] = vertex[indiceVertex+2];
+			}
+		}
 
 		void Mesh::AgruparVertices(){	
 			VaciarGrupos();
@@ -126,14 +142,27 @@ class Mesh {
 
 			//ahora crea los vertices que openGL lee.			
 			vertexGroupUI = new GLshort[vertexGroups.Count()*3];
-			for(TInt s=0; s < vertexGroups.Count(); s++){
-				TInt indiceVertex = vertexGroups[s].indices[0];
-				vertexGroupUI[s*3] = vertex[indiceVertex*3];
-				vertexGroupUI[s*3+1] = vertex[indiceVertex*3+1];
-				vertexGroupUI[s*3+2] = vertex[indiceVertex*3+2];
-			}
+			UpdateVertexUI();
 
 			//agrupar bordes		
+			/*for(TInt f=0; f < facesCount; f++){
+				//las caras tienen 3 bordes. revisa cada borde
+				for(TInt b=0; b < 3; b++){
+					RArray<EdgesGroup> edgesGroups;
+					TBool existe = false;
+					//busca si existe el borde
+					for(TInt e=0; e < edgesGroups.Count(); e++){
+						
+					}
+					if (!existe){
+						EdgesGroup NewEdgesGroup;
+						
+						edgesGroups.Append();
+						
+					}
+				}
+			}*/
+			
 			/*for(TInt m=0; m < materialsSize; m++){
 				for(TInt f=0; f < facesGroupsSize[m]; f++){
 					(faces[m][f*3], faces[m][f*3+1])

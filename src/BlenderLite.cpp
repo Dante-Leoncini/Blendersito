@@ -739,6 +739,40 @@ void CBlenderLite::RenderMesh( TInt objId ){
 			glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, mat.emission );
 
 			glDrawElements( GL_TRIANGLES, pMesh.facesGroup[f].indicesCount, GL_UNSIGNED_SHORT, &pMesh.faces[pMesh.facesGroup[f].start] );	
+			if (estado == edicion || estado == translacionVertex){
+				glDisable( GL_CULL_FACE );
+				glDisable(GL_BLEND);
+				glDisable(GL_COLOR_MATERIAL);
+				glDisableClientState( GL_COLOR_ARRAY );
+				glDisable( GL_TEXTURE_2D );
+				glDisable( GL_LIGHTING );
+				glEnable(GL_POLYGON_OFFSET_FILL);
+				glDepthFunc(GL_LEQUAL);
+
+				//bordes
+				glPolygonOffset(1.0, -1.0);
+				glColor4f(ListaColores[gris][0],
+						ListaColores[gris][1],
+						ListaColores[gris][2],
+						ListaColores[gris][3]);
+				//glDrawElements( GL_LINES, obj.edgesSize, GL_UNSIGNED_SHORT, obj.edges );
+				//vertices
+				if (tipoSelect == vertexSelect){
+					glVertexPointer( 3, GL_SHORT, 0, pMesh.vertexGroupUI );
+					glPolygonOffset(1.0, -4.0);
+					glColor4f(ListaColores[negro][0], ListaColores[negro][1], ListaColores[negro][2], ListaColores[negro][3]);
+					glPointSize(4);
+					glDrawArrays( GL_POINTS, 0, pMesh.vertexGroups.Count() );
+
+					//vertice seleccionado
+					glPolygonOffset(1.0, -10.0);
+					glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
+					//glDrawArrays( GL_POINTS, pMesh.vertexGroup[EditSelect], 1 );
+					glDrawArrays( GL_POINTS, EditSelect, 1 );	
+				}	
+				glDepthFunc(GL_LESS);
+				glDisable(GL_POLYGON_OFFSET_FILL);	
+			}
 		}
 	}	
 	//modelo sin textura
@@ -1833,6 +1867,7 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 					pMesh.vertex[pMesh.vertexGroups[EditSelect].indices[g]*3+1] -= 30;	
 				}
 			}
+			pMesh.UpdateVertexUI(EditSelect);
 		}
 		else if (estado == translacion){
 			if (axisSelect == X){
@@ -1935,7 +1970,8 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 				else if (axisSelect == Z){
 					pMesh.vertex[pMesh.vertexGroups[EditSelect].indices[g]*3+1] += 30;	
 				}
-			}			
+			}	
+			pMesh.UpdateVertexUI(EditSelect);		
 		}
 		else if (estado == translacion){
 			if (axisSelect == X){
@@ -2034,6 +2070,7 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 					pMesh.vertex[pMesh.vertexGroups[EditSelect].indices[g]*3+1] += 30;	
 				}
 			}
+			pMesh.UpdateVertexUI(EditSelect);
 		}
 		else if (estado == translacion){
 			if (axisSelect == X){
@@ -2097,6 +2134,7 @@ void CBlenderLite::Rotar(GLfixed aDeltaTimeSecs){
 					pMesh.vertex[pMesh.vertexGroups[EditSelect].indices[g]*3+1] -= 30;	
 				}
 			}
+			pMesh.UpdateVertexUI(EditSelect);
 		}
 		else if (estado == translacion){
 			if (axisSelect == X){
@@ -2258,11 +2296,12 @@ void CBlenderLite::ReestablecerEstado(int indice){
 			pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][g]*3+2] = estadoVertex[1];	
 			pMesh.vertex[pMesh.vertexGroupIndice[EditSelect][g]*3+1] = estadoVertex[2];	
 		}*/
-		 for(int g=0; g < pMesh.vertexGroups[EditSelect].indices.Count(); g++){
+		for(int g=0; g < pMesh.vertexGroups[EditSelect].indices.Count(); g++){
 			pMesh.vertex[pMesh.vertexGroups[EditSelect].indices[g]*3] = estadoVertex[0];
 			pMesh.vertex[pMesh.vertexGroups[EditSelect].indices[g]*3+2] = estadoVertex[1];	
 			pMesh.vertex[pMesh.vertexGroups[EditSelect].indices[g]*3+1] = estadoVertex[2];	
-		}
+		}		
+		pMesh.UpdateVertexUI();
 	}
 	else {
 		obj.posX = estadoObj.posX;
