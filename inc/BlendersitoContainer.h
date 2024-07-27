@@ -1,12 +1,12 @@
 /*
  * ==============================================================================
- *  Name        : BlenderLiteContainer.h
- *  Part of     : OpenGLEx / BlenderLite
+ *  Name        : BlendersitoContainer.h
+ *  Part of     : OpenGLEx / Blendersito
  * ==============================================================================
  */
 
-#ifndef BLENDERLITECONTAINER_H
-#define BLENDERLITECONTAINER_H
+#ifndef BLENDERSITOCONTAINER_H
+#define BLENDERSITOCONTAINER_H
 
 // INCLUDES
 #include <coecntrl.h>
@@ -17,8 +17,8 @@
 #include <GLES/egl.h>
 #include <akndef.h>
 
-#include "BlenderLite.h"
-#include "BlenderLiteinput.h"
+#include "Blendersito.h"
+#include "Blendersitoinput.h"
 
 // CLASS DECLARATION
 
@@ -28,10 +28,10 @@ class CAknExNoteView;
 
 /**
  * Container control class that handles the OpenGL ES initialization and deinitializations.
- * Also uses the CBlenderLite class to do the actual OpenGL ES rendering.
+ * Also uses the CBlendersito class to do the actual OpenGL ES rendering.
  */
 
-class CBlenderLiteContainer : public CCoeControl, MCoeControlObserver, public MProgressDialogCallback
+class CBlendersitoContainer : public CCoeControl, MCoeControlObserver, public MProgressDialogCallback
     {       
 	private: // Enumerations
 	
@@ -48,9 +48,9 @@ class CBlenderLiteContainer : public CCoeControl, MCoeControlObserver, public MP
         void ConstructL(const TRect& aRect);
 
         /**
-         * Destructor. Destroys the CPeriodic, CBlenderLite and uninitializes OpenGL ES.
+         * Destructor. Destroys the CPeriodic, CBlendersito and uninitializes OpenGL ES.
          */
-        virtual ~CBlenderLiteContainer();
+        virtual ~CBlendersitoContainer();
 
     public: // New functions
 
@@ -129,8 +129,8 @@ class CBlenderLiteContainer : public CCoeControl, MCoeControlObserver, public MP
 
         /**
          * Callback function for the CPeriodic. Calculates the current frame, keeps the background
-         * light from turning off and orders the CBlenderLite to do the rendering for each frame.
-         *@param aInstance Pointer to this instance of CBlenderLiteContainer.
+         * light from turning off and orders the CBlendersito to do the rendering for each frame.
+         *@param aInstance Pointer to this instance of CBlendersitoContainer.
          */
         static int DrawCallBack( TAny* aInstance );
 
@@ -264,7 +264,7 @@ class CBlenderLiteContainer : public CCoeControl, MCoeControlObserver, public MP
         GLfloat iLastFrameTimeSecs;
         
         /** Input handler that maps keycodes to inputs and stores the current state for each key. */
-        CBlenderLiteInput* iInputHandler;
+        CBlendersitoInput* iInputHandler;
 
     public:  //data
 
@@ -272,7 +272,7 @@ class CBlenderLiteContainer : public CCoeControl, MCoeControlObserver, public MP
         TInt iFrame;
 
         /** Used in DrawCallBack() method to do the actual OpenGL ES rendering.  */
-        CBlenderLite* iBlenderLite;
+        CBlendersito* iBlendersito;
     };
 
 #endif

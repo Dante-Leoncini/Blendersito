@@ -1,7 +1,7 @@
 /*
  * ==============================================================================
- *  Name        : BlenderLite.rss
- *  Part of     : OpenGLEx / BlenderLite
+ *  Name        : Blendersito.rss
+ *  Part of     : OpenGLEx / Blendersito
  * ==============================================================================
  */
 
@@ -10,8 +10,8 @@ NAME    AWIZ // 4 letter ID
 
 //  INCLUDES
 #include <eikon.rh>
-#include "blenderlite.hrh"
-#include "blenderlite.rls"
+#include "blendersito.hrh"
+#include "blendersito.rls"
 #include <avkon.rsg>
 #include <avkon.rh>
 #include <avkon.mbg>
@@ -20,67 +20,67 @@ NAME    AWIZ // 4 letter ID
 
 //  RESOURCE DEFINITIONS
 RESOURCE RSS_SIGNATURE { }
-RESOURCE TBUF { buf="BlenderLite"; }
+RESOURCE TBUF { buf="Blendersito"; }
 RESOURCE EIK_APP_INFO{
-    menubar = r_blenderlite_menubar;
+    menubar = r_blendersito_menubar;
     cba = R_AVKON_SOFTKEYS_OPTIONS_BACK;
 }
 
 //----------------------------------------------------
 //
-//    r_blenderlite_menubar
+//    r_blendersito_menubar
 //
 //----------------------------------------------------
 //
-RESOURCE MENU_BAR r_blenderlite_menubar
+RESOURCE MENU_BAR r_blendersito_menubar
 {
     titles =
         {
             MENU_TITLE
             {
-                menu_pane = r_blenderlite_exit;
+                menu_pane = r_blendersito_exit;
             },
             MENU_TITLE
             {
-                menu_pane = r_blenderlite_menu;
+                menu_pane = r_blendersito_menu;
             }
         };
 }
 
 //----------------------------------------------------
 //
-//    r_blenderlite_exit
+//    r_blendersito_exit
 //
 //----------------------------------------------------
 //
-RESOURCE MENU_PANE r_blenderlite_exit
+RESOURCE MENU_PANE r_blendersito_exit
 {
     items =
         {
             MENU_ITEM
             {
                 command = EAknCmdExit;
-                txt = STRING_r_blenderlite_exit;
+                txt = STRING_r_blendersito_exit;
             }
         };
 }
 
 //----------------------------------------------------
 //
-//    r_blenderlite_menu
+//    r_blendersito_menu
 //
 //----------------------------------------------------
 //
 
-RESOURCE MENU_PANE r_blenderlite_menu
+RESOURCE MENU_PANE r_blendersito_menu
 {
     items =
         { 		
 			MENU_ITEM
 			{
-				command = EBlenderLiteSeleccionar;
-				cascade = r_blenderlite_seleccionar_menu;
-				txt = STRING_r_blenderlite_Seleccionar;
+				command = EBlendersitoSeleccionar;
+				cascade = r_blendersito_seleccionar_menu;
+				txt = STRING_r_blendersito_Seleccionar;
 			},	
 			MENU_ITEM
 			{
@@ -97,15 +97,15 @@ RESOURCE MENU_PANE r_blenderlite_menu
 	        },		
 			MENU_ITEM
 			{
-				command = EBlenderLiteOrigenSetOrigen; 
-				cascade = r_blenderlite_editarOrigen_menu; 
-				txt = STRING_r_blenderlite_SetOrigen;
+				command = EBlendersitoOrigenSetOrigen; 
+				cascade = r_blendersito_editarOrigen_menu; 
+				txt = STRING_r_blendersito_SetOrigen;
 			},	
 			MENU_ITEM
 			{
-				command = EBlenderLiteVista3D;
-				cascade = r_blenderlite_vista3D_menu;
-				txt = STRING_r_blenderlite_Vista3D;
+				command = EBlendersitoVista3D;
+				cascade = r_blendersito_vista3D_menu;
+				txt = STRING_r_blendersito_Vista3D;
 			},		
         	MENU_ITEM
             {
@@ -115,13 +115,13 @@ RESOURCE MENU_PANE r_blenderlite_menu
             },		
         	MENU_ITEM
             {
-                command = EBlenderLiteModificadores;
-                cascade = r_blenderlite_modificadores_menu;
-                txt = STRING_r_blenderlite_Modificadores;
+                command = EBlendersitoModificadores;
+                cascade = r_blendersito_modificadores_menu;
+                txt = STRING_r_blendersito_Modificadores;
             },	  	
         	MENU_ITEM
             {
-                command = EBlenderLiteModificadores;
+                command = EBlendersitoModificadores;
                 cascade = r_viewport_overley_menu;
                 txt = STRING_r_Overlay;
             },			
@@ -233,29 +233,29 @@ RESOURCE MENU_PANE r_timeline_menu {
 
 //----------------------------------------------------
 //
-//    r_blenderlite_menu
+//    r_blendersito_menu
 //
 //----------------------------------------------------
 //
 
-RESOURCE MENU_PANE r_blenderlite_modificadores_menu
+RESOURCE MENU_PANE r_blendersito_modificadores_menu
 {
     items =
         { 		
 			MENU_ITEM
 			{
-				command = EBlenderLiteModificadorArray;
-				txt = STRING_r_blenderlite_ModificadorArray;
+				command = EBlendersitoModificadorArray;
+				txt = STRING_r_blendersito_ModificadorArray;
 			},	
 			MENU_ITEM
 			{
-				command = EBlenderLiteModificadorMirror;
-				txt = STRING_r_blenderlite_ModificadorMirror;
+				command = EBlendersitoModificadorMirror;
+				txt = STRING_r_blendersito_ModificadorMirror;
 			},			
 	    	MENU_ITEM
 	        {
-	            command = EBlenderLiteModificadorScrew;
-	            txt = STRING_r_blenderlite_ModificadorSrew;
+	            command = EBlendersitoModificadorScrew;
+	            txt = STRING_r_blendersito_ModificadorSrew;
 	        }
         };
 }
@@ -308,54 +308,54 @@ RESOURCE MENU_PANE r_viewport_add_menu{
 
 //----------------------------------------------------
 //
-//    r_blenderlite_vista3D_menu
+//    r_blendersito_vista3D_menu
 //
 //----------------------------------------------------
 //
-RESOURCE MENU_PANE r_blenderlite_vista3D_menu{
+RESOURCE MENU_PANE r_blendersito_vista3D_menu{
 	items = {
         MENU_ITEM {
             command = EViewRendered;
             txt = STRING_r_ViewRendered;
         },
         MENU_ITEM {
-            command = EBlenderLiteViewMaterial;
-            txt = STRING_r_blenderlite_ViewMaterial;
+            command = EBlendersitoViewMaterial;
+            txt = STRING_r_blendersito_ViewMaterial;
         },
 		MENU_ITEM {
-			command = EBlenderLiteViewSolid;
-			txt = STRING_r_blenderlite_ViewSolid;
+			command = EBlendersitoViewSolid;
+			txt = STRING_r_blendersito_ViewSolid;
 		},
         MENU_ITEM {
-            command = EBlenderLiteViewWireframe;
-            txt = STRING_r_blenderlite_ViewWireframe;
+            command = EBlendersitoViewWireframe;
+            txt = STRING_r_blendersito_ViewWireframe;
         },
         MENU_ITEM {
-            command = EBlenderLiteTopView;
-            txt = STRING_r_blenderlite_topView;
+            command = EBlendersitoTopView;
+            txt = STRING_r_blendersito_topView;
         },
         MENU_ITEM {
-            command = EBlenderLiteFrontView;
-            txt = STRING_r_blenderlite_frontView;
+            command = EBlendersitoFrontView;
+            txt = STRING_r_blendersito_frontView;
         },
         MENU_ITEM {
-            command = EBlenderLiteRightView;
-            txt = STRING_r_blenderlite_rightView;
+            command = EBlendersitoRightView;
+            txt = STRING_r_blendersito_rightView;
         },
         MENU_ITEM
         {
-            command = EBlenderLitePerspectiva;
-            txt = STRING_r_blenderlite_perspectiva;
+            command = EBlendersitoPerspectiva;
+            txt = STRING_r_blendersito_perspectiva;
         },
         MENU_ITEM
         {
-            command = EBlenderLiteObjFocus;
-            txt = STRING_r_blenderlite_ObjFocus;
+            command = EBlendersitoObjFocus;
+            txt = STRING_r_blendersito_ObjFocus;
         },
         MENU_ITEM
         {
-            command = EBlenderLiteNavegacion;
-            txt = STRING_r_blenderlite_SetNavegacion;
+            command = EBlendersitoNavegacion;
+            txt = STRING_r_blendersito_SetNavegacion;
         }         
     };
 }
@@ -488,8 +488,8 @@ RESOURCE MENU_PANE r_viewport_overley_menu{
         },        
         MENU_ITEM
         {
-            command = EBlenderLiteWidescreen;
-            txt = STRING_r_blenderlite_widescreen_on;
+            command = EBlendersitoWidescreen;
+            txt = STRING_r_blendersito_widescreen_on;
         }	  
     };
 }
@@ -505,35 +505,35 @@ RESOURCE MENU_PANE r_viewport_object_menu{
 	items = {
 		MENU_ITEM
 		{
-			command = EBlenderLiteEditarMesh;
-			txt = STRING_r_blenderlite_EditarMesh;
+			command = EBlendersitoEditarMesh;
+			txt = STRING_r_blendersito_EditarMesh;
 		},
 		MENU_ITEM {
-			command = EBlenderLiteSetPosicion;
-			txt = STRING_r_blenderlite_CambiarPosicion;
+			command = EBlendersitoSetPosicion;
+			txt = STRING_r_blendersito_CambiarPosicion;
 		},
         MENU_ITEM {
-            command = EBlenderLiteSetRotacion;
-            txt = STRING_r_blenderlite_CambiarRotacion;
+            command = EBlendersitoSetRotacion;
+            txt = STRING_r_blendersito_CambiarRotacion;
         },
         MENU_ITEM {
-            command = EBlenderLiteSetEscala;
-            txt = STRING_r_blenderlite_CambiarEscala;
+            command = EBlendersitoSetEscala;
+            txt = STRING_r_blendersito_CambiarEscala;
         },
 		MENU_ITEM
 		{
-			command = EBlenderLiteBorrar;
-			txt = STRING_r_blenderlite_Borrar;
+			command = EBlendersitoBorrar;
+			txt = STRING_r_blendersito_Borrar;
 		},	
 		MENU_ITEM
 		{
-			command = EBlenderLiteCambiarObject;
-			txt = STRING_r_blenderlite_CambiarObject;
+			command = EBlendersitoCambiarObject;
+			txt = STRING_r_blendersito_CambiarObject;
 		},	
 		MENU_ITEM
 		{
-			command = EBlenderLiteInfoObject;
-			txt = STRING_r_blenderlite_InfoObject;
+			command = EBlendersitoInfoObject;
+			txt = STRING_r_blendersito_InfoObject;
         },   
         MENU_ITEM
         {
@@ -592,46 +592,46 @@ RESOURCE MENU_PANE r_viewport_object_snap_menu{
 
 //----------------------------------------------------
 //
-//    r_blenderlite_seleccionar_menu
+//    r_blendersito_seleccionar_menu
 //
 //----------------------------------------------------
 //
-RESOURCE MENU_PANE r_blenderlite_seleccionar_menu{
+RESOURCE MENU_PANE r_blendersito_seleccionar_menu{
 	items = {
 		MENU_ITEM {
-			command = EBlenderLiteSetTipoVertex;
-			txt = STRING_r_blenderlite_SeleccionVertice;
+			command = EBlendersitoSetTipoVertex;
+			txt = STRING_r_blendersito_SeleccionVertice;
 		},
 		MENU_ITEM {
-			command = EBlenderLiteSetTipoEdge;
-			txt = STRING_r_blenderlite_SeleccionBordes;
+			command = EBlendersitoSetTipoEdge;
+			txt = STRING_r_blendersito_SeleccionBordes;
 		},
         MENU_ITEM {
-            command = EBlenderLiteSetTipoFace;
-            txt = STRING_r_blenderlite_SeleccionCaras;
+            command = EBlendersitoSetTipoFace;
+            txt = STRING_r_blendersito_SeleccionCaras;
         }	
     };
 }
 
 //----------------------------------------------------
 //
-//    r_blenderlite_editarOrigen_menu
+//    r_blendersito_editarOrigen_menu
 //
 //----------------------------------------------------
 //
-RESOURCE MENU_PANE r_blenderlite_editarOrigen_menu{
+RESOURCE MENU_PANE r_blendersito_editarOrigen_menu{
 	items = {
 		MENU_ITEM {
-			command = EBlenderLiteOrigenToGeometry;
-			txt = STRING_r_blenderlite_OrigenToGeometry;
+			command = EBlendersitoOrigenToGeometry;
+			txt = STRING_r_blendersito_OrigenToGeometry;
 		},
 		MENU_ITEM {
-			command = EBlenderLiteOrigenToSelect;
-			txt = STRING_r_blenderlite_OrigenToSelect;
+			command = EBlendersitoOrigenToSelect;
+			txt = STRING_r_blendersito_OrigenToSelect;
 		},
         MENU_ITEM {
-            command = EBlenderLiteOrigenToCursor;
-            txt = STRING_r_blenderlite_OrigenToCursor;
+            command = EBlendersitoOrigenToCursor;
+            txt = STRING_r_blendersito_OrigenToCursor;
         }	
     };
 }
@@ -643,49 +643,49 @@ RESOURCE MENU_PANE r_blenderlite_editarOrigen_menu{
 //----------------------------------------------------
 //
 
-RESOURCE TBUF256 r_blenderlite_perspectiva{buf = STRING_r_blenderlite_perspectiva;}
-RESOURCE TBUF256 r_blenderlite_ObjFocus{buf = STRING_r_blenderlite_ObjFocus;}
-RESOURCE TBUF256 r_blenderlite_CambiarObject{buf = STRING_r_blenderlite_CambiarObject;}
+RESOURCE TBUF256 r_blendersito_perspectiva{buf = STRING_r_blendersito_perspectiva;}
+RESOURCE TBUF256 r_blendersito_ObjFocus{buf = STRING_r_blendersito_ObjFocus;}
+RESOURCE TBUF256 r_blendersito_CambiarObject{buf = STRING_r_blendersito_CambiarObject;}
 
-RESOURCE TBUF256 r_blenderlite_BorrarObject{buf = STRING_r_blenderlite_BorrarObject;}
+RESOURCE TBUF256 r_blendersito_BorrarObject{buf = STRING_r_blendersito_BorrarObject;}
 
-RESOURCE TBUF256 r_blenderlite_EditarMesh{buf = STRING_r_blenderlite_EditarMesh;}
+RESOURCE TBUF256 r_blendersito_EditarMesh{buf = STRING_r_blendersito_EditarMesh;}
 
-RESOURCE TBUF256 r_blenderlite_EditarObject{buf = STRING_r_blenderlite_EditarObject;}
-RESOURCE TBUF256 r_blenderlite_InfoObject{buf = STRING_r_blenderlite_InfoObject;}
-RESOURCE TBUF256 r_blenderlite_CambiarEscala{buf = STRING_r_blenderlite_CambiarEscala;}
-RESOURCE TBUF256 r_blenderlite_CambiarPosicion{buf = STRING_r_blenderlite_CambiarPosicion;}
-RESOURCE TBUF256 r_blenderlite_CambiarRotacion{buf = STRING_r_blenderlite_CambiarRotacion;}
+RESOURCE TBUF256 r_blendersito_EditarObject{buf = STRING_r_blendersito_EditarObject;}
+RESOURCE TBUF256 r_blendersito_InfoObject{buf = STRING_r_blendersito_InfoObject;}
+RESOURCE TBUF256 r_blendersito_CambiarEscala{buf = STRING_r_blendersito_CambiarEscala;}
+RESOURCE TBUF256 r_blendersito_CambiarPosicion{buf = STRING_r_blendersito_CambiarPosicion;}
+RESOURCE TBUF256 r_blendersito_CambiarRotacion{buf = STRING_r_blendersito_CambiarRotacion;}
 
-RESOURCE TBUF256 r_blenderlite_Vista3D{buf = STRING_r_blenderlite_Vista3D;}
+RESOURCE TBUF256 r_blendersito_Vista3D{buf = STRING_r_blendersito_Vista3D;}
 
-RESOURCE TBUF256 r_blenderlite_Modificadores{buf = STRING_r_blenderlite_Modificadores;}
-RESOURCE TBUF256 r_blenderlite_ModificadorMirror{buf = STRING_r_blenderlite_ModificadorMirror;}
-RESOURCE TBUF256 r_blenderlite_ModificadorSrew{buf = STRING_r_blenderlite_ModificadorSrew;}
+RESOURCE TBUF256 r_blendersito_Modificadores{buf = STRING_r_blendersito_Modificadores;}
+RESOURCE TBUF256 r_blendersito_ModificadorMirror{buf = STRING_r_blendersito_ModificadorMirror;}
+RESOURCE TBUF256 r_blendersito_ModificadorSrew{buf = STRING_r_blendersito_ModificadorSrew;}
 
-RESOURCE TBUF256 r_blenderlite_newTexture{buf = STRING_r_blenderlite_newTexture;}
-RESOURCE TBUF256 r_blenderlite_ImportOBJ{buf = STRING_r_blenderlite_ImportOBJ;}
+RESOURCE TBUF256 r_blendersito_newTexture{buf = STRING_r_blendersito_newTexture;}
+RESOURCE TBUF256 r_blendersito_ImportOBJ{buf = STRING_r_blendersito_ImportOBJ;}
 
-RESOURCE TBUF256 r_blenderlite_Seleccionar{buf = STRING_r_blenderlite_Seleccionar;}
-RESOURCE TBUF256 r_blenderlite_SeleccionVertice{buf = STRING_r_blenderlite_SeleccionVertice;}
-RESOURCE TBUF256 r_blenderlite_SeleccionBordes{buf = STRING_r_blenderlite_SeleccionBordes;}
-RESOURCE TBUF256 r_blenderlite_SeleccionCaras{buf = STRING_r_blenderlite_SeleccionCaras;}
-RESOURCE TBUF256 r_blenderlite_SetOrigen{buf = STRING_r_blenderlite_SetOrigen;}
-RESOURCE TBUF256 r_blenderlite_OrigenToGeometry{buf = STRING_r_blenderlite_OrigenToGeometry;}
-RESOURCE TBUF256 r_blenderlite_OrigenToSelect{buf = STRING_r_blenderlite_OrigenToSelect;}
-RESOURCE TBUF256 r_blenderlite_OrigenToCursor{buf = STRING_r_blenderlite_OrigenToCursor;}
+RESOURCE TBUF256 r_blendersito_Seleccionar{buf = STRING_r_blendersito_Seleccionar;}
+RESOURCE TBUF256 r_blendersito_SeleccionVertice{buf = STRING_r_blendersito_SeleccionVertice;}
+RESOURCE TBUF256 r_blendersito_SeleccionBordes{buf = STRING_r_blendersito_SeleccionBordes;}
+RESOURCE TBUF256 r_blendersito_SeleccionCaras{buf = STRING_r_blendersito_SeleccionCaras;}
+RESOURCE TBUF256 r_blendersito_SetOrigen{buf = STRING_r_blendersito_SetOrigen;}
+RESOURCE TBUF256 r_blendersito_OrigenToGeometry{buf = STRING_r_blendersito_OrigenToGeometry;}
+RESOURCE TBUF256 r_blendersito_OrigenToSelect{buf = STRING_r_blendersito_OrigenToSelect;}
+RESOURCE TBUF256 r_blendersito_OrigenToCursor{buf = STRING_r_blendersito_OrigenToCursor;}
 
-RESOURCE TBUF256 r_widescreen_on{buf = STRING_r_blenderlite_widescreen_on;}
-RESOURCE TBUF256 r_widescreen_off{buf = STRING_r_blenderlite_widescreen_off;}
+RESOURCE TBUF256 r_widescreen_on{buf = STRING_r_blendersito_widescreen_on;}
+RESOURCE TBUF256 r_widescreen_off{buf = STRING_r_blendersito_widescreen_off;}
 
-RESOURCE TBUF256 r_lights_on{buf = STRING_r_blenderlite_lights_on;}
-RESOURCE TBUF256 r_lights_off{buf = STRING_r_blenderlite_lights_off;}
+RESOURCE TBUF256 r_lights_on{buf = STRING_r_blendersito_lights_on;}
+RESOURCE TBUF256 r_lights_off{buf = STRING_r_blendersito_lights_off;}
 
-RESOURCE TBUF256 r_lamp_on{buf = STRING_r_blenderlite_lamp_on;}
-RESOURCE TBUF256 r_lamp_off{buf = STRING_r_blenderlite_lamp_off;}
+RESOURCE TBUF256 r_lamp_on{buf = STRING_r_blendersito_lamp_on;}
+RESOURCE TBUF256 r_lamp_off{buf = STRING_r_blendersito_lamp_off;}
 
-RESOURCE TBUF256 r_spot_on{buf = STRING_r_blenderlite_spot_on;}
-RESOURCE TBUF256 r_spot_off{buf = STRING_r_blenderlite_spot_off;}
+RESOURCE TBUF256 r_spot_on{buf = STRING_r_blendersito_spot_on;}
+RESOURCE TBUF256 r_spot_off{buf = STRING_r_blendersito_spot_off;}
 
 //-----------------------------------------------------------------------------
 //Los nuevos que son mas claros y simples
@@ -714,12 +714,12 @@ RESOURCE TBUF256 r_showOrigin{buf = STRING_r_ShowOrigin;}
 
 //-----------------------------------------------------------------------------
 //
-//    r_blenderlite_softkeys_cancel
+//    r_blendersito_softkeys_cancel
 //    For Softkey of wait note.
 //
 //-----------------------------------------------------------------------------
 //
-RESOURCE CBA r_blenderlite_softkeys_cancel {
+RESOURCE CBA r_blendersito_softkeys_cancel {
     buttons = {
         CBA_BUTTON {
             txt = STRING_r_exnt_softkey_empty;
@@ -732,7 +732,7 @@ RESOURCE CBA r_blenderlite_softkeys_cancel {
 }
 
 //cuadro de dialogo para ver archivos
-RESOURCE MEMORYSELECTIONDIALOG r_blenderlite_select_dialog {
+RESOURCE MEMORYSELECTIONDIALOG r_blendersito_select_dialog {
     locations = {
         LOCATION { root_path = "C:\\Data\\"; },
         LOCATION { root_path = "E:\\"; }
@@ -740,7 +740,7 @@ RESOURCE MEMORYSELECTIONDIALOG r_blenderlite_select_dialog {
 }
 
 //wait
-RESOURCE DIALOG r_blenderlite_wait_note {
+RESOURCE DIALOG r_blendersito_wait_note {
     flags = (((0x200  | 0x040  | 0x2000  )  | 0x002 ) ) ;
     buttons = 0x8cc0010 ;
     items =
@@ -779,18 +779,18 @@ RESOURCE DIALOG r_accept_invitation_dlg {
 
 //----------------------------------------------------
 //
-//    r_blenderlite_localisable_app_info
+//    r_blendersito_localisable_app_info
 //
 //----------------------------------------------------
 //
-RESOURCE LOCALISABLE_APP_INFO r_blenderlite_localisable_app_info{
+RESOURCE LOCALISABLE_APP_INFO r_blendersito_localisable_app_info{
     short_caption = STRING_r_app_short_caption_string;
     caption_and_icon =
     CAPTION_AND_ICON_INFO
         {
         caption         = STRING_r_app_caption_string;
         number_of_icons = 1;
-        icon_file       = "\\resource\\apps\\blenderlite_icon.mif";
+        icon_file       = "\\resource\\apps\\blendersito_icon.mif";
         };
 }
 
@@ -828,14 +828,14 @@ RESOURCE DIALOG r_aknexnote_error_note
 
 //-----------------------------------------------------------------------------
 //
-//    r_blenderlite_wait_note_softkey_cancel
+//    r_blendersito_wait_note_softkey_cancel
 //    Wait note with softkey Cancel.
 //
 //-----------------------------------------------------------------------------
 //
-RESOURCE DIALOG r_blenderlite_wait_note_softkey_cancel{
+RESOURCE DIALOG r_blendersito_wait_note_softkey_cancel{
     flags = EAknWaitNoteFlags;
-    buttons = r_blenderlite_softkeys_cancel;
+    buttons = r_blendersito_softkeys_cancel;
     items = {
         DLG_LINE {
             type = EAknCtNote;
@@ -854,19 +854,19 @@ RESOURCE DIALOG r_blenderlite_wait_note_softkey_cancel{
 
 //-----------------------------------------------------------------------------
 //
-//    r_blenderlite_progress_note
+//    r_blendersito_progress_note
 //    For progress note.
 //
 //-----------------------------------------------------------------------------
 //
-RESOURCE DIALOG r_blenderlite_progress_note {
+RESOURCE DIALOG r_blendersito_progress_note {
     flags = EAknProgressNoteFlags;
-    buttons = r_blenderlite_softkeys_cancel;
+    buttons = r_blendersito_softkeys_cancel;
     items = {
         DLG_LINE {
             type = EAknCtNote;
             //id = EAknExNoteCtrlIdProgressNote;
-            id = EBlenderLiteProgressNote;            
+            id = EBlendersitoProgressNote;            
             control = AVKON_NOTE {
                 layout = EProgressLayout;
                 singular_label = STRING_r_exnt_progress_singular;

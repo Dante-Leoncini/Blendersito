@@ -1,23 +1,23 @@
 /*
  * ==============================================================================
- *  Name        : BlenderLiteDocument.cpp
- *  Part of     : OpenGLEx / BlenderLite
+ *  Name        : BlendersitoDocument.cpp
+ *  Part of     : OpenGLEx / Blendersito
  * ==============================================================================
  */
 
 // INCLUDE FILES
-#include "BlenderLiteDocument.h"
-#include "BlenderLiteAppUi.h"
+#include "BlendersitoDocument.h"
+#include "BlendersitoAppUi.h"
 
 // ================= MEMBER FUNCTIONS =======================
 
 // -----------------------------------------------------------------------------
-// CBlenderLiteDocument::CBlenderLiteDocument
+// CBlendersitoDocument::CBlendersitoDocument
 // C++ default constructor can NOT contain any code, that
 // might leave.
 // -----------------------------------------------------------------------------
 //
-CBlenderLiteDocument::CBlenderLiteDocument(CEikApplication& aApp)
+CBlendersitoDocument::CBlendersitoDocument(CEikApplication& aApp)
 : CAknDocument(aApp)
     {
     }
@@ -27,19 +27,19 @@ CBlenderLiteDocument::CBlenderLiteDocument(CEikApplication& aApp)
 // Symbian 2nd phase constructor can leave.
 // -----------------------------------------------------------------------------
 //
-void CBlenderLiteDocument::ConstructL()
+void CBlendersitoDocument::ConstructL()
     {
     }
 
 // -----------------------------------------------------------------------------
-// CBlenderLiteDocument::NewL
+// CBlendersitoDocument::NewL
 // Two-phased constructor.
 // -----------------------------------------------------------------------------
 //
-CBlenderLiteDocument* CBlenderLiteDocument::NewL(
-        CEikApplication& aApp)     // CBlenderLiteApp reference
+CBlendersitoDocument* CBlendersitoDocument::NewL(
+        CEikApplication& aApp)     // CBlendersitoApp reference
     {
-    CBlenderLiteDocument* self = new (ELeave) CBlenderLiteDocument( aApp );
+    CBlendersitoDocument* self = new (ELeave) CBlendersitoDocument( aApp );
     CleanupStack::PushL( self );
     self->ConstructL();
     CleanupStack::Pop();
@@ -48,18 +48,18 @@ CBlenderLiteDocument* CBlenderLiteDocument::NewL(
     }
 
 // destructor
-CBlenderLiteDocument::~CBlenderLiteDocument()
+CBlendersitoDocument::~CBlendersitoDocument()
     {
     }
 
 // ----------------------------------------------------
-// CBlenderLiteDocument::CreateAppUiL()
-// constructs CBlenderLiteAppUi
+// CBlendersitoDocument::CreateAppUiL()
+// constructs CBlendersitoAppUi
 // ----------------------------------------------------
 //
-CEikAppUi* CBlenderLiteDocument::CreateAppUiL()
+CEikAppUi* CBlendersitoDocument::CreateAppUiL()
     {
-    return new (ELeave) CBlenderLiteAppUi;
+    return new (ELeave) CBlendersitoAppUi;
     }
 
 // End of File

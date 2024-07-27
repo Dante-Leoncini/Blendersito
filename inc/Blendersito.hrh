@@ -1,24 +1,24 @@
 /*
  * ==============================================================================
- *  Name        : blenderlite.hrh
- *  Part of     : OpenGLEx / BlenderLite
+ *  Name        : blendersito.hrh
+ *  Part of     : OpenGLEx / Blendersito
  * ==============================================================================
  */
 
-#ifndef BLENDERLITE_HRH
-#define BLENDERLITE_HRH
+#ifndef BLENDERSITO_HRH
+#define BLENDERSITO_HRH
 	
 // DATA TYPES
-enum TBlenderLiteMenuCommands
+enum TBlendersitoMenuCommands
 {    	    	    
-    EBlenderLiteTopView,
-    EBlenderLiteFrontView,
-    EBlenderLiteRightView,
-    EBlenderLitePerspectiva,
-    EBlenderLiteObjFocus,
-    EBlenderLiteCambiarObject,
-    EBlenderLiteNavegacion,
-    EBlenderLiteBorrar,
+    EBlendersitoTopView,
+    EBlendersitoFrontView,
+    EBlendersitoRightView,
+    EBlendersitoPerspectiva,
+    EBlendersitoObjFocus,
+    EBlendersitoCambiarObject,
+    EBlendersitoNavegacion,
+    EBlendersitoBorrar,
     
     EMaterial,
     ESetMaterial,
@@ -39,12 +39,12 @@ enum TBlenderLiteMenuCommands
     ESetVertexColor,
     ESetAmbientLight,
     
-    EBlenderLiteEditarMesh,
+    EBlendersitoEditarMesh,
     EViewportObject,
-    EBlenderLiteInfoObject,
-    EBlenderLiteSetEscala,
-    EBlenderLiteSetPosicion,
-    EBlenderLiteSetRotacion,
+    EBlendersitoInfoObject,
+    EBlendersitoSetEscala,
+    EBlendersitoSetPosicion,
+    EBlendersitoSetRotacion,
     
     ESetParent,
 	EClearParent,
@@ -57,34 +57,34 @@ enum TBlenderLiteMenuCommands
     ERenderUI,
     ERenderUIanimation,
     
-    EBlenderLiteSeleccionar,
-    EBlenderLiteSetTipoVertex,
-    EBlenderLiteSetTipoEdge,
-    EBlenderLiteSetTipoFace,
+    EBlendersitoSeleccionar,
+    EBlendersitoSetTipoVertex,
+    EBlendersitoSetTipoEdge,
+    EBlendersitoSetTipoFace,
     
-    EBlenderLiteOrigenSetOrigen,
-    EBlenderLiteOrigenToGeometry,
-    EBlenderLiteOrigenToSelect,
-    EBlenderLiteOrigenToCursor,
+    EBlendersitoOrigenSetOrigen,
+    EBlendersitoOrigenToGeometry,
+    EBlendersitoOrigenToSelect,
+    EBlendersitoOrigenToCursor,
     
-    EBlenderLiteVista3D,
-    EBlenderLiteViewSolid,
-    EBlenderLiteViewMaterial,
-    EBlenderLiteViewWireframe,
+    EBlendersitoVista3D,
+    EBlendersitoViewSolid,
+    EBlendersitoViewMaterial,
+    EBlendersitoViewWireframe,
     EViewRendered,
     
-    EBlenderLiteModificadores,
-    EBlenderLiteModificadorArray,
-    EBlenderLiteModificadorMirror,
-    EBlenderLiteModificadorScrew,
+    EBlendersitoModificadores,
+    EBlendersitoModificadorArray,
+    EBlendersitoModificadorMirror,
+    EBlendersitoModificadorScrew,
 
-    EBlenderLiteWidescreen,
+    EBlendersitoWidescreen,
     EImportOBJ,
     EOldImportOBJ,
     ENewTexture,
 
-    EBlenderLiteProgressNote,
-    EBlenderLiteWaitNote,
+    EBlendersitoProgressNote,
+    EBlendersitoWaitNote,
 
     EViewportSetOverlay,
     EViewportSet3DCursor,
@@ -130,9 +130,9 @@ enum TAknExNoteNoteControlIds {
     EAknExNoteCtrlIdDynamicText    
 };
 
-//enum TBlenderLiteNoteControlIds {
-//    EBlenderLiteProgressNote,
-//    EBlenderLiteWaitNote
+//enum TBlendersitoNoteControlIds {
+//    EBlendersitoProgressNote,
+//    EBlendersitoWaitNote
 //};
 
-#endif      // BLENDERLITE_HRH
+#endif      // BLENDERSITO_HRH

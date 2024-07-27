@@ -1,13 +1,13 @@
 /*
  * ==============================================================================
- *  Name        : BlenderLiteinput.cpp
- *  Part of     : OpenGLEx / BlenderLite
+ *  Name        : Blendersitoinput.cpp
+ *  Part of     : OpenGLEx / Blendersito
  * ==============================================================================
  */
 
 // INCLUDE FILES
 #include <aknnotewrappers.h>
-#include "blenderliteinput.h"
+#include "blendersitoinput.h"
 
 // MACROS
 #define FRUSTUM_LEFT   -1.f     //left vertical clipping plane
@@ -24,14 +24,14 @@
 // ============================= MEMBER FUNCTIONS ===============================
 
 // -----------------------------------------------------------------------------
-// CBlenderLiteInput::NewL
+// CBlendersitoInput::NewL
 // Symbian 2-phase constructor. Can leave.
 // -----------------------------------------------------------------------------
 //
-CBlenderLiteInput* CBlenderLiteInput::NewL(){
+CBlendersitoInput* CBlendersitoInput::NewL(){
     // Symbian 2-phase constructor. Calls both the default
     // C++ constructor and Symbian ConstructL methods
-    CBlenderLiteInput* self = new (ELeave) CBlenderLiteInput();
+    CBlendersitoInput* self = new (ELeave) CBlendersitoInput();
     CleanupStack::PushL( self );
     self->ConstructL();
     CleanupStack::Pop();
@@ -40,20 +40,20 @@ CBlenderLiteInput* CBlenderLiteInput::NewL(){
 }
 
 // ----------------------------------------------------------------------------
-// CBlenderLiteInput::CBlenderLiteInput
+// CBlendersitoInput::CBlendersitoInput
 // C++ default constructor can NOT contain any code, that
 // might leave.
 // ----------------------------------------------------------------------------
 //
-CBlenderLiteInput::CBlenderLiteInput(){
+CBlendersitoInput::CBlendersitoInput(){
 }
 
 // ----------------------------------------------------------------------------
-// CBlenderLiteInput::ConstructL
+// CBlendersitoInput::ConstructL
 // Symbian 2nd phase constructor can leave.
 // ----------------------------------------------------------------------------
 //
-void CBlenderLiteInput::ConstructL( void ){
+void CBlendersitoInput::ConstructL( void ){
     iInputPressed = new (ELeave) TBool[ MAX_NUM_INPUTS ];
     for( int i = 0; i < MAX_NUM_INPUTS; i++ ){
         iInputPressed[i] = EFalse;
@@ -61,20 +61,20 @@ void CBlenderLiteInput::ConstructL( void ){
 }
 
 // ----------------------------------------------------------------------------
-// CBlenderLiteInput::~CBlenderLiteInput()
+// CBlendersitoInput::~CBlendersitoInput()
 // Destructor.
 // ----------------------------------------------------------------------------
 //
-CBlenderLiteInput::~CBlenderLiteInput(){
+CBlendersitoInput::~CBlendersitoInput(){
     delete iInputPressed;
 }
 
 // ----------------------------------------------------------------------------
-// CBlenderLiteInput::KeyDown( const int aKeyCode )
+// CBlendersitoInput::KeyDown( const int aKeyCode )
 // Sets the given keycode to pressed state.
 // ----------------------------------------------------------------------------
 //
-TKeyResponse CBlenderLiteInput::KeyDown( const int aKeyCode ){
+TKeyResponse CBlendersitoInput::KeyDown( const int aKeyCode ){
     TInt inputIdx = -1;
     for( int i = 0; i < KKeyCodeMapSize; i +=2 ){
         if( KKeyCodeMap[i] == aKeyCode ){
@@ -92,11 +92,11 @@ TKeyResponse CBlenderLiteInput::KeyDown( const int aKeyCode ){
 }
 
 // ----------------------------------------------------------------------------
-// CBlenderLiteInput::KeyUp( const int aKeyCode )
+// CBlendersitoInput::KeyUp( const int aKeyCode )
 // Sets the given keycode to non-pressed state.
 // ----------------------------------------------------------------------------
 //
-TKeyResponse CBlenderLiteInput::KeyUp( const int aKeyCode ){
+TKeyResponse CBlendersitoInput::KeyUp( const int aKeyCode ){
     TInt inputIdx = -1;
     for( int i = 0; i < KKeyCodeMapSize; i +=2 ){
         if( KKeyCodeMap[i] == aKeyCode ){
@@ -114,11 +114,11 @@ TKeyResponse CBlenderLiteInput::KeyUp( const int aKeyCode ){
 }
 
 // ----------------------------------------------------------------------------
-// CBlenderLiteInput::IsInputPressed( Input aInput )
+// CBlendersitoInput::IsInputPressed( Input aInput )
 // Returns whether or not a given input is pressed at the moment or not.
 // ----------------------------------------------------------------------------
 //
-TBool CBlenderLiteInput::IsInputPressed( TUint aInput ){
+TBool CBlendersitoInput::IsInputPressed( TUint aInput ){
     return iInputPressed[ aInput ];
 }
 

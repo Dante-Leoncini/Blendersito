@@ -1,12 +1,12 @@
 /*
  * ==============================================================================
- *  Name        : BlenderLiteDocument.h
- *  Part of     : OpenGLEx / BlenderLite
+ *  Name        : BlendersitoDocument.h
+ *  Part of     : OpenGLEx / Blendersito
  * ==============================================================================
  */
 
-#ifndef BLENDERLITEDOCUMENT_H
-#define BLENDERLITEDOCUMENT_H
+#ifndef BLENDERSITODOCUMENT_H
+#define BLENDERSITODOCUMENT_H
 
 // INCLUDES
 #include <akndoc.h>
@@ -20,26 +20,26 @@ class  CEikAppUi;
  * Document class that is just used as the container for the application
  * (as required by the Symbian UI application architecture).
  */
-class CBlenderLiteDocument : public CAknDocument
+class CBlendersitoDocument : public CAknDocument
     {
     public: // Constructors and destructor
 
         /**
-         * Factory method for creating a new CBlenderLiteDocument object.
+         * Factory method for creating a new CBlendersitoDocument object.
          */
-        static CBlenderLiteDocument* NewL(CEikApplication& aApp);
+        static CBlendersitoDocument* NewL(CEikApplication& aApp);
 
         /**
          * Destructor. Does nothing.
          */
-        virtual ~CBlenderLiteDocument();
+        virtual ~CBlendersitoDocument();
 
     private:  // Functions from base classes
 
         /**
          * C++ constructor. Just passes the given application reference to the baseclass.
          */
-        CBlenderLiteDocument(CEikApplication& aApp);
+        CBlendersitoDocument(CEikApplication& aApp);
 
         /**
          * Second phase constructor. Does nothing.
@@ -49,7 +49,7 @@ class CBlenderLiteDocument : public CAknDocument
     private: // New functions
 
         /**
-         * From CEikDocument, creates and returns CBlenderLiteAppUi application UI object.
+         * From CEikDocument, creates and returns CBlendersitoAppUi application UI object.
          */
         CEikAppUi* CreateAppUiL();
     };

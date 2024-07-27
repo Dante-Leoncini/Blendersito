@@ -1,24 +1,24 @@
 /*
  * ==============================================================================
- *  Name        : blenderlite.rls
- *  Part of     : OpenGLEx / BlenderLite
+ *  Name        : blendersito.rls
+ *  Part of     : OpenGLEx / Blendersito
  * ==============================================================================
  */
 
 // LOCALISATION STRINGS
 
-rls_string STRING_r_app_caption_string       "BlenderLite"
-rls_string STRING_r_app_short_caption_string "BlenderLite"
+rls_string STRING_r_app_caption_string       "Blendersito"
+rls_string STRING_r_app_short_caption_string "Blendersito"
 
-rls_string STRING_r_blenderlite_exit         "Quit"
+rls_string STRING_r_blendersito_exit         "Quit"
 
-rls_string STRING_r_blenderlite_lighting     "Luces"
-rls_string STRING_r_blenderlite_lights_on    "Turn lights on"
-rls_string STRING_r_blenderlite_lights_off   "Turn lights off"
-rls_string STRING_r_blenderlite_lamp_on      "Turn lamp on"
-rls_string STRING_r_blenderlite_lamp_off     "Turn lamp off"
-rls_string STRING_r_blenderlite_spot_on      "Turn spot on"
-rls_string STRING_r_blenderlite_spot_off     "Turn spot off"
+rls_string STRING_r_blendersito_lighting     "Luces"
+rls_string STRING_r_blendersito_lights_on    "Turn lights on"
+rls_string STRING_r_blendersito_lights_off   "Turn lights off"
+rls_string STRING_r_blendersito_lamp_on      "Turn lamp on"
+rls_string STRING_r_blendersito_lamp_off     "Turn lamp off"
+rls_string STRING_r_blendersito_spot_on      "Turn spot on"
+rls_string STRING_r_blendersito_spot_off     "Turn spot off"
 
 rls_string STRING_r_Add          "Add"
 rls_string STRING_r_AddCube      "Add Cube"
@@ -28,15 +28,15 @@ rls_string STRING_r_AddLight     "Add Light"
 rls_string STRING_r_AddCamera    "Add Camera"
 rls_string STRING_r_AddEmpty     "Add Empty"
 
-rls_string STRING_r_blenderlite_topView        "Top View"
-rls_string STRING_r_blenderlite_frontView      "Front View"
-rls_string STRING_r_blenderlite_rightView      "Right View"
-rls_string STRING_r_blenderlite_perspectiva    "Cambiar Perspectiva"
-rls_string STRING_r_blenderlite_ObjFocus       "Enfocar Object"
-rls_string STRING_r_blenderlite_CambiarObject  "Cambiar Object"
-rls_string STRING_r_blenderlite_SetNavegacion  "Cambiar Navegacion"
+rls_string STRING_r_blendersito_topView        "Top View"
+rls_string STRING_r_blendersito_frontView      "Front View"
+rls_string STRING_r_blendersito_rightView      "Right View"
+rls_string STRING_r_blendersito_perspectiva    "Cambiar Perspectiva"
+rls_string STRING_r_blendersito_ObjFocus       "Enfocar Object"
+rls_string STRING_r_blendersito_CambiarObject  "Cambiar Object"
+rls_string STRING_r_blendersito_SetNavegacion  "Cambiar Navegacion"
 
-rls_string STRING_r_blenderlite_Borrar         "Delete"
+rls_string STRING_r_blendersito_Borrar         "Delete"
 
 rls_string STRING_r_removeMaterial        "Remove Material"
 rls_string STRING_r_removeTexture         "Remove Texture"
@@ -58,7 +58,7 @@ rls_string STRING_r_setCulling            "Enable Culling"
 rls_string STRING_r_setLighting           "Enable Lighting"
 rls_string STRING_r_setVertexColor           "Enable Vertex Color"
 
-rls_string STRING_r_blenderlite_EditarMesh     "Edit Mesh"
+rls_string STRING_r_blendersito_EditarMesh     "Edit Mesh"
 
 rls_string STRING_r_Object               "Object"
 rls_string STRING_r_Snap                 "Snap"
@@ -73,33 +73,33 @@ rls_string STRING_r_FlipNormals          "Flip Normals"
 rls_string STRING_r_DuplicatedObject               "Duplicate Object"
 rls_string STRING_r_DuplicatedLinked               "Duplicate Linked"
 
-rls_string STRING_r_blenderlite_InfoObject       "Informacion Object"
-rls_string STRING_r_blenderlite_CambiarEscala    "Cambiar Escala"
-rls_string STRING_r_blenderlite_CambiarPosicion  "Cambiar Posicion"
-rls_string STRING_r_blenderlite_CambiarRotacion  "Cambiar Rotacion"
+rls_string STRING_r_blendersito_InfoObject       "Informacion Object"
+rls_string STRING_r_blendersito_CambiarEscala    "Cambiar Escala"
+rls_string STRING_r_blendersito_CambiarPosicion  "Cambiar Posicion"
+rls_string STRING_r_blendersito_CambiarRotacion  "Cambiar Rotacion"
 
-rls_string STRING_r_blenderlite_Vista3D          "Vista 3D"
-rls_string STRING_r_blenderlite_ViewSolid        "View Solid"
-rls_string STRING_r_blenderlite_ViewMaterial     "View Material"
-rls_string STRING_r_blenderlite_ViewWireframe    "View Wireframe"
+rls_string STRING_r_blendersito_Vista3D          "Vista 3D"
+rls_string STRING_r_blendersito_ViewSolid        "View Solid"
+rls_string STRING_r_blendersito_ViewMaterial     "View Material"
+rls_string STRING_r_blendersito_ViewWireframe    "View Wireframe"
 rls_string STRING_r_ViewRendered                 "View Rendered"
 rls_string STRING_r_setAmbientLight              "Set Ambient Light"
 
-rls_string STRING_r_blenderlite_Modificadores     "Modificadores"
-rls_string STRING_r_blenderlite_ModificadorArray  "Array"
-rls_string STRING_r_blenderlite_ModificadorMirror "Mirror"
-rls_string STRING_r_blenderlite_ModificadorSrew   "Srew"
+rls_string STRING_r_blendersito_Modificadores     "Modificadores"
+rls_string STRING_r_blendersito_ModificadorArray  "Array"
+rls_string STRING_r_blendersito_ModificadorMirror "Mirror"
+rls_string STRING_r_blendersito_ModificadorSrew   "Srew"
 
-rls_string STRING_r_blenderlite_Seleccionar      "Menu de Seleccion"
-rls_string STRING_r_blenderlite_SeleccionVertice "Seleccionar Vertices"
-rls_string STRING_r_blenderlite_SeleccionBordes  "Seleccionar Bordes"
-rls_string STRING_r_blenderlite_SeleccionCaras   "Seleccionar Caras"
-rls_string STRING_r_blenderlite_SetOrigen        "Set Origen"
-rls_string STRING_r_blenderlite_OrigenToGeometry "Origen a la Geometria"
-rls_string STRING_r_blenderlite_OrigenToCursor   "Origen al cursor 3D"
+rls_string STRING_r_blendersito_Seleccionar      "Menu de Seleccion"
+rls_string STRING_r_blendersito_SeleccionVertice "Seleccionar Vertices"
+rls_string STRING_r_blendersito_SeleccionBordes  "Seleccionar Bordes"
+rls_string STRING_r_blendersito_SeleccionCaras   "Seleccionar Caras"
+rls_string STRING_r_blendersito_SetOrigen        "Set Origen"
+rls_string STRING_r_blendersito_OrigenToGeometry "Origen a la Geometria"
+rls_string STRING_r_blendersito_OrigenToCursor   "Origen al cursor 3D"
 
-rls_string STRING_r_blenderlite_widescreen_on    "Pantalla Ancha on"
-rls_string STRING_r_blenderlite_widescreen_off   "Pantalla Ancha off"
+rls_string STRING_r_blendersito_widescreen_on    "Pantalla Ancha on"
+rls_string STRING_r_blendersito_widescreen_off   "Pantalla Ancha off"
 
 rls_string STRING_r_ImportOBJ     "Import Wavefront (.obj)"
 rls_string STRING_r_OldImportOBJ  "Old Import Wavefront (.obj)"

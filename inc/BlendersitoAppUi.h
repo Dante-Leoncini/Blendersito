@@ -1,12 +1,12 @@
 /*
  * ==============================================================================
- *  Name        : BlenderLiteAppUi.h
- *  Part of     : OpenGLEx / BlenderLite
+ *  Name        : BlendersitoAppUi.h
+ *  Part of     : OpenGLEx / Blendersito
  * ==============================================================================
  */
 
-#ifndef BLENDERLITEAPPUI_H
-#define BLENDERLITEAPPUI_H
+#ifndef BLENDERSITOAPPUI_H
+#define BLENDERSITOAPPUI_H
 
 // INCLUDES
 #include <eikapp.h>
@@ -16,30 +16,30 @@
 #include <aknappui.h>
 
 // FORWARD DECLARATIONS
-class CBlenderLiteContainer;
+class CBlendersitoContainer;
 
 
 // CLASS DECLARATION
 
 /**
- * Application UI class that is contains the CBlenderLiteContainer
+ * Application UI class that is contains the CBlendersitoContainer
  * (as required by the Symbian UI application architecture).
  */
-class CBlenderLiteAppUi : public CAknAppUi
+class CBlendersitoAppUi : public CAknAppUi
     {
     public: // Constructors and destructor
 
         /**
-         * Second phase constructor. Creates the CBlenderLiteContainer
+         * Second phase constructor. Creates the CBlendersitoContainer
          * and adds it to the control stack.
          */
         void ConstructL();
 
         /**
-         * Destructor. Removes CBlenderLiteContainer from the control
+         * Destructor. Removes CBlendersitoContainer from the control
          * stack and destroys it.
          */
-        virtual ~CBlenderLiteAppUi();
+        virtual ~CBlendersitoAppUi();
 
     private: // Functions from base classes
         /**
@@ -69,7 +69,7 @@ class CBlenderLiteAppUi : public CAknAppUi
     private: //Data
 
         /** GUI container that resides in this application UI. */
-        CBlenderLiteContainer* iAppContainer;
+        CBlendersitoContainer* iAppContainer;
     };
 
 #endif

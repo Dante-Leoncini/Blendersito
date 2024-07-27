@@ -1,12 +1,12 @@
 /*
  * ==============================================================================
- *  Name        : BlenderLite.h
- *  Part of     : OpenGLEx / BlenderLite
+ *  Name        : Blendersito.h
+ *  Part of     : OpenGLEx / Blendersito
  * ==============================================================================
  */
 
-#ifndef BLENDERLITE_H
-#define BLENDERLITE_H
+#ifndef BLENDERSITO_H
+#define BLENDERSITO_H
 
 // INCLUDES
 #include <e32base.h> // for CBase definition
@@ -14,13 +14,13 @@
 #include <GLES/gl.h> // OpenGL ES header file
 #include "Utils3d.h" // Utilities (texmanager, textures etc.)
 #include "Glutils.h" // Misc GLU and GLUT functions
-#include "BlenderLiteinput.h"
+#include "Blendersitoinput.h"
 
 //para el cuadro de wait
 #include <AknWaitDialog.h>
 
 // Forward declaration de Object
-class CBlenderLiteContainer;
+class CBlendersitoContainer;
 class Object;
 
 // MACROS
@@ -40,7 +40,7 @@ class Mesh;
 /**
  * Class that does the actual OpenGL ES rendering.
  */
-class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
+class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
     {
     public:  // Constructors and destructor
 
@@ -48,12 +48,12 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
          * Factory method for creating a new CSimpleCube object.
          * @param iInputHandler Input handler that maps keycodes to inputs and stores the current state for each key.
          */
-        static CBlenderLite* NewL( TUint aWidth, TUint aHeight, CBlenderLiteInput* aInputHandler);
+        static CBlendersito* NewL( TUint aWidth, TUint aHeight, CBlendersitoInput* aInputHandler);
 
         /**
          * Destructor. Does nothing.
          */
-        virtual ~CBlenderLite();
+        virtual ~CBlendersito();
             
     public:  // New functions
         
@@ -239,7 +239,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
          * @param aWidth Width of the screen.
          * @param aHeight Height of the screen.
          */
-        CBlenderLite( TUint aWidth, TUint aHeight, CBlenderLiteInput* aInputHandler );
+        CBlendersito( TUint aWidth, TUint aHeight, CBlendersitoInput* aInputHandler );
 
         /**
          * Second phase contructor. Does nothing.
@@ -297,7 +297,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
     private:  // Data
         CAknWaitDialog* iWaitDialog;
 
-        CBlenderLiteContainer*    iContainer;
+        CBlendersitoContainer*    iContainer;
 
 		/** Texture manager that is used to load the used textures. */
 		CTextureManager * iTextureManager;
@@ -326,7 +326,7 @@ class CBlenderLite : public CFiniteStateMachine, public MTextureLoadingListener
 		 * Input handler that maps keycodes to inputs and stores the current state
 		 * for each key. Owned by the C#Name#Container.
 		 */
-		CBlenderLiteInput* iInputHandler;
+		CBlendersitoInput* iInputHandler;
     };
 
-#endif // BLENDERLITE_H
+#endif // BLENDERSITO_H

@@ -1,7 +1,7 @@
 #
 # ==============================================================================
 #  Name        : Icons_scalable_dc.mk
-#  Part of     : OpenGLEx / BlenderLite
+#  Part of     : OpenGLEx / Blendersito
 # ==============================================================================
 #
 
@@ -13,7 +13,7 @@ ZDIR=$(EPOCROOT)epoc32\data\z
 endif
 
 TARGETDIR=$(ZDIR)\resource\apps
-ICONTARGETFILENAME=$(TARGETDIR)\blenderlite_icon.mif
+ICONTARGETFILENAME=$(TARGETDIR)\blendersito_icon.mif
 
 ICONDIR=..\gfx
 
@@ -35,7 +35,7 @@ CLEANLIB : do_nothing
 	
 RESOURCE : #capaz rompi el icono
 	mifconv $(ICONTARGETFILENAME) \
-		/c32 $(ICONDIR)\qgn_menu_blenderlite.svg
+		/c32 $(ICONDIR)\qgn_menu_blendersito.svg
 
 FREEZE : do_nothing
 

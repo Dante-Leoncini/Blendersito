@@ -1,12 +1,12 @@
 /*
  * ==============================================================================
- *  Name        : BlenderLite.mmp
- *  Part of     : OpenGLEx / BlenderLite
+ *  Name        : Blendersito.mmp
+ *  Part of     : OpenGLEx / Blendersito
  * ==============================================================================
  */
 
 //New style application exe
-TARGET          blenderlite.exe
+TARGET          blendersito.exe
 TARGETTYPE      exe
 UID             0x100039CE 0xA00D021D
 
@@ -25,13 +25,13 @@ SOURCE          Utils3d.cpp
 SOURCE          Textureutils.cpp
 
 SOURCEPATH      ..\src
-SOURCE          BlenderLite.cpp
-SOURCE          BlenderLiteapp.cpp
-SOURCE          BlenderLiteappui.cpp
-SOURCE          BlenderLitedocument.cpp
-SOURCE          BlenderLitecontainer.cpp BlenderLiteinput.cpp
+SOURCE          Blendersito.cpp
+SOURCE          Blendersitoapp.cpp
+SOURCE          Blendersitoappui.cpp
+SOURCE          Blendersitodocument.cpp
+SOURCE          Blendersitocontainer.cpp Blendersitoinput.cpp
 
-START RESOURCE  ..\data\blenderlite.rss
+START RESOURCE  ..\data\blendersito.rss
 HEADER
 TARGETPATH      \\resource\\apps
 LANG            SC
@@ -52,7 +52,7 @@ LIBRARY         libgles_cm.lib
 LIBRARY         ws32.lib commondialogs.lib
 LIBRARY         estor.lib eikctl.lib aknnotify.lib apgrfx.lib eikdlg.lib charconv.lib 
 
-START RESOURCE ..\data\blenderlite_reg.rss
+START RESOURCE ..\data\blendersito_reg.rss
 #ifdef WINSCW
 TARGETPATH 	  \private\10003a3f\apps
 #else

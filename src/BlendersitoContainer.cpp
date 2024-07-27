@@ -1,7 +1,7 @@
 /*
  * ==============================================================================
- *  Name        : BlenderLiteContainer.cpp
- *  Part of     : OpenGLEx / BlenderLite
+ *  Name        : BlendersitoContainer.cpp
+ *  Part of     : OpenGLEx / Blendersito
  * ==============================================================================
  */
 
@@ -17,25 +17,25 @@
 #include <eikprogi.h>
 #include <aknnotecontrol.h>
 
-#include "BlenderLiteContainer.h"
-#include "BlenderLiteAppUi.h"
-#include "blenderlite.hrh"
+#include "BlendersitoContainer.h"
+#include "BlendersitoAppUi.h"
+#include "blendersito.hrh"
 
 // CONSTANTS
-#include "BlenderLiteConstants.h"
+#include "BlendersitoConstants.h"
 
 
 // ================= MEMBER FUNCTIONS =======================
 // ---------------------------------------------------------
-// CBlenderLiteContainer::ConstructL
+// CBlendersitoContainer::ConstructL
 // Symbian 2nd phase constructor
 // ---------------------------------------------------------
 //
-void CBlenderLiteContainer::ConstructL(const TRect& /*aRect*/){
+void CBlendersitoContainer::ConstructL(const TRect& /*aRect*/){
     CreateWindowL();
     iOpenGlInitialized = EFalse;
     // Create the input handler
-    iInputHandler = CBlenderLiteInput::NewL();
+    iInputHandler = CBlendersitoInput::NewL();
 
     SetExtentToWholeScreen();                // Take the whole screen into use
     ActivateL();
@@ -196,15 +196,15 @@ void CBlenderLiteContainer::ConstructL(const TRect& /*aRect*/){
     TSize size;
     size = this->Size();
 
-    iBlenderLite = CBlenderLite::NewL( size.iWidth, size.iHeight, iInputHandler ); // Create an instance of BlenderLite
-    iBlenderLite->AppInit();                                       // Initialize OpenGL ES
+    iBlendersito = CBlendersito::NewL( size.iWidth, size.iHeight, iInputHandler ); // Create an instance of Blendersito
+    iBlendersito->AppInit();                                       // Initialize OpenGL ES
 
     iOpenGlInitialized = ETrue;
 
     iPeriodic = CPeriodic::NewL( CActive::EPriorityIdle );         // Create an active object for
                                                                   // animating the scene
     iPeriodic->Start( 100, 100,
-                      TCallBack( CBlenderLiteContainer::DrawCallBack, this ) );
+                      TCallBack( CBlendersitoContainer::DrawCallBack, this ) );
     }
 
 // ------------------------------------------------------------------------------
@@ -212,7 +212,7 @@ void CBlenderLiteContainer::ConstructL(const TRect& /*aRect*/){
 // Handles joystick movements.
 // ------------------------------------------------------------------------------
 //
-TKeyResponse CBlenderLiteContainer::OfferKeyEventL( const TKeyEvent& aKeyEvent,TEventCode aType ){
+TKeyResponse CBlendersitoContainer::OfferKeyEventL( const TKeyEvent& aKeyEvent,TEventCode aType ){
 	switch( aType )
 		{
 		case EEventKeyDown:
@@ -228,15 +228,15 @@ TKeyResponse CBlenderLiteContainer::OfferKeyEventL( const TKeyEvent& aKeyEvent,T
 }
 
 // Destructor
-CBlenderLiteContainer::~CBlenderLiteContainer()
+CBlendersitoContainer::~CBlendersitoContainer()
     {
     delete iIdle;
     delete iPeriodic;
 
-    if ( iBlenderLite )
+    if ( iBlendersito )
         {
-        iBlenderLite->AppExit();
-        delete iBlenderLite;
+        iBlendersito->AppExit();
+        delete iBlendersito;
         }
     delete iInputHandler;
     
@@ -248,46 +248,46 @@ CBlenderLiteContainer::~CBlenderLiteContainer()
     }
 
 // ---------------------------------------------------------
-// CBlenderLiteContainer::SizeChanged()
+// CBlendersitoContainer::SizeChanged()
 // Called by framework when the view size is changed
 // ---------------------------------------------------------
 //
-void CBlenderLiteContainer::SizeChanged(){
-    if( iOpenGlInitialized && iBlenderLite )
+void CBlendersitoContainer::SizeChanged(){
+    if( iOpenGlInitialized && iBlendersito )
         {
         TSize size;
         size = this->Size();
 
-        iBlenderLite->SetScreenSize( size.iWidth, size.iHeight );
+        iBlendersito->SetScreenSize( size.iWidth, size.iHeight );
         }
     }
 
 //cambia entre WideScreen a pantalla normal
 TBool widescreen = false;
-void CBlenderLiteContainer::SetWidescreen(){
-    if( iOpenGlInitialized && iBlenderLite ){
+void CBlendersitoContainer::SetWidescreen(){
+    if( iOpenGlInitialized && iBlendersito ){
         TSize size;
         size = this->Size();
         if (widescreen){
             widescreen = false;
-            iBlenderLite->iWidescreenEnabled = false;
+            iBlendersito->iWidescreenEnabled = false;
         }
         else {
             widescreen = true;
-            iBlenderLite->iWidescreenEnabled = true;
+            iBlendersito->iWidescreenEnabled = true;
         }
-        iBlenderLite->SetScreenSize( size.iWidth, size.iHeight, widescreen );
+        iBlendersito->SetScreenSize( size.iWidth, size.iHeight, widescreen );
     }
 }
 
 // ---------------------------------------------------------
-// CBlenderLiteContainer::HandleResourceChange(
+// CBlendersitoContainer::HandleResourceChange(
 //     TInt aType)
 // Dynamic screen resize changes by calling the
 // SetExtentToWholeScreen() method again.
 // ---------------------------------------------------------
 //
- void CBlenderLiteContainer::HandleResourceChange(TInt aType)
+ void CBlendersitoContainer::HandleResourceChange(TInt aType)
     {
 	switch( aType )
     	{
@@ -298,40 +298,40 @@ void CBlenderLiteContainer::SetWidescreen(){
     }
 
 // ---------------------------------------------------------
-// CBlenderLiteContainer::CountComponentControls() const
+// CBlendersitoContainer::CountComponentControls() const
 // ---------------------------------------------------------
 //
-TInt CBlenderLiteContainer::CountComponentControls() const
+TInt CBlendersitoContainer::CountComponentControls() const
     {
     return 0; // return nbr of controls inside this container
     }
 
 // ---------------------------------------------------------
-// CBlenderLiteContainer::ComponentControl(TInt aIndex) const
+// CBlendersitoContainer::ComponentControl(TInt aIndex) const
 // ---------------------------------------------------------
 //
-CCoeControl* CBlenderLiteContainer::ComponentControl(TInt /*aIndex*/ ) const
+CCoeControl* CBlendersitoContainer::ComponentControl(TInt /*aIndex*/ ) const
     {
     return NULL;
     }
 
 // ---------------------------------------------------------
-// CBlenderLiteContainer::Draw(const TRect& aRect) const
+// CBlendersitoContainer::Draw(const TRect& aRect) const
 // ---------------------------------------------------------
 //
-void CBlenderLiteContainer::Draw(const TRect& /*aRect*/ ) const
+void CBlendersitoContainer::Draw(const TRect& /*aRect*/ ) const
     {
     // No need to implement anything here!
     }
 
 // ---------------------------------------------------------
-// CBlenderLiteContainer::DrawCallBack( TAny* aInstance )
+// CBlendersitoContainer::DrawCallBack( TAny* aInstance )
 // Called by the CPeriodic in order to draw the graphics
 // ---------------------------------------------------------
 //
-int CBlenderLiteContainer::DrawCallBack( TAny* aInstance )
+int CBlendersitoContainer::DrawCallBack( TAny* aInstance )
     {
-    CBlenderLiteContainer* instance = (CBlenderLiteContainer*) aInstance;
+    CBlendersitoContainer* instance = (CBlendersitoContainer*) aInstance;
     instance->iFrame++;
 
     // Compute the elapsed time in seconds since the startup of the example
@@ -356,7 +356,7 @@ int CBlenderLiteContainer::DrawCallBack( TAny* aInstance )
     instance->iLastFrameTimeSecs = timeSecs;
 
     // Call the main OpenGL ES Symbian rendering 'loop'
-    instance->iBlenderLite->AppCycle( instance->iFrame, timeSecs, deltaTimeSecs );
+    instance->iBlendersito->AppCycle( instance->iFrame, timeSecs, deltaTimeSecs );
 
     // Call eglSwapBuffers, which blit the graphics to the window
     eglSwapBuffers( instance->iEglDisplay, instance->iEglSurface );
@@ -385,7 +385,7 @@ int CBlenderLiteContainer::DrawCallBack( TAny* aInstance )
 // iIdle must be canceled when cancel button is pressed.
 // -----------------------------------------------------------------------------
 //
-void CBlenderLiteContainer::DialogDismissedL( TInt aButtonId )
+void CBlendersitoContainer::DialogDismissedL( TInt aButtonId )
     {
     // Check when pressing cancel button.
     if ( aButtonId == -1 )
@@ -396,11 +396,11 @@ void CBlenderLiteContainer::DialogDismissedL( TInt aButtonId )
     }
 
 // ---------------------------------------------------------
-// CBlenderLiteContainer::HandleControlEventL(
+// CBlendersitoContainer::HandleControlEventL(
 //     CCoeControl* aControl,TCoeEvent aEventType)
 // ---------------------------------------------------------
 //
-void CBlenderLiteContainer::HandleControlEventL(
+void CBlendersitoContainer::HandleControlEventL(
     CCoeControl* /*aControl*/,TCoeEvent /*aEventType*/)
     {
     }
@@ -410,7 +410,7 @@ void CBlenderLiteContainer::HandleControlEventL(
 // Show General Note
 // -----------------------------------------------------------------------------
 //
-void CBlenderLiteContainer::ShowGeneralNoteL( TInt aResourceId, 
+void CBlendersitoContainer::ShowGeneralNoteL( TInt aResourceId, 
                                             const CAknNoteDialog::
                                             TTimeout aTimeout, 
                                             const CAknNoteDialog::TTone aTone )
@@ -427,7 +427,7 @@ void CBlenderLiteContainer::ShowGeneralNoteL( TInt aResourceId,
 // Show General Note
 // -----------------------------------------------------------------------------
 //
-void CBlenderLiteContainer::ShowGeneralNoteL( TInt aResourceId, 
+void CBlendersitoContainer::ShowGeneralNoteL( TInt aResourceId, 
     TInt /* aControlId */, const CAknNoteDialog::TTimeout aTimeout,
     const CAknNoteDialog::TTone aTone,TBool aPlural )
     {
@@ -447,11 +447,11 @@ void CBlenderLiteContainer::ShowGeneralNoteL( TInt aResourceId,
 // Show Note.
 // -----------------------------------------------------------------------------
 //
-void CBlenderLiteContainer::ShowShowNoteL( TAknGlobalNoteType aType, 
+void CBlendersitoContainer::ShowShowNoteL( TAknGlobalNoteType aType, 
                                          TInt aResourceId )
     {
     //Allocate TBuf with constant length.
-    TBuf<KBlenderLiteTextBufLength> text( NULL );
+    TBuf<KBlendersitoTextBufLength> text( NULL );
 
     // Reads a resource into a descriptor.
     CEikonEnv::Static()->ReadResource( text, aResourceId );
@@ -475,7 +475,7 @@ void CBlenderLiteContainer::ShowShowNoteL( TAknGlobalNoteType aType,
 // Indicates wait note.
 // -----------------------------------------------------------------------------
 //
-void CBlenderLiteContainer::ShowWaitNoteL( TInt aResourceId, TInt /* aControlId */){        
+void CBlendersitoContainer::ShowWaitNoteL( TInt aResourceId, TInt /* aControlId */){        
     // Create CAknWaitDialog instance
     CAknWaitDialog* waitDialog =  new ( ELeave ) CAknWaitDialog( NULL, ETrue );
     
@@ -488,7 +488,7 @@ void CBlenderLiteContainer::ShowWaitNoteL( TInt aResourceId, TInt /* aControlId 
 // Show ProgressNote Under Single Process.
 // -----------------------------------------------------------------------------
 //
-void CBlenderLiteContainer::ShowProgressNoteUnderSingleProcessL( 
+void CBlendersitoContainer::ShowProgressNoteUnderSingleProcessL( 
         TInt aResourceId, 
         TInt /* aControlId */)
 { 
@@ -503,7 +503,7 @@ iProgressDialog = new ( ELeave ) CAknProgressDialog( reinterpret_cast
 iProgressDialog->SetCallback( this );
 iProgressDialog->PrepareLC( aResourceId );
 iProgressInfo = iProgressDialog->GetProgressInfoL();
-iProgressInfo->SetFinalValue( KBlenderLiteProgressbarFinalValue );
+iProgressInfo->SetFinalValue( KBlendersitoProgressbarFinalValue );
 iProgressDialog->RunLD();
 
 delete iIdle;
@@ -519,9 +519,9 @@ iIdle->Start( callback );
 // If retrun 0(EFalse), CIdle does not call this.
 // -----------------------------------------------------------------------------
 //
-TInt CBlenderLiteContainer::CallbackIncrementProgressNoteL( TAny* aThis )
+TInt CBlendersitoContainer::CallbackIncrementProgressNoteL( TAny* aThis )
     {
-    //return static_cast<CBlenderLiteContainer*>( aThis )->UpdateProgressNote();
+    //return static_cast<CBlendersitoContainer*>( aThis )->UpdateProgressNote();
     }
 
 // -----------------------------------------------------------------------------
@@ -529,7 +529,7 @@ TInt CBlenderLiteContainer::CallbackIncrementProgressNoteL( TAny* aThis )
 // Updates ProgressNote
 // -----------------------------------------------------------------------------
 //
-TInt CBlenderLiteContainer::UpdateProgressNote()
+TInt CBlendersitoContainer::UpdateProgressNote()
     {
     /*TTime intervalTime;
     intervalTime.HomeTime();
@@ -543,7 +543,7 @@ TInt CBlenderLiteContainer::UpdateProgressNote()
         }
 
     iProgressInfo->IncrementAndDraw( 1 );
-    if ( KBlenderLiteProgressbarFinalValue <= iProgressInfo->CurrentValue() )
+    if ( KBlendersitoProgressbarFinalValue <= iProgressInfo->CurrentValue() )
         {
         iProgressDialog->ProcessFinishedL();
         delete iProgressDialog;

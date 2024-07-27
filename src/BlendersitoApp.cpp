@@ -1,34 +1,34 @@
 /*
  * ==============================================================================
- *  Name        : BlenderLiteApp.cpp
- *  Part of     : OpenGLEx / BlenderLite
+ *  Name        : BlendersitoApp.cpp
+ *  Part of     : OpenGLEx / Blendersito
  * ==============================================================================
  */
 
 // INCLUDE FILES
 #include    <eikstart.h>
-#include    "BlenderLiteApp.h"
-#include    "BlenderLiteDocument.h"
+#include    "BlendersitoApp.h"
+#include    "BlendersitoDocument.h"
 
 // ================= MEMBER FUNCTIONS =======================
 
 // ---------------------------------------------------------
-// CBlenderLiteApp::AppDllUid()
+// CBlendersitoApp::AppDllUid()
 // Returns application UID
 // ---------------------------------------------------------
 //
-TUid CBlenderLiteApp::AppDllUid() const {
-    return KUidBlenderLite;
+TUid CBlendersitoApp::AppDllUid() const {
+    return KUidBlendersito;
 }
 
 
 // ---------------------------------------------------------
-// CBlenderLiteApp::CreateDocumentL()
-// Creates CBlenderLiteDocument object
+// CBlendersitoApp::CreateDocumentL()
+// Creates CBlendersitoDocument object
 // ---------------------------------------------------------
 //
-CApaDocument* CBlenderLiteApp::CreateDocumentL(){
-    return CBlenderLiteDocument::NewL( *this );
+CApaDocument* CBlendersitoApp::CreateDocumentL(){
+    return CBlendersitoDocument::NewL( *this );
 }
 
 
@@ -36,7 +36,7 @@ CApaDocument* CBlenderLiteApp::CreateDocumentL(){
 
 
 CApaApplication* NewApplication(){
-    return new CBlenderLiteApp;
+    return new CBlendersitoApp;
 }
 
 TInt E32Main(){

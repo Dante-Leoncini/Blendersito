@@ -1,12 +1,12 @@
 /*
  * ==============================================================================
- *  Name        : BlenderLiteinput.h
- *  Part of     : OpenGLEx / BlenderLite
+ *  Name        : Blendersitoinput.h
+ *  Part of     : OpenGLEx / Blendersito
  * ==============================================================================
  */
 
-#ifndef __BLENDERLITEINPUTH__
-#define __BLENDERLITEINPUTH__
+#ifndef __BLENDERSITOINPUTH__
+#define __BLENDERSITOINPUTH__
 
 //  INCLUDES
 
@@ -61,37 +61,37 @@ static const TUint KKeyCodeMap[] = {
 /**
  * Class that handles the mapping of scancodes to input signals that can then
  * be queried from the application. When the program is initialized
- * this class reference is given by the CBlenderLiteContainer to CBlenderLite. CBlenderLiteContainer
+ * this class reference is given by the CBlendersitoContainer to CBlendersito. CBlendersitoContainer
  * class then notifies this class of key presses and releases. If an input signal
  * mapping exists for a scancode the state of that input signal's state is modified.
- * The CBlenderLite class can then query the state of the various input signal's from this class.
+ * The CBlendersito class can then query the state of the various input signal's from this class.
  *
  * Note that this class supports mapping of multiple scancodes to a single input signal.
  * But only one input signal can be mapped to one scancode (that means single keypress can't
  * change multiple input signals to pressed state).
  *
  */
- class CBlenderLiteInput
+ class CBlendersitoInput
     {
     public: // Constructors and destructor
 
         /**
-         * Factory method for creating a new CBlenderLite object.
+         * Factory method for creating a new CBlendersito object.
          * Calls the hidden constructors.
          */
-        static CBlenderLiteInput* NewL();
+        static CBlendersitoInput* NewL();
 
         /**
          * Destructor. Does nothing.
          */
-        virtual ~CBlenderLiteInput();
+        virtual ~CBlendersitoInput();
 
     protected: // Hidden constructors
 
         /**
          * Standard constructor that must never Leave.
          */
-        CBlenderLiteInput();
+        CBlendersitoInput();
 
         /**
          * Second phase constructor that can call methods that may leave. Does nothing.

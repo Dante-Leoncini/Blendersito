@@ -1,38 +1,38 @@
 /*
  * ==============================================================================
- *  Name        : BlenderLiteApp.h
- *  Part of     : OpenGLEx / BlenderLite
+ *  Name        : BlendersitoApp.h
+ *  Part of     : OpenGLEx / Blendersito
  * ==============================================================================
  */
 
-#ifndef BLENDERLITEAPP_H
-#define BLENDERLITEAPP_H
+#ifndef BLENDERSITOAPP_H
+#define BLENDERSITOAPP_H
 
 // INCLUDES
 #include <aknapp.h>
 
 // CONSTANTS
 /** UID of the application. */
-const TUid KUidBlenderLite = { 0xA00D021D };
+const TUid KUidBlendersito = { 0xA00D021D };
 
 // CLASS DECLARATION
 
 /**
  * Application class. Provides factory method to create a concrete document object.
  */
-class CBlenderLiteApp : public CAknApplication
+class CBlendersitoApp : public CAknApplication
     {
     private: // Functions from base classes
 
         /**
-         * From CApaApplication, creates and returns CBlenderLiteDocument document object.
+         * From CApaApplication, creates and returns CBlendersitoDocument document object.
          * @return Pointer to the created document object.
          */
         CApaDocument* CreateDocumentL();
 
         /**
-         * From CApaApplication, returns application's UID (KUidBlenderLite).
-         * @return Value of KUidBlenderLite.
+         * From CApaApplication, returns application's UID (KUidBlendersito).
+         * @return Value of KUidBlendersito.
          */
         TUid AppDllUid() const;
     };

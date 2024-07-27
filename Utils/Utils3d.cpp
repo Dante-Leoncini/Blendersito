@@ -391,27 +391,27 @@ void T3DModel::MakeWorldViewMatrix(TCamera & aCamera, TVector aPosition,
 	}
 
 // -----------------------------------------------------------------------------
-// T3DModel::MakeBlenderLiteWorldViewMatrix
-// Sets up a blenderlite matrix, which is a matrix that rotates objects in such a
+// T3DModel::MakeBlendersitoWorldViewMatrix
+// Sets up a blendersito matrix, which is a matrix that rotates objects in such a
 // way that they always face the camera.
-// Refer to the blenderlite example to see how this method is used.
+// Refer to the blendersito example to see how this method is used.
 // -----------------------------------------------------------------------------
 //
-void T3DModel::MakeBlenderLiteWorldViewMatrix(TCamera & aCamera)
+void T3DModel::MakeBlendersitoWorldViewMatrix(TCamera & aCamera)
 	{
-	MakeBlenderLiteWorldViewMatrix( aCamera, GetPosition() );
+	MakeBlendersitoWorldViewMatrix( aCamera, GetPosition() );
 	}
 
 // -----------------------------------------------------------------------------
-// T3DModel::MakeBlenderLiteWorldViewMatrix
-// Sets up a blenderlite matrix, which is a matrix that rotates objects in such a
+// T3DModel::MakeBlendersitoWorldViewMatrix
+// Sets up a blendersito matrix, which is a matrix that rotates objects in such a
 // way that they always face the camera.
-// Refer to the blenderlite example to see how this method is used.
+// Refer to the blendersito example to see how this method is used.
 // -----------------------------------------------------------------------------
 //
-void T3DModel::MakeBlenderLiteWorldViewMatrix(TCamera & aCamera, TVector aPosition)
+void T3DModel::MakeBlendersitoWorldViewMatrix(TCamera & aCamera, TVector aPosition)
 	{
-	// Set up a rotation matrix to orient the blenderlite towards the camera.
+	// Set up a rotation matrix to orient the blendersito towards the camera.
 	TVector dir   = aCamera.iLookAt - aCamera.iPosition;
 	GLfloat angle = atan( dir.iZ, dir.iX );
 	// The Yaw angle is computed in such a way that the object always faces the
@@ -564,28 +564,28 @@ void T3DModelx::MakeWorldViewMatrix(TCamerax & aCamera, TVectorx aPosition,
 	}
 
 // -----------------------------------------------------------------------------
-// T3DModelx::MakeBlenderLiteWorldViewMatrix
-// Sets up a blenderlite matrix, which is a matrix that rotates objects in such a
+// T3DModelx::MakeBlendersitoWorldViewMatrix
+// Sets up a blendersito matrix, which is a matrix that rotates objects in such a
 // way that they always face the camera.
-// Refer to the blenderlite example to see how this method is used.
+// Refer to the blendersito example to see how this method is used.
 // -----------------------------------------------------------------------------
 //
-void T3DModelx::MakeBlenderLiteWorldViewMatrix(TCamerax & aCamera)
+void T3DModelx::MakeBlendersitoWorldViewMatrix(TCamerax & aCamera)
 	{
-	MakeBlenderLiteWorldViewMatrix( aCamera, GetPosition() );
+	MakeBlendersitoWorldViewMatrix( aCamera, GetPosition() );
 	}
 
 // -----------------------------------------------------------------------------
-// T3DModelx::MakeBlenderLiteWorldViewMatrix
-// Sets up a blenderlite matrix, which is a matrix that rotates objects in such a
+// T3DModelx::MakeBlendersitoWorldViewMatrix
+// Sets up a blendersito matrix, which is a matrix that rotates objects in such a
 // way that they always face the camera.
-// Refer to the blenderlite example to see how this method is used.
+// Refer to the blendersito example to see how this method is used.
 // -----------------------------------------------------------------------------
 //
-void T3DModelx::MakeBlenderLiteWorldViewMatrix(TCamerax & aCamera,
+void T3DModelx::MakeBlendersitoWorldViewMatrix(TCamerax & aCamera,
 	TVectorx aPosition)
 	{
-	// Set up a rotation matrix to orient the blenderlite towards the camera.
+	// Set up a rotation matrix to orient the blendersito towards the camera.
 	TVectorx Dir = aCamera.iLookAt - aCamera.iPosition;
 
 	GLfloat Angle = atan( FIXED_2_FLOAT(Dir.iZ), FIXED_2_FLOAT(Dir.iX) );

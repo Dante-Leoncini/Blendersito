@@ -2,7 +2,7 @@
 &EN
 
 ;Header
-#{"BlenderLite"}, (0xA00D021D), 1, 0, 0,TYPE=SA
+#{"Blendersito"}, (0xA00D021D), 1, 0, 0,TYPE=SA
 
 ;Localised Vendor name
 %{"Vendor-EN"}
@@ -14,10 +14,10 @@
 [0x101F7961], 0, 0, 0, {"Series60ProductID"}
 
 ;Files to install
-"..\..\..\..\epoc32\release\gcce\urel\BlenderLite.exe"                       -"!:\sys\bin\BlenderLite.exe"
-"..\..\..\..\epoc32\data\z\resource\apps\BlenderLite.RSC"                    -"!:\resource\apps\BlenderLite.RSC"
-"..\..\..\..\epoc32\data\Z\private\10003a3f\import\apps\blenderlite_reg.RSC" -"!:\private\10003a3f\import\apps\blenderlite_reg.RSC"
-"..\..\..\..\epoc32\data\z\resource\apps\blenderlite_icon.mif"  			        -"!:\resource\apps\blenderlite_icon.mif"
+"..\..\..\..\epoc32\release\gcce\urel\Blendersito.exe"                       -"!:\sys\bin\Blendersito.exe"
+"..\..\..\..\epoc32\data\z\resource\apps\Blendersito.RSC"                    -"!:\resource\apps\Blendersito.RSC"
+"..\..\..\..\epoc32\data\Z\private\10003a3f\import\apps\blendersito_reg.RSC" -"!:\private\10003a3f\import\apps\blendersito_reg.RSC"
+"..\..\..\..\epoc32\data\z\resource\apps\blendersito_icon.mif"  			        -"!:\resource\apps\blendersito_icon.mif"
 
 "..\inc\texturas\origen.png"   -"!:\private\A00D021D\origen.png"
 "..\inc\texturas\lamp.png"   -"!:\private\A00D021D\lamp.png"

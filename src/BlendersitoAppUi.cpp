@@ -1,15 +1,15 @@
 /*
  * ==============================================================================
- *  Name        : BlenderLiteAppUi.cpp
- *  Part of     : OpenGLEx / BlenderLite
+ *  Name        : BlendersitoAppUi.cpp
+ *  Part of     : OpenGLEx / Blendersito
  * ==============================================================================
  */
 
 // INCLUDE FILES
-#include "BlenderLiteAppUi.h"
-#include "BlenderLiteContainer.h"
-#include <BlenderLite.rsg>
-#include "blenderlite.hrh"
+#include "BlendersitoAppUi.h"
+#include "BlendersitoContainer.h"
+#include <Blendersito.rsg>
+#include "blendersito.hrh"
 
 #include <eikmenup.h>
 #include <avkon.hrh>
@@ -20,20 +20,20 @@
 // ================= MEMBER FUNCTIONS =======================
 //
 // ----------------------------------------------------------
-// CBlenderLiteAppUi::ConstructL
+// CBlendersitoAppUi::ConstructL
 // Symbian 2nd phase constructor can leave.
 // ----------------------------------------------------------
 //
-void CBlenderLiteAppUi::ConstructL(){
+void CBlendersitoAppUi::ConstructL(){
     BaseConstructL();
-    iAppContainer = new (ELeave) CBlenderLiteContainer;
+    iAppContainer = new (ELeave) CBlendersitoContainer;
     iAppContainer->SetMopParent(this);
     iAppContainer->ConstructL( ClientRect() );
     AddToStackL( iAppContainer );
 }
 
 // Destructor
-CBlenderLiteAppUi::~CBlenderLiteAppUi(){
+CBlendersitoAppUi::~CBlendersitoAppUi(){
 	if ( iAppContainer ){
 		RemoveFromStack( iAppContainer );
 		delete iAppContainer;
@@ -41,7 +41,7 @@ CBlenderLiteAppUi::~CBlenderLiteAppUi(){
 }
 
 // ------------------------------------------------------------------------------
-//  CBlenderLiteAppUi::DynInitMenuPaneL
+//  CBlendersitoAppUi::DynInitMenuPaneL
 //  This function is called by the EIKON framework just before it displays
 //  a menu pane. Its default implementation is empty, and by overriding it,
 //  the application can set the state of menu items dynamically according
@@ -61,9 +61,9 @@ enum{
 
 enum {Solid, MaterialPreview, Wireframe, Rendered};
 
-void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPane ){
+void CBlendersitoAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPane ){
     //para trabajar mas facil
-    CBlenderLite& BL = *(iAppContainer->iBlenderLite); 
+    CBlendersito& BL = *(iAppContainer->iBlendersito); 
     //BL.estado = ...;
 
     //prepara el menu de materiales    
@@ -81,7 +81,7 @@ void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
         //TPtrC16 itemText(unicodeText);
         TPtrC8 itemText = L"Nombre del elemento de men�";
 
-		TBlenderLiteMenuCommands menuCommand = EBlenderLiteOrigenSetOrigen;  // Suponiendo que EBlenderLiteCommand es una constante o enumeraci�n v�lida
+		TBlendersitoMenuCommands menuCommand = EBlendersitoOrigenSetOrigen;  // Suponiendo que EBlendersitoCommand es una constante o enumeraci�n v�lida
 		
 		CEikMenuPaneItem::SData menuItemData;
 		menuItemData.iCommandId = menuCommand;  // Asigna el ID de comando de tu men�
@@ -90,14 +90,14 @@ void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
 		aMenuPane->InsertMenuItemL(menuItemData, 2);
         
         // Agrega los nombres de materiales como elementos de men�
-		//for (TInt i = 0; i < iAppContainer->iBlenderLite->Materials.Count(); ++i){
+		//for (TInt i = 0; i < iAppContainer->iBlendersito->Materials.Count(); ++i){
 			//TInt commandId = EAknCmdEmpty + i; // Asigna un ID de comando �nico para cada elemento de men�
 		    //_LIT(KTitle, "Selecciona la Textura");
-			//aMenuPane->AddMenuItemL(TPtrC(KTitle), EBlenderLiteOrigenSetOrigen);
+			//aMenuPane->AddMenuItemL(TPtrC(KTitle), EBlendersitoOrigenSetOrigen);
 		//}
     }*/
 	//oculta el SetOrigen si no esta en modo edicion
-    if (aResourceId == R_BLENDERLITE_MENU ) {
+    if (aResourceId == R_BLENDERSITO_MENU ) {
         if (BL.estado == edicion) {
 	        if (BL.Objects.Count() > 0){
                 aMenuPane->SetItemDimmed(EViewportObject, EFalse);
@@ -105,13 +105,13 @@ void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
             else {
                 aMenuPane->SetItemDimmed(EViewportObject, ETrue);
             }
-            aMenuPane->SetItemDimmed(EBlenderLiteOrigenSetOrigen, EFalse);
-            aMenuPane->SetItemDimmed(EBlenderLiteSeleccionar, EFalse);
+            aMenuPane->SetItemDimmed(EBlendersitoOrigenSetOrigen, EFalse);
+            aMenuPane->SetItemDimmed(EBlendersitoSeleccionar, EFalse);
             aMenuPane->SetItemDimmed(EViewportAdd, ETrue);
             
         } else {
-            aMenuPane->SetItemDimmed(EBlenderLiteOrigenSetOrigen, ETrue);
-            aMenuPane->SetItemDimmed(EBlenderLiteSeleccionar, ETrue);
+            aMenuPane->SetItemDimmed(EBlendersitoOrigenSetOrigen, ETrue);
+            aMenuPane->SetItemDimmed(EBlendersitoSeleccionar, ETrue);
             aMenuPane->SetItemDimmed(EViewportAdd, EFalse);
 
             //si hay objetos            
@@ -121,11 +121,11 @@ void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
                 //si es una malla 3d
                 if (obj.type == mesh){
                     aMenuPane->SetItemDimmed(EMaterial, EFalse);
-                    aMenuPane->SetItemDimmed(EBlenderLiteModificadores, EFalse);
+                    aMenuPane->SetItemDimmed(EBlendersitoModificadores, EFalse);
                 }
                 else {
                     aMenuPane->SetItemDimmed(EMaterial, ETrue);
-                    aMenuPane->SetItemDimmed(EBlenderLiteModificadores, ETrue);                    
+                    aMenuPane->SetItemDimmed(EBlendersitoModificadores, ETrue);                    
                 }
             }
             else {
@@ -136,50 +136,50 @@ void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
     }
     else if (aResourceId == R_VIEWPORT_OVERLEY_MENU ) {
         // Texto para setear la pantalla ancha
-        if ( iAppContainer->iBlenderLite->iWidescreenEnabled ){
-            aMenuPane->SetItemTextL( EBlenderLiteWidescreen, R_WIDESCREEN_OFF );
+        if ( iAppContainer->iBlendersito->iWidescreenEnabled ){
+            aMenuPane->SetItemTextL( EBlendersitoWidescreen, R_WIDESCREEN_OFF );
             }
         else {
-            aMenuPane->SetItemTextL( EBlenderLiteWidescreen, R_WIDESCREEN_ON  );
+            aMenuPane->SetItemTextL( EBlendersitoWidescreen, R_WIDESCREEN_ON  );
         }
-        if ( iAppContainer->iBlenderLite->showOverlays ){
+        if ( iAppContainer->iBlendersito->showOverlays ){
             aMenuPane->SetItemTextL( EViewportSetOverlay, R_HIDEOVERLAY );
         }
         else {
             aMenuPane->SetItemTextL( EViewportSetOverlay, R_SHOWOVERLAY  );
         } 
-        if ( iAppContainer->iBlenderLite->show3DCursor ){
+        if ( iAppContainer->iBlendersito->show3DCursor ){
             aMenuPane->SetItemTextL( EViewportSet3DCursor, R_HIDE3DCURSOR );
         }
         else {
             aMenuPane->SetItemTextL( EViewportSet3DCursor, R_SHOW3DCURSOR  );
         } 
 
-        if ( iAppContainer->iBlenderLite->showFloor ){
+        if ( iAppContainer->iBlendersito->showFloor ){
             aMenuPane->SetItemTextL( EViewportSetShowFloor, R_HIDEFLOOR );
         }
         else {
             aMenuPane->SetItemTextL( EViewportSetShowFloor, R_SHOWFLOOR  );
         } 
-        if ( iAppContainer->iBlenderLite->showYaxis ){
+        if ( iAppContainer->iBlendersito->showYaxis ){
             aMenuPane->SetItemTextL( EViewportSetShowYaxis, R_HIDEYAXIS );
         }
         else {
             aMenuPane->SetItemTextL( EViewportSetShowYaxis, R_SHOWYAXIS  );
         } 
-        if ( iAppContainer->iBlenderLite->showXaxis ){
+        if ( iAppContainer->iBlendersito->showXaxis ){
             aMenuPane->SetItemTextL( EViewportSetShowXaxis, R_HIDEXAXIS );
         }
         else {
             aMenuPane->SetItemTextL( EViewportSetShowXaxis, R_SHOWXAXIS  );
         } 
-        if ( iAppContainer->iBlenderLite->showOutlineSelect ){
+        if ( iAppContainer->iBlendersito->showOutlineSelect ){
             aMenuPane->SetItemTextL( EViewportSetOutlineSelect, R_HIDEOUTLINESELECT );
         }
         else {
             aMenuPane->SetItemTextL( EViewportSetOutlineSelect, R_SHOWOUTLINESELECT  );
         } 
-        if ( iAppContainer->iBlenderLite->showOrigins ){
+        if ( iAppContainer->iBlendersito->showOrigins ){
             aMenuPane->SetItemTextL( EViewportSetOrigins, R_HIDEORIGIN );
         }
         else {
@@ -187,13 +187,13 @@ void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
         }    
     }  
     else if (aResourceId == R_TIMELINE_MENU ) {
-        if ( iAppContainer->iBlenderLite->PlayAnimation ){
+        if ( iAppContainer->iBlendersito->PlayAnimation ){
             aMenuPane->SetItemTextL( ETimelinePlayStop, R_STOP );
         }
         else {
             aMenuPane->SetItemTextL( ETimelinePlayStop, R_PLAY );
         }
-        if ( iAppContainer->iBlenderLite->ShowTimeline ){
+        if ( iAppContainer->iBlendersito->ShowTimeline ){
             aMenuPane->SetItemTextL( ETimelineShowTimeline, R_HIDE_TIMELINE );
         }
         else {
@@ -203,109 +203,109 @@ void CBlenderLiteAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
 }
 
 // ----------------------------------------------------
-// CBlenderLiteAppUi::HandleKeyEventL
+// CBlendersitoAppUi::HandleKeyEventL
 // Key event handler
 // ----------------------------------------------------
 //
-TKeyResponse CBlenderLiteAppUi::HandleKeyEventL(
+TKeyResponse CBlendersitoAppUi::HandleKeyEventL(
     const TKeyEvent& aKeyEvent, TEventCode aType ){
-    if ( iAppContainer->iBlenderLite->GetState() == CBlenderLite::ERunning ){
+    if ( iAppContainer->iBlendersito->GetState() == CBlendersito::ERunning ){
 		if( aType == EEventKeyDown ){
 			TUint scan = aKeyEvent.iScanCode;
 			switch(scan){
 			case(22): //Shift
-				iAppContainer->iBlenderLite->Tab(); //cambiar objeto
+				iAppContainer->iBlendersito->Tab(); //cambiar objeto
 				return EKeyWasConsumed;
 			case(18): //left Shift
-				iAppContainer->iBlenderLite->Tab(); //cambiar objeto
+				iAppContainer->iBlendersito->Tab(); //cambiar objeto
 				return EKeyWasConsumed;
 			case(19): //rigth Shift
-				iAppContainer->iBlenderLite->Tab(); //cambiar objeto
+				iAppContainer->iBlendersito->Tab(); //cambiar objeto
 				return EKeyWasConsumed;
 			case(1): //Delete
-				iAppContainer->iBlenderLite->Borrar();
+				iAppContainer->iBlendersito->Borrar();
 				return EKeyWasConsumed;
 			case(49): //1
-				iAppContainer->iBlenderLite->TecladoNumerico(1);
+				iAppContainer->iBlendersito->TecladoNumerico(1);
 				return EKeyWasConsumed;
 			case(50): //2
-				iAppContainer->iBlenderLite->TecladoNumerico(2);
+				iAppContainer->iBlendersito->TecladoNumerico(2);
 				return EKeyWasConsumed;
 			case(51): //3
-				iAppContainer->iBlenderLite->TecladoNumerico(3);
+				iAppContainer->iBlendersito->TecladoNumerico(3);
 				return EKeyWasConsumed;
 			case(52): //4
-				iAppContainer->iBlenderLite->TecladoNumerico(4);
+				iAppContainer->iBlendersito->TecladoNumerico(4);
 				return EKeyWasConsumed;
 			case(53): //5
-				iAppContainer->iBlenderLite->TecladoNumerico(5);
+				iAppContainer->iBlendersito->TecladoNumerico(5);
 				return EKeyWasConsumed;
 			case(54): //6
-				iAppContainer->iBlenderLite->TecladoNumerico(6);
+				iAppContainer->iBlendersito->TecladoNumerico(6);
 				return EKeyWasConsumed;
 			case(55): //7
-				iAppContainer->iBlenderLite->TecladoNumerico(7);
+				iAppContainer->iBlendersito->TecladoNumerico(7);
 				return EKeyWasConsumed;
 			case(56): //8
-				iAppContainer->iBlenderLite->TecladoNumerico(8);
+				iAppContainer->iBlendersito->TecladoNumerico(8);
 				return EKeyWasConsumed;
 			case(57): //9
-				iAppContainer->iBlenderLite->TecladoNumerico(9);
+				iAppContainer->iBlendersito->TecladoNumerico(9);
 				return EKeyWasConsumed;
 			case(48): //0
-				iAppContainer->iBlenderLite->TecladoNumerico(0);
+				iAppContainer->iBlendersito->TecladoNumerico(0);
 				return EKeyWasConsumed;
 			case(42): //*
-				iAppContainer->iBlenderLite->TecladoNumerico(10);
+				iAppContainer->iBlendersito->TecladoNumerico(10);
 				return EKeyWasConsumed;
 			case(127): //#
-				iAppContainer->iBlenderLite->TecladoNumerico(11);
+				iAppContainer->iBlendersito->TecladoNumerico(11);
 				return EKeyWasConsumed;
 			case(226): //camara
-				iAppContainer->iBlenderLite->Extruir();
+				iAppContainer->iBlendersito->Extruir();
 				return EKeyWasConsumed;
 			case(196): //llamada
-				iAppContainer->iBlenderLite->SetPosicion();
+				iAppContainer->iBlendersito->SetPosicion();
 				return EKeyWasConsumed;
 			case(71): //G
-				iAppContainer->iBlenderLite->SetPosicion();
+				iAppContainer->iBlendersito->SetPosicion();
 				return EKeyWasConsumed;
 			case(82): //R
-				iAppContainer->iBlenderLite->SetRotacion();
+				iAppContainer->iBlendersito->SetRotacion();
 				return EKeyWasConsumed;
 			case(83): //S
-				iAppContainer->iBlenderLite->SetEscala();
+				iAppContainer->iBlendersito->SetEscala();
 				return EKeyWasConsumed;
 			case(81): //Q
-				iAppContainer->iBlenderLite->Cancelar();
+				iAppContainer->iBlendersito->Cancelar();
 				return EKeyWasConsumed;
 			case(3): //Enter
-				iAppContainer->iBlenderLite->Aceptar();
+				iAppContainer->iBlendersito->Aceptar();
 				return EKeyWasConsumed;
 			case(167): //OK
-				iAppContainer->iBlenderLite->Aceptar();
+				iAppContainer->iBlendersito->Aceptar();
 				return EKeyWasConsumed;
 			case(88): //X
-				iAppContainer->iBlenderLite->SetEje(0);
+				iAppContainer->iBlendersito->SetEje(0);
 				return EKeyWasConsumed;
 			case(89): //Y
-				iAppContainer->iBlenderLite->SetEje(1);
+				iAppContainer->iBlendersito->SetEje(1);
 				return EKeyWasConsumed;
 			case(90): //Z
-				iAppContainer->iBlenderLite->SetEje(2);
+				iAppContainer->iBlendersito->SetEje(2);
 				return EKeyWasConsumed;
 				
 			//case(16): //arriba
-				//iAppContainer->iBlenderLite->NextPos(0,1);
+				//iAppContainer->iBlendersito->NextPos(0,1);
 				//return EKeyWasConsumed;
 			//case(15): //derecha
-				//iAppContainer->iBlenderLite->Rotar(2);
+				//iAppContainer->iBlendersito->Rotar(2);
 				//return EKeyWasConsumed;
 			//case(17): //abajo
-				//iAppContainer->iBlenderLite->NextPos(8,1);
+				//iAppContainer->iBlendersito->NextPos(8,1);
 				//return EKeyWasConsumed;
 			//case(14): //izquierda
-				//iAppContainer->iBlenderLite->Rotar(1);
+				//iAppContainer->iBlendersito->Rotar(1);
 				//return EKeyWasConsumed;
 			default:
 				return EKeyWasNotConsumed;
@@ -349,15 +349,15 @@ enum{
 typedef enum { AnimPosition, AnimRotation, AnimScale };
 
 // ----------------------------------------------------
-// CBlenderLiteAppUi::HandleCommandL
+// CBlendersitoAppUi::HandleCommandL
 // Command handler
 // ----------------------------------------------------
 //
-void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
+void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
     switch ( aCommand )
         {
         case EAknSoftkeyBack:
-            iAppContainer->iBlenderLite->SetMouse();
+            iAppContainer->iBlendersito->SetMouse();
             break;
         case EEikCmdExit:
             {
@@ -369,241 +369,241 @@ void CBlenderLiteAppUi::HandleCommandL(TInt aCommand){
         //    OpenMaterialMenuL();
         //    break;
         case EViewportSetShowFloor:
-            iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->showFloor);
+            iAppContainer->iBlendersito->ToggleValue(iAppContainer->iBlendersito->showFloor);
             break;       
         case EViewportSetShowYaxis:
-            iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->showYaxis);
+            iAppContainer->iBlendersito->ToggleValue(iAppContainer->iBlendersito->showYaxis);
             break;       
         case EViewportSetShowXaxis:
-            iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->showXaxis);
+            iAppContainer->iBlendersito->ToggleValue(iAppContainer->iBlendersito->showXaxis);
             break;       
         case EViewportSetOutlineSelect:
-            iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->showOutlineSelect);
+            iAppContainer->iBlendersito->ToggleValue(iAppContainer->iBlendersito->showOutlineSelect);
             break;       
         case EViewportSetOrigins:
-            iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->showOrigins);
+            iAppContainer->iBlendersito->ToggleValue(iAppContainer->iBlendersito->showOrigins);
             break;          
         case EViewportSetOverlay:
-            iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->showOverlays);
+            iAppContainer->iBlendersito->ToggleValue(iAppContainer->iBlendersito->showOverlays);
             break;       
         case EViewportSet3DCursor:
-            iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->show3DCursor);
+            iAppContainer->iBlendersito->ToggleValue(iAppContainer->iBlendersito->show3DCursor);
             break;    
         case ETimelinePlayStop:
-            iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->PlayAnimation);
+            iAppContainer->iBlendersito->ToggleValue(iAppContainer->iBlendersito->PlayAnimation);
             break;  
         case ETimelineShowTimeline:
-            iAppContainer->iBlenderLite->ToggleValue(iAppContainer->iBlenderLite->ShowTimeline);
+            iAppContainer->iBlendersito->ToggleValue(iAppContainer->iBlendersito->ShowTimeline);
             break;
         case ETimelineSetCurrentFrame:
-            iAppContainer->iBlenderLite->SetCurrentFrame();
+            iAppContainer->iBlendersito->SetCurrentFrame();
             break;
         case ETimelineSetEndFrame:
-            iAppContainer->iBlenderLite->SetEndFrame();
+            iAppContainer->iBlendersito->SetEndFrame();
             break;
         case ETimelineSetStartFrame:
-            iAppContainer->iBlenderLite->SetStartFrame();
+            iAppContainer->iBlendersito->SetStartFrame();
             break;
         case EImportOBJ:
-            iAppContainer->iBlenderLite->ImportOBJ();
+            iAppContainer->iBlendersito->ImportOBJ();
             break; 
         case EOldImportOBJ:
-            iAppContainer->iBlenderLite->OldImportOBJ();
+            iAppContainer->iBlendersito->OldImportOBJ();
             break; 
-        case EBlenderLiteWidescreen:
+        case EBlendersitoWidescreen:
             iAppContainer->SetWidescreen();
             break;    
         case EViewportCursorToSelect:
-            iAppContainer->iBlenderLite->CursorToSelect();
+            iAppContainer->iBlendersito->CursorToSelect();
             break;
         case EViewportSelectToCursor:
-            iAppContainer->iBlenderLite->SelectToCursor();
+            iAppContainer->iBlendersito->SelectToCursor();
             break;            
         case EAddCamera:            
-            iAppContainer->iBlenderLite->AddObject(camera);
+            iAppContainer->iBlendersito->AddObject(camera);
             break;   
         case EAddLight:            
-            iAppContainer->iBlenderLite->AddObject(light);
+            iAppContainer->iBlendersito->AddObject(light);
             break;       
         case EAddEmpty:            
-            iAppContainer->iBlenderLite->AddObject(empty);
+            iAppContainer->iBlendersito->AddObject(empty);
             break;
         case EAddCube:            
-            iAppContainer->iBlenderLite->AddMesh(cubo);
+            iAppContainer->iBlendersito->AddMesh(cubo);
             break;  
         case EAddMonkey:
-            iAppContainer->iBlenderLite->AddMesh(monkey);
+            iAppContainer->iBlendersito->AddMesh(monkey);
             break;  
         case EAddVertex:
-            iAppContainer->iBlenderLite->AddMesh(vertice);
+            iAppContainer->iBlendersito->AddMesh(vertice);
             break; 
         case ESetMaterial:
-            iAppContainer->iBlenderLite->SetMaterial();
+            iAppContainer->iBlendersito->SetMaterial();
             break;  
         case ESetSpecular:
-            iAppContainer->iBlenderLite->SetSpecular();
+            iAppContainer->iBlendersito->SetSpecular();
             break;   
-        case EBlenderLiteEditarMesh:
-            iAppContainer->iBlenderLite->SetEditMode();
+        case EBlendersitoEditarMesh:
+            iAppContainer->iBlendersito->SetEditMode();
             break;  
-        case EBlenderLiteSetEscala:
-            iAppContainer->iBlenderLite->SetEscala();
+        case EBlendersitoSetEscala:
+            iAppContainer->iBlendersito->SetEscala();
             break;   
-        case EBlenderLiteSetPosicion:
-            iAppContainer->iBlenderLite->SetPosicion();
+        case EBlendersitoSetPosicion:
+            iAppContainer->iBlendersito->SetPosicion();
             break;   
-        case EBlenderLiteSetRotacion:
-            iAppContainer->iBlenderLite->SetRotacion();
+        case EBlendersitoSetRotacion:
+            iAppContainer->iBlendersito->SetRotacion();
             break;     
         case EDuplicatedObject:
-            iAppContainer->iBlenderLite->DuplicatedObject();
+            iAppContainer->iBlendersito->DuplicatedObject();
             break;       
         case EDuplicatedLinked:
-            iAppContainer->iBlenderLite->DuplicatedLinked();
+            iAppContainer->iBlendersito->DuplicatedLinked();
             break;     
         case ESetParent:
-            iAppContainer->iBlenderLite->SetParent();
+            iAppContainer->iBlendersito->SetParent();
             break;     
         case EClearParent:
-            iAppContainer->iBlenderLite->ClearParent();
+            iAppContainer->iBlendersito->ClearParent();
             break;  
         case EFlipNormals:
-            iAppContainer->iBlenderLite->FlipNormals();
+            iAppContainer->iBlendersito->FlipNormals();
             break;  
         case ERenderUI:
-            iAppContainer->iBlenderLite->SaveCanvasToImage(false, true);
+            iAppContainer->iBlendersito->SaveCanvasToImage(false, true);
             break;  
         case ERenderUIanimation:
-            iAppContainer->iBlenderLite->SaveCanvasToImage(false, true);
+            iAppContainer->iBlendersito->SaveCanvasToImage(false, true);
             break;  
         case ERenderImage:
-            iAppContainer->iBlenderLite->SaveCanvasToImage(false, false);
+            iAppContainer->iBlendersito->SaveCanvasToImage(false, false);
             break; 
         case ERenderAnimation:
-            iAppContainer->iBlenderLite->SaveCanvasToImage(true, false);
+            iAppContainer->iBlendersito->SaveCanvasToImage(true, false);
             break; 
         case ESetAmbientLight:
-            iAppContainer->iBlenderLite->SetAmbientLight();
+            iAppContainer->iBlendersito->SetAmbientLight();
             break;   
         case ESetDiffuse:
-            iAppContainer->iBlenderLite->SetDiffuse();
+            iAppContainer->iBlendersito->SetDiffuse();
             break;   
         case ESetEmission:
-            iAppContainer->iBlenderLite->SetEmission();
+            iAppContainer->iBlendersito->SetEmission();
             break;  
         case ESetTexture:
-            iAppContainer->iBlenderLite->SetTexture();
+            iAppContainer->iBlendersito->SetTexture();
             break;  
         case ESetActiveTexture:
-            iAppContainer->iBlenderLite->ActivarTextura();
+            iAppContainer->iBlendersito->ActivarTextura();
             break; 
         case ESetInterpolation:
-            iAppContainer->iBlenderLite->SetInterpolation();
+            iAppContainer->iBlendersito->SetInterpolation();
             break; 
         case ESetTransparent:
-            iAppContainer->iBlenderLite->SetTransparencia();
+            iAppContainer->iBlendersito->SetTransparencia();
             break; 
         case ESetTextureRepeat:
-            iAppContainer->iBlenderLite->SetTextureRepeat();
+            iAppContainer->iBlendersito->SetTextureRepeat();
             break;             
         case ESetSmooth:
-            iAppContainer->iBlenderLite->SetSmooth();
+            iAppContainer->iBlendersito->SetSmooth();
             break;  
         case ESetCulling:
-            iAppContainer->iBlenderLite->SetCulling();
+            iAppContainer->iBlendersito->SetCulling();
             break;  
         case ESetLighting:
-            iAppContainer->iBlenderLite->SetLighting();
+            iAppContainer->iBlendersito->SetLighting();
             break;  
         case ESetVertexColor:
-            iAppContainer->iBlenderLite->SetVertexColor();
+            iAppContainer->iBlendersito->SetVertexColor();
             break;    
-        case EBlenderLiteInfoObject:
-            iAppContainer->iBlenderLite->InfoObject(1);
+        case EBlendersitoInfoObject:
+            iAppContainer->iBlendersito->InfoObject(1);
             break; 
-        case EBlenderLiteBorrar:
-            iAppContainer->iBlenderLite->Borrar();
+        case EBlendersitoBorrar:
+            iAppContainer->iBlendersito->Borrar();
             break;  
-        case EBlenderLitePerspectiva:
-            iAppContainer->iBlenderLite->SetPerspectiva();
+        case EBlendersitoPerspectiva:
+            iAppContainer->iBlendersito->SetPerspectiva();
             break;
-        case EBlenderLiteTopView:
-            iAppContainer->iBlenderLite->SetViewpoint(top);
+        case EBlendersitoTopView:
+            iAppContainer->iBlendersito->SetViewpoint(top);
             break;
-        case EBlenderLiteFrontView:
-            iAppContainer->iBlenderLite->SetViewpoint(front);
+        case EBlendersitoFrontView:
+            iAppContainer->iBlendersito->SetViewpoint(front);
             break;
-        case EBlenderLiteRightView:
-            iAppContainer->iBlenderLite->SetViewpoint(right);
+        case EBlendersitoRightView:
+            iAppContainer->iBlendersito->SetViewpoint(right);
             break;
-        case EBlenderLiteObjFocus:
-            iAppContainer->iBlenderLite->EnfocarObject();
+        case EBlendersitoObjFocus:
+            iAppContainer->iBlendersito->EnfocarObject();
             break; 
-        case EBlenderLiteViewMaterial:
-            iAppContainer->iBlenderLite->SetShading(MaterialPreview);
+        case EBlendersitoViewMaterial:
+            iAppContainer->iBlendersito->SetShading(MaterialPreview);
             break; 
-        case EBlenderLiteViewSolid:
-            iAppContainer->iBlenderLite->SetShading(Solid);
+        case EBlendersitoViewSolid:
+            iAppContainer->iBlendersito->SetShading(Solid);
             break; 
-        case EBlenderLiteViewWireframe:
-            iAppContainer->iBlenderLite->SetShading(Wireframe);
+        case EBlendersitoViewWireframe:
+            iAppContainer->iBlendersito->SetShading(Wireframe);
             break; 
         case EViewRendered:
-            iAppContainer->iBlenderLite->SetShading(Rendered);
+            iAppContainer->iBlendersito->SetShading(Rendered);
             break;
-        case EBlenderLiteSetTipoVertex:
-            iAppContainer->iBlenderLite->SetTipoSelect(vertexSelect);
+        case EBlendersitoSetTipoVertex:
+            iAppContainer->iBlendersito->SetTipoSelect(vertexSelect);
             break; 
-        case EBlenderLiteSetTipoEdge:
-            iAppContainer->iBlenderLite->SetTipoSelect(edgeSelect);
+        case EBlendersitoSetTipoEdge:
+            iAppContainer->iBlendersito->SetTipoSelect(edgeSelect);
             break; 
-        case EBlenderLiteSetTipoFace:
-            iAppContainer->iBlenderLite->SetTipoSelect(faceSelect);
+        case EBlendersitoSetTipoFace:
+            iAppContainer->iBlendersito->SetTipoSelect(faceSelect);
             break; 
-        case EBlenderLiteOrigenToGeometry:
-            iAppContainer->iBlenderLite->SetOrigen(0);
+        case EBlendersitoOrigenToGeometry:
+            iAppContainer->iBlendersito->SetOrigen(0);
             break; 
-        case EBlenderLiteOrigenToSelect:
-            iAppContainer->iBlenderLite->SetOrigen(1);
+        case EBlendersitoOrigenToSelect:
+            iAppContainer->iBlendersito->SetOrigen(1);
             break; 
-        case EBlenderLiteOrigenToCursor:
-            iAppContainer->iBlenderLite->SetOrigen(2);
+        case EBlendersitoOrigenToCursor:
+            iAppContainer->iBlendersito->SetOrigen(2);
             break; 
-        case EBlenderLiteCambiarObject:
-            iAppContainer->iBlenderLite->changeSelect();
+        case EBlendersitoCambiarObject:
+            iAppContainer->iBlendersito->changeSelect();
             break; 
-        case EBlenderLiteModificadorArray:
-            iAppContainer->iBlenderLite->AddModificador(array);
+        case EBlendersitoModificadorArray:
+            iAppContainer->iBlendersito->AddModificador(array);
             break; 
-        case EBlenderLiteModificadorMirror:
-            iAppContainer->iBlenderLite->AddModificador(mirror);
+        case EBlendersitoModificadorMirror:
+            iAppContainer->iBlendersito->AddModificador(mirror);
             break; 
-        case EBlenderLiteModificadorScrew:
-            iAppContainer->iBlenderLite->AddModificador(screw);
+        case EBlendersitoModificadorScrew:
+            iAppContainer->iBlendersito->AddModificador(screw);
             break;             
         case ENewMaterial:
-            iAppContainer->iBlenderLite->NewMaterial();
+            iAppContainer->iBlendersito->NewMaterial();
             break;
         case ENewTexture:
-            iAppContainer->iBlenderLite->NewTexture();
+            iAppContainer->iBlendersito->NewTexture();
             break; 
         case ERemoveMaterial:
-            iAppContainer->iBlenderLite->RemoveMaterial();
+            iAppContainer->iBlendersito->RemoveMaterial();
             break;  
         case ERemoveTexture:
-            iAppContainer->iBlenderLite->RemoveTexture();
+            iAppContainer->iBlendersito->RemoveTexture();
             break; 
         case EInsertKeyframe:
-            iAppContainer->iBlenderLite->InsertKeyframe(AnimPosition);
+            iAppContainer->iBlendersito->InsertKeyframe(AnimPosition);
             break; 
         case ERemoveKeyframes:
-            iAppContainer->iBlenderLite->RemoveKeyframes();
+            iAppContainer->iBlendersito->RemoveKeyframes();
             break; 
         case EClearKeyframes:
-            iAppContainer->iBlenderLite->ClearKeyframes();
+            iAppContainer->iBlendersito->ClearKeyframes();
             break; 
-        case EBlenderLiteNavegacion:
-            iAppContainer->iBlenderLite->SetNavigation();
+        case EBlendersitoNavegacion:
+            iAppContainer->iBlendersito->SetNavigation();
             break;            
         default:
             break;

@@ -1,7 +1,7 @@
 /*
  * ==============================================================================
  *  Name        : bld.inf
- *  Part of     : OpenGLEx / BlenderLite
+ *  Part of     : OpenGLEx / Blendersito
  * ==============================================================================
  */
 
@@ -10,4 +10,4 @@ DEFAULT ARMV5_ABIV2
 
 PRJ_MMPFILES
 gnumakefile Icons_scalable_dc.mk
-BlenderLite.mmp
+Blendersito.mmp
