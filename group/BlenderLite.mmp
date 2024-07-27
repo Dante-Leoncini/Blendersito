@@ -11,7 +11,10 @@ TARGETTYPE      exe
 UID             0x100039CE 0xA00D021D
 
 EPOCSTACKSIZE   30000 //originalmente estaba en 30000 67108864
-EPOCHEAPSIZE    0x10000 0x4000000  // Tamaño del heap: 64 KB mínimo y 64 MB máximo
+EPOCHEAPSIZE    0x10000 0x4000000  // Tamaï¿½o del heap: 64 KB mï¿½nimo y 64 MB mï¿½ximo
+
+//no logro conseguir el compilador... esto tendria que hacer que ande mejor
+//OPTION_REPLACE  ARMCC --arm -O3 -Otime --cpu 6 --fpu VFPv2 --fpmode fast
 
 VENDORID        0
 

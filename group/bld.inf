@@ -9,5 +9,5 @@ PRJ_PLATFORMS
 DEFAULT ARMV5_ABIV2
 
 PRJ_MMPFILES
-gnumakefile icons_scalable_dc.mk
+gnumakefile Icons_scalable_dc.mk
 BlenderLite.mmp

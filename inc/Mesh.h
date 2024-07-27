@@ -39,10 +39,23 @@ class Material {
 		HBufC* name;
 };
 
-
 class VertexGroup { 
 	public:
         RArray<GLushort> indices;
+};
+
+class EdgesGroup { 
+	public:
+        RArray<GLushort> indices;
+};
+
+
+class FacesGroup { 
+	public:
+        TInt start; //donde esta el primer triangulo
+        TInt count; //cuantos triangulos son
+		TInt indicesCount; //cuantos vertices son
+		TInt material;
 };
 
 class Mesh { 
@@ -53,21 +66,22 @@ class Mesh {
 		GLubyte* vertexColor;
 		GLbyte* normals;
 		GLfloat* uv;
-		TInt* materials;
-		TInt materialsSize;
-		TInt* facesGroupsSize;
-   		GLushort** faces;
+   		GLushort* faces;
+   		GLushort* edges;
+
+		//grupo de caras
+		TInt facesCount;
+		TInt facesCountIndices;
+        RArray<FacesGroup> facesGroup;
 
 		//nuevo vertex group
 		GLshort* vertexGroupUI;
-        RArray<VertexGroup> vertexGroups;	
+        RArray<VertexGroup> vertexGroups;
 
-		
-		void Mesh::InvertirNormales() {
+		//nuevo bordes group
+        RArray<EdgesGroup> edgesGroups;
 
-		}	
-
-		void Mesh::VaciarGrupoVertices() {
+		void Mesh::VaciarGrupos() {
 			if (vertexGroupUI != NULL){
 				delete[] vertexGroupUI; 
 				vertexGroupUI = NULL;
@@ -76,10 +90,19 @@ class Mesh {
 				vertexGroups[i].indices.Close();
 			}
 			vertexGroups.Close();
+			//bordes			
+			if (edges != NULL){
+				delete[] edges; 
+				edges = NULL;
+			}
+			for(TInt i=0; i < edgesGroups.Count(); i++){
+				edgesGroups[i].indices.Close();
+			}
+			edgesGroups.Close();
 		};
 
 		void Mesh::AgruparVertices(){	
-			VaciarGrupoVertices();
+			VaciarGrupos();
 			for(TInt a=0; a < vertexSize; a++){
 		    	TBool iguales = false;
 				//busca copias
@@ -109,6 +132,15 @@ class Mesh {
 				vertexGroupUI[s*3+1] = vertex[indiceVertex*3+1];
 				vertexGroupUI[s*3+2] = vertex[indiceVertex*3+2];
 			}
+
+			//agrupar bordes		
+			/*for(TInt m=0; m < materialsSize; m++){
+				for(TInt f=0; f < facesGroupsSize[m]; f++){
+					(faces[m][f*3], faces[m][f*3+1])
+					(faces[m][f*3+1], faces[m][f*3+2])
+					(faces[m][f*3], faces[m][f*3+2])
+				}
+			};*/
 
 			//agrupar vertices
 		    /*GLshort* TempVertexPos = new GLshort[vertexSize];

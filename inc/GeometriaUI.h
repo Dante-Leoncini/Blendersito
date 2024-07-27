@@ -11,7 +11,7 @@ static GLshort LineaLightVertex[LineaLightVertexSize] = {
 
 static const GLshort LineaTimeline[6] = {    
     0, 0, 0,
-    0, -16, 0,
+    0, 16, 0,
 };
 
 // Define los índices de las líneas
@@ -111,8 +111,8 @@ static const TInt SpriteUvSize = 16 * 2;
 static GLshort SpriteVertices[SpriteVertexSize] = {
 	0,    0, 0,
 	256,    0, 0,
-    256, -256, 0,
-    0, -256, 0,
+    256, 256, 0,
+    0, 256, 0,
     0, 0, 0,
     0, 0, 0,
     0, 0, 0,
