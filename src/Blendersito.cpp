@@ -1924,6 +1924,51 @@ void CBlendersito::OnEndLoadingTexturesL(){
 	}
 }
 
+
+void CBlendersito::SeleccionarAnterior(){
+	if (estado == navegacion){
+		if (Objects.Count() < 1){return;}
+		if (Objects[SelectActivo].seleccionado){
+			Objects[SelectActivo].seleccionado = false;
+			SelectCount--;
+		}
+		SelectActivo--;
+		if (0 > SelectActivo){
+			SelectActivo = Objects.Count()-1;
+		}
+		if (!Objects[SelectActivo].seleccionado){
+			Objects[SelectActivo].seleccionado = true;
+			SelectCount++;
+		}
+	}
+	else if (estado == edicion){
+		
+	}
+	redibujar = true;
+}
+
+void CBlendersito::SeleccionarProximo(){
+	if (estado == navegacion){
+		if (Objects.Count() < 1){return;}
+		if (Objects[SelectActivo].seleccionado){
+			Objects[SelectActivo].seleccionado = false;
+			SelectCount--;
+		}
+		SelectActivo++;
+		if (Objects.Count() <= SelectActivo){
+			SelectActivo = 0;
+		}
+		if (!Objects[SelectActivo].seleccionado){
+			Objects[SelectActivo].seleccionado = true;
+			SelectCount++;
+		}
+	}
+	else if (estado == edicion){
+
+	}
+	redibujar = true;
+}
+
 void CBlendersito::SeleccionarTodo(){
 	TBool TodoSeleccionado = true;
 	if (estado == navegacion){
@@ -2068,9 +2113,11 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 	if ( iShiftPressed ){
 		ShiftCount++;
 		if( flechasEstados[FlechaIzquierda].estado == TeclaPresionada ){
-
+			SeleccionarAnterior();
 		}		
-		else if( flechasEstados[FlechaDerecha].estado == TeclaPresionada ){}
+		else if( flechasEstados[FlechaDerecha].estado == TeclaPresionada ){
+			SeleccionarProximo();
+		}
 		else if( flechasEstados[FlechaArriba].estado == TeclaPresionada ){
 			SeleccionarTodo();
 			ShiftCount = 40;

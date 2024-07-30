@@ -118,6 +118,8 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void BorrarObjeto(TInt indice);
         void BorrarMesh(TInt indice);
         void BorrarAnimaciones(TInt indice);
+        void SeleccionarAnterior();
+        void SeleccionarProximo();
         
         void dibujarUI();
         void guardarEstado();
