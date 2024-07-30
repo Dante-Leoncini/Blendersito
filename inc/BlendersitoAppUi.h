@@ -67,7 +67,6 @@ class CBlendersitoAppUi : public CAknAppUi
             const TKeyEvent& aKeyEvent,TEventCode aType);
 
     private: //Data
-
         /** GUI container that resides in this application UI. */
         CBlendersitoContainer* iAppContainer;
     };

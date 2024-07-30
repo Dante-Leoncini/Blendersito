@@ -8,6 +8,7 @@ class Object {
 	public:
 		TInt type;
 		TBool visible;
+		TBool seleccionado;
 		GLfloat posX; GLfloat posY; GLfloat posZ;
 		GLfloat rotX; GLfloat rotY; GLfloat rotZ;
 		GLfixed scaleX; GLfixed scaleY; GLfixed scaleZ;

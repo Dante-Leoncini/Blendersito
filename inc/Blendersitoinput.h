@@ -22,22 +22,21 @@
 /**
  * Defined joystick values that can be queried from this class.
  */
-enum
-{
-EJoystickUp,
-EJoystickDown,
-EJoystickLeft,
-EJoystickRight,
-//EJoystickFire,
-//EDelete,
-//EShift,
-//EMenu,
-EVolumenUp,
-EVolumenDown,
+enum {
+    EJoystickUp,
+    EJoystickDown,
+    EJoystickLeft,
+    EJoystickRight,
+    //EJoystickFire,
+    //EDelete,
+    //EShift,
+    //EMenu,
+    EVolumenUp,
+    EVolumenDown,
 };
 
 /** Size of the keycode map. */
-static const TUint KKeyCodeMapSize = 10 * 2;
+static const TUint KKeyCodeMapSize = 6 * 2;
 
 /**
  * The keycode map defines which scancode is mapped to which input signal.
@@ -49,6 +48,7 @@ static const TUint KKeyCodeMap[] = {
     EStdKeyRightArrow, EJoystickRight,
     //EStdKeyDevice3,    EJoystickFire,
     //EKeyDelete,        EDelete,
+    //EKeyRightShift,     EShift,
     //EKeyLeftShift,     EShift,
     EKeyIncVolume,     EVolumenUp,                
     EKeyDecVolume,     EVolumenDown,

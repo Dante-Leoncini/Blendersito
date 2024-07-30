@@ -207,110 +207,156 @@ void CBlendersitoAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
 // Key event handler
 // ----------------------------------------------------
 //
-TKeyResponse CBlendersitoAppUi::HandleKeyEventL(
-    const TKeyEvent& aKeyEvent, TEventCode aType ){
-    if ( iAppContainer->iBlendersito->GetState() == CBlendersito::ERunning ){
-		if( aType == EEventKeyDown ){
-			TUint scan = aKeyEvent.iScanCode;
-			switch(scan){
-			case(22): //Shift
-				iAppContainer->iBlendersito->Tab(); //cambiar objeto
-				return EKeyWasConsumed;
-			case(18): //left Shift
-				iAppContainer->iBlendersito->Tab(); //cambiar objeto
-				return EKeyWasConsumed;
-			case(19): //rigth Shift
-				iAppContainer->iBlendersito->Tab(); //cambiar objeto
-				return EKeyWasConsumed;
-			case(1): //Delete
-				iAppContainer->iBlendersito->Borrar();
-				return EKeyWasConsumed;
-			case(49): //1
-				iAppContainer->iBlendersito->TecladoNumerico(1);
-				return EKeyWasConsumed;
-			case(50): //2
-				iAppContainer->iBlendersito->TecladoNumerico(2);
-				return EKeyWasConsumed;
-			case(51): //3
-				iAppContainer->iBlendersito->TecladoNumerico(3);
-				return EKeyWasConsumed;
-			case(52): //4
-				iAppContainer->iBlendersito->TecladoNumerico(4);
-				return EKeyWasConsumed;
-			case(53): //5
-				iAppContainer->iBlendersito->TecladoNumerico(5);
-				return EKeyWasConsumed;
-			case(54): //6
-				iAppContainer->iBlendersito->TecladoNumerico(6);
-				return EKeyWasConsumed;
-			case(55): //7
-				iAppContainer->iBlendersito->TecladoNumerico(7);
-				return EKeyWasConsumed;
-			case(56): //8
-				iAppContainer->iBlendersito->TecladoNumerico(8);
-				return EKeyWasConsumed;
-			case(57): //9
-				iAppContainer->iBlendersito->TecladoNumerico(9);
-				return EKeyWasConsumed;
-			case(48): //0
-				iAppContainer->iBlendersito->TecladoNumerico(0);
-				return EKeyWasConsumed;
-			case(42): //*
-				iAppContainer->iBlendersito->TecladoNumerico(10);
-				return EKeyWasConsumed;
-			case(127): //#
-				iAppContainer->iBlendersito->TecladoNumerico(11);
-				return EKeyWasConsumed;
-			case(226): //camara
-				iAppContainer->iBlendersito->Extruir();
-				return EKeyWasConsumed;
-			case(196): //llamada
-				iAppContainer->iBlendersito->SetPosicion();
-				return EKeyWasConsumed;
-			case(71): //G
-				iAppContainer->iBlendersito->SetPosicion();
-				return EKeyWasConsumed;
-			case(82): //R
-				iAppContainer->iBlendersito->SetRotacion();
-				return EKeyWasConsumed;
-			case(83): //S
-				iAppContainer->iBlendersito->SetEscala();
-				return EKeyWasConsumed;
-			case(81): //Q
-				iAppContainer->iBlendersito->Cancelar();
-				return EKeyWasConsumed;
-			case(3): //Enter
-				iAppContainer->iBlendersito->Aceptar();
-				return EKeyWasConsumed;
-			case(167): //OK
-				iAppContainer->iBlendersito->Aceptar();
-				return EKeyWasConsumed;
-			case(88): //X
-				iAppContainer->iBlendersito->SetEje(0);
-				return EKeyWasConsumed;
-			case(89): //Y
-				iAppContainer->iBlendersito->SetEje(1);
-				return EKeyWasConsumed;
-			case(90): //Z
-				iAppContainer->iBlendersito->SetEje(2);
-				return EKeyWasConsumed;
-				
-			//case(16): //arriba
-				//iAppContainer->iBlendersito->NextPos(0,1);
-				//return EKeyWasConsumed;
-			//case(15): //derecha
-				//iAppContainer->iBlendersito->Rotar(2);
-				//return EKeyWasConsumed;
-			//case(17): //abajo
-				//iAppContainer->iBlendersito->NextPos(8,1);
-				//return EKeyWasConsumed;
-			//case(14): //izquierda
-				//iAppContainer->iBlendersito->Rotar(1);
-				//return EKeyWasConsumed;
-			default:
-				return EKeyWasNotConsumed;
+TKeyResponse CBlendersitoAppUi::HandleKeyEventL(const TKeyEvent& aKeyEvent, TEventCode aType ){
+    if ( iAppContainer->iBlendersito->GetState() == CBlendersito::ERunning ){   
+        TUint scan = aKeyEvent.iScanCode;
+            
+        // Imprimir el código de escaneo para depuración
+        /*if (scan != 165){
+            HBufC* noteBuf = HBufC::NewLC(100);
+            _LIT(KFormatString, "Scan Code: %d\naType: %d");
+            noteBuf->Des().Format(KFormatString, scan, aType);			
+            iAppContainer->iBlendersito->DialogAlert(noteBuf);
+        }*/
+
+        if (aType == EEventKeyDown) {
+			switch(scan){                    
+                /*case(14): //izquierda
+                    //iAppContainer->iBlendersito->Rotar(1);
+                    iAppContainer->iBlendersito->Tab();
+                    return EKeyWasConsumed;
+                case(15): //derecha
+                    //iAppContainer->iBlendersito->Rotar(2);
+                    iAppContainer->iBlendersito->Tab();
+                    return EKeyWasConsumed;
+                case(16): //arriba
+                    //iAppContainer->iBlendersito->NextPos(0,1);
+                    iAppContainer->iBlendersito->Tab();
+                    return EKeyWasConsumed;
+                case(17): //abajo
+                    //iAppContainer->iBlendersito->NextPos(8,1);
+                    iAppContainer->iBlendersito->Tab();
+                    return EKeyWasConsumed;*/                    
+                case(22): //Shift
+                case(18): //left Shift
+                case(19): //rigth Shift
+                    iAppContainer->iBlendersito->iShiftPressed = ETrue;
+                    return EKeyWasConsumed;
+                case(1): //Delete
+                    iAppContainer->iBlendersito->Borrar();
+                    return EKeyWasConsumed;
+                case(49): //1
+                    iAppContainer->iBlendersito->TecladoNumerico(1);
+                    return EKeyWasConsumed;
+                case(50): //2
+                    iAppContainer->iBlendersito->TecladoNumerico(2);
+                    return EKeyWasConsumed;
+                case(51): //3
+                    iAppContainer->iBlendersito->TecladoNumerico(3);
+                    return EKeyWasConsumed;
+                case(52): //4
+                    iAppContainer->iBlendersito->TecladoNumerico(4);
+                    return EKeyWasConsumed;
+                case(53): //5
+                    iAppContainer->iBlendersito->TecladoNumerico(5);
+                    return EKeyWasConsumed;
+                case(54): //6
+                    iAppContainer->iBlendersito->TecladoNumerico(6);
+                    return EKeyWasConsumed;
+                case(55): //7
+                    iAppContainer->iBlendersito->TecladoNumerico(7);
+                    return EKeyWasConsumed;
+                case(56): //8
+                    iAppContainer->iBlendersito->TecladoNumerico(8);
+                    return EKeyWasConsumed;
+                case(57): //9
+                    iAppContainer->iBlendersito->TecladoNumerico(9);
+                    return EKeyWasConsumed;
+                case(48): //0
+                    iAppContainer->iBlendersito->TecladoNumerico(0);
+                    return EKeyWasConsumed;
+                case(42): //*
+                    iAppContainer->iBlendersito->TecladoNumerico(10);
+                    return EKeyWasConsumed;
+                case(127): //#
+                    iAppContainer->iBlendersito->TecladoNumerico(11);
+                    return EKeyWasConsumed;
+                case(226): //camara
+                    iAppContainer->iBlendersito->Extruir();
+                    return EKeyWasConsumed;
+                case(196): //llamada
+                    iAppContainer->iBlendersito->SetPosicion();
+                    return EKeyWasConsumed;
+                case(71): //G
+                    iAppContainer->iBlendersito->SetPosicion();
+                    return EKeyWasConsumed;
+                case(82): //R
+                    iAppContainer->iBlendersito->SetRotacion();
+                    return EKeyWasConsumed;
+                case(83): //S
+                    iAppContainer->iBlendersito->SetEscala();
+                    return EKeyWasConsumed;
+                case(81): //Q
+                    iAppContainer->iBlendersito->Cancelar();
+                    return EKeyWasConsumed;
+                case(3): //Enter
+                    iAppContainer->iBlendersito->Aceptar();
+                    return EKeyWasConsumed;
+                case(167): //OK
+                    iAppContainer->iBlendersito->Aceptar();
+                    return EKeyWasConsumed;
+                case(88): //X
+                    iAppContainer->iBlendersito->SetEje(0);
+                    return EKeyWasConsumed;
+                case(89): //Y
+                    iAppContainer->iBlendersito->SetEje(1);
+                    return EKeyWasConsumed;
+                case(90): //Z
+                    iAppContainer->iBlendersito->SetEje(2);
+                    return EKeyWasConsumed;
+                /*case(14): //izquierda
+                    iAppContainer->iBlendersito->Tab();
+                    return EKeyWasNotConsumed;
+                case(15): //derecha
+                    iAppContainer->iBlendersito->Tab();
+                    return EKeyWasNotConsumed;
+                case(16): //arriba
+                    iAppContainer->iBlendersito->Tab();
+                    return EKeyWasNotConsumed;
+                case(17): //abajo
+                    iAppContainer->iBlendersito->Tab();
+                    return EKeyWasNotConsumed;*/
+                default:
+                    return EKeyWasNotConsumed;
 			}
 		}
+        else if (aType == EEventKeyUp) {
+            TUint scan = aKeyEvent.iScanCode;
+            switch (scan) {                
+                /*case(14): //izquierda
+                    //if (iAppContainer->iBlendersito->iShiftPressed) {
+                    iAppContainer->iBlendersito->Tab();
+                    return EKeyWasNotConsumed;
+                case(15): //derecha
+                    iAppContainer->iBlendersito->Tab();
+                    return EKeyWasNotConsumed;
+                case(16): //arriba
+                    iAppContainer->iBlendersito->Tab();
+                    return EKeyWasNotConsumed;
+                case(17): //abajo
+                    iAppContainer->iBlendersito->Tab();
+                    return EKeyWasNotConsumed;*/
+                case 22: // Shift
+                case 18: // Left Shift
+                case 19: // Right Shift
+                    if (iAppContainer->iBlendersito->iShiftPressed) {
+                        iAppContainer->iBlendersito->iShiftPressed = EFalse;
+                    }
+                    return EKeyWasConsumed;
+                default:
+                    return EKeyWasNotConsumed;
+            }
+        }
 	}
     return EKeyWasNotConsumed;
 }

@@ -103,17 +103,22 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
 		void OnEndLoadingTexturesL();
         
         //mover al siguiente casillero
-        void Rotar( GLfixed aDeltaTimeSecs );
+        void InputUsuario( GLfixed aDeltaTimeSecs );
         
         void SetRotacion( void );
         void SetEscala( void );
         void SetPosicion( void );
         void Cancelar( void );
         void Aceptar( void );
+
+        void SetTranslacionObjetos(TInt valor);
+        void SetRotacionObjetos(TInt valor);
+        void SetEscalaObjetos(TInt valor);
         
         void dibujarUI();
-        void guardarEstado( TInt indice );
+        void guardarEstado();
         void ReestablecerEstado( TInt indice );
+        void SeleccionarTodo();
         void SetEje( TInt eje );     
         void AddMesh( TInt modelo );
         void NewMaterial();
@@ -176,6 +181,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void TecladoNumerico(TInt numero);
         void InsertarValor();
         void ImportOBJ();
+        void DeseleccionarTodo();
         void OldImportOBJ();
         TBool LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt64* startPos, 
                         TInt* acumuladoVertices,
@@ -194,7 +200,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void RenderObject( TInt objId );
         void applyBlur(GLubyte* pixels, int width, int height, int radius);
         int clamp(int value, int min, int max);
-        void DibujarOrigen();
+        void DibujarOrigen(Object& obj, TInt objIndex);
         void SetCurrentFrame();
         void SetStartFrame();
         void SetEndFrame();
@@ -268,7 +274,8 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         TBool showOutlineSelect;
         TBool showOrigins;
         TBool ShowTimeline;
-        TBool PlayAnimation;
+        TBool PlayAnimation;    
+        TBool iShiftPressed; 
         RArray<Object> Objects;
         TInt objSelect;
 
@@ -281,15 +288,6 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
 			ELoadingTextures,
 			ERunning
 		};
-
-        /** Whether or not the lighting is enabled. Used when building the menu for the application. */
-        TBool iLightingEnabled;
-
-        /** Whether or not the lamp is enabled. Used when building the menu for the application. */
-        TBool iLampEnabled;
-
-        /** Whether or not the spotlight is enabled. Used when building the menu for the application. */
-        TBool iSpotEnabled;
         
         TInt estado;
         TInt navegacionMode;
