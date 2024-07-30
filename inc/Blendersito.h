@@ -120,7 +120,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         
         void dibujarUI();
         void guardarEstado();
-        void ReestablecerEstado( TInt indice );
+        void ReestablecerEstado();
         void SeleccionarTodo();
         void SetEje( TInt eje );     
         void AddMesh( TInt modelo );

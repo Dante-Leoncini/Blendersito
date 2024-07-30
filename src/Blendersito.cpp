@@ -243,6 +243,7 @@ RArray<Mesh> Meshes;
 RArray<Animation> Animations;
 TInt tipoSelect = vertexSelect;
 TInt SelectActivo = 0;
+TInt SelectEdicionActivo = 0;
 TInt SelectCount = 0;
 GLshort estadoVertex[3]={0, 0, 0};
 FlechaEstado* flechasEstados;
@@ -262,11 +263,11 @@ void CBlendersito::changeSelect(){
 		}
 	}
 	else if (estado == edicion){
-		SelectActivo++;
+		SelectEdicionActivo++;
 		Mesh& pMesh = Meshes[Objects[SelectActivo].Id];	
 		//if (tipoSelect == vertexSelect && SelectActivo >= pMesh.vertexGroupSize){
-		if (tipoSelect == vertexSelect && SelectActivo >= pMesh.vertexGroups.Count()){
-			SelectActivo = 0;			
+		if (tipoSelect == vertexSelect && SelectEdicionActivo >= pMesh.vertexGroups.Count()){
+			SelectEdicionActivo = 0;			
 		}	
 		/*if (tipoSelect == edgeSelect && SelectActivo >= pMesh.facesSize/2){
 			SelectActivo = 0;			
@@ -281,7 +282,7 @@ void CBlendersito::changeSelect(){
 void CBlendersito::SetTipoSelect(TInt tipo){
 	if (estado != edicion){return;}
 	tipoSelect = tipo;
-	SelectActivo = 0;	
+	SelectEdicionActivo = 0;	
     redibujar = true;
 }
 
@@ -804,8 +805,7 @@ void CBlendersito::RenderMesh( TInt objId ){
 					//vertice seleccionado
 					glPolygonOffset(1.0, -10.0);
 					glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
-					//glDrawArrays( GL_POINTS, pMesh.vertexGroup[SelectActivo], 1 );
-					glDrawArrays( GL_POINTS, SelectActivo, 1 );	
+					glDrawArrays( GL_POINTS, SelectEdicionActivo, 1 );	
 				}	
 				glDepthFunc(GL_LESS);
 				glDisable(GL_POLYGON_OFFSET_FILL);	
@@ -875,7 +875,7 @@ void CBlendersito::RenderMesh( TInt objId ){
 				glPolygonOffset(1.0, -10.0);
 				glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
 				//glDrawArrays( GL_POINTS, pMesh.vertexGroup[SelectActivo], 1 );
-				glDrawArrays( GL_POINTS, SelectActivo, 1 );			
+				glDrawArrays( GL_POINTS, SelectEdicionActivo, 1 );			
 			}
 			//borde seleccionado
 			else if (tipoSelect == edgeSelect){		
@@ -1548,9 +1548,9 @@ void CBlendersito::DrawTransformAxis(Object& obj) {
 	glLineWidth(2);	
 	if (estado == translacionVertex){
 		Mesh& pMesh = Meshes[obj.Id];
-		glTranslatef(pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[0]*3]     *obj.scaleX/65000, 
-						pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[0]*3+1]*obj.scaleY/65000, 
-						pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[0]*3+2]*obj.scaleZ/65000
+		glTranslatef(pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[0]*3]     *obj.scaleX/65000, 
+						pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[0]*3+1]*obj.scaleY/65000, 
+						pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[0]*3+2]*obj.scaleZ/65000
 		);		
 	}
 	if (axisSelect == X){
@@ -1998,6 +1998,8 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 		return;
 	}
 
+	//revisa si se apreto una flecha y actualiza los valores dependiendo el estado de la aplicacion
+	//ya sea animando, editando una malla 3d o en modo objeto
 	if( flechasEstados[FlechaIzquierda].activo ){
 		//mueve el mouse
 		if (mouseVisible){
@@ -2025,18 +2027,18 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 		}
 		else if (estado == translacionVertex){	
 			Mesh& pMesh = Meshes[Objects[SelectActivo].Id];	
-			for(int g=0; g < pMesh.vertexGroups[SelectActivo].indices.Count(); g++){
+			for(int g=0; g < pMesh.vertexGroups[SelectEdicionActivo].indices.Count(); g++){
 				if (axisSelect == X){
-					pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[g]*3] += 30;					
+					pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[g]*3] += 30;					
 				}
 				else if (axisSelect == Y){
-					pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[g]*3+2] -= 30;				
+					pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[g]*3+2] -= 30;				
 				}
 				else if (axisSelect == Z){
-					pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[g]*3+1] -= 30;	
+					pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[g]*3+1] -= 30;	
 				}
 			}
-			pMesh.UpdateVertexUI(SelectActivo);
+			pMesh.UpdateVertexUI(SelectEdicionActivo);
 		}
 		else if (estado == translacion){	
 			SetTranslacionObjetos(30);		
@@ -2082,18 +2084,18 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 		}
 		else if (estado == translacionVertex){	
 			Mesh& pMesh = Meshes[Objects[SelectActivo].Id];				
-			for(int g=0; g < pMesh.vertexGroups[SelectActivo].indices.Count(); g++){
+			for(int g=0; g < pMesh.vertexGroups[SelectEdicionActivo].indices.Count(); g++){
 				if (axisSelect == X){
-					pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[g]*3] -= 30;					
+					pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[g]*3] -= 30;					
 				}
 				else if (axisSelect == Y){
-					pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[g]*3+2] += 30;				
+					pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[g]*3+2] += 30;				
 				}
 				else if (axisSelect == Z){
-					pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[g]*3+1] += 30;	
+					pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[g]*3+1] += 30;	
 				}
 			}	
-			pMesh.UpdateVertexUI(SelectActivo);		
+			pMesh.UpdateVertexUI(SelectEdicionActivo);		
 		}
 		else if (estado == translacion){
 			SetTranslacionObjetos(-30);		
@@ -2133,18 +2135,18 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 		}
 		else if (estado == translacionVertex){	
 			Mesh& pMesh = Meshes[Objects[SelectActivo].Id];	
-			for(int g=0; g < pMesh.vertexGroups[SelectActivo].indices.Count(); g++){
+			for(int g=0; g < pMesh.vertexGroups[SelectEdicionActivo].indices.Count(); g++){
 				if (axisSelect == X){
-					pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[g]*3] -= 30;					
+					pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[g]*3] -= 30;					
 				}
 				else if (axisSelect == Y){
-					pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[g]*3+2] += 30;				
+					pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[g]*3+2] += 30;				
 				}
 				else if (axisSelect == Z){
-					pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[g]*3+1] += 30;	
+					pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[g]*3+1] += 30;	
 				}
 			}
-			pMesh.UpdateVertexUI(SelectActivo);
+			pMesh.UpdateVertexUI(SelectEdicionActivo);
 		}
 		else if (estado == translacion){
 			SetTranslacionObjetos(-30);
@@ -2172,18 +2174,18 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 		}
 		else if (estado == translacionVertex){	
 			Mesh& pMesh = Meshes[Objects[SelectActivo].Id];	
-			for(int g=0; g < pMesh.vertexGroups[SelectActivo].indices.Count(); g++){
+			for(int g=0; g < pMesh.vertexGroups[SelectEdicionActivo].indices.Count(); g++){
 				if (axisSelect == X){
-					pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[g]*3] += 30;					
+					pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[g]*3] += 30;					
 				}
 				else if (axisSelect == Y){
-					pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[g]*3+2] -= 30;				
+					pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[g]*3+2] -= 30;				
 				}
 				else if (axisSelect == Z){
-					pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[g]*3+1] -= 30;	
+					pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[g]*3+1] -= 30;	
 				}
 			}
-			pMesh.UpdateVertexUI(SelectActivo);
+			pMesh.UpdateVertexUI(SelectEdicionActivo);
 		}
 		else if (estado == translacion){
 			SetTranslacionObjetos(30);		
@@ -2260,11 +2262,11 @@ void CBlendersito::SetEje(int eje){
 
 void CBlendersito::Cancelar(){
 	if (estado == translacionVertex){
-		ReestablecerEstado(SelectActivo);
+		ReestablecerEstado();
 		estado = edicion;		
 	}
 	else if (estado == translacion || estado == rotacion || estado == escala){
-		ReestablecerEstado(SelectActivo);
+		ReestablecerEstado();
 		estado = navegacion;	
 	}
     redibujar = true;
@@ -2278,7 +2280,7 @@ void CBlendersito::Aceptar(){
 
 	if ( estado == navegacion && obj.seleccionado && obj.type == mesh ){
 		estado = edicion;
-		SelectActivo = 0;
+		SelectEdicionActivo = 0;
 		colorBordeSelect = 1;	
 	}
 	else if (estado == edicion){
@@ -2312,20 +2314,15 @@ void CBlendersito::Tab(){
 	};
 };
 
-void CBlendersito::ReestablecerEstado(int indice){
-	Object& obj = Objects[indice];
+void CBlendersito::ReestablecerEstado(){
+	Object& obj = Objects[SelectActivo];
 
 	if (estado == translacionVertex && obj.type == mesh ){
 		Mesh& pMesh = Meshes[obj.Id];
-		 /*for(int g=0; g < pMesh.vertexGroupIndiceSize[SelectActivo]; g++){
-			pMesh.vertex[pMesh.vertexGroupIndice[SelectActivo][g]*3] = estadoVertex[0];
-			pMesh.vertex[pMesh.vertexGroupIndice[SelectActivo][g]*3+2] = estadoVertex[1];	
-			pMesh.vertex[pMesh.vertexGroupIndice[SelectActivo][g]*3+1] = estadoVertex[2];	
-		}*/
-		for(int g=0; g < pMesh.vertexGroups[SelectActivo].indices.Count(); g++){
-			pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[g]*3] = estadoVertex[0];
-			pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[g]*3+2] = estadoVertex[1];	
-			pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[g]*3+1] = estadoVertex[2];	
+		for(int g=0; g < pMesh.vertexGroups[SelectEdicionActivo].indices.Count(); g++){
+			pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[g]*3] = estadoVertex[0];
+			pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[g]*3+2] = estadoVertex[1];	
+			pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[g]*3+1] = estadoVertex[2];	
 		}		
 		pMesh.UpdateVertexUI();
 	}
@@ -2348,33 +2345,17 @@ void CBlendersito::ReestablecerEstado(int indice){
 };
 
 void CBlendersito::guardarEstado(){	
-	/*if (estado == translacionVertex){
-		Mesh& pMesh = Meshes[obj.Id];
-		estadoVertex[0] = pMesh.vertex[pMesh.vertexGroupIndice[SelectActivo][0]*3];
-		estadoVertex[1] = pMesh.vertex[pMesh.vertexGroupIndice[SelectActivo][0]*3+2];	
-		estadoVertex[2] = pMesh.vertex[pMesh.vertexGroupIndice[SelectActivo][0]*3+1];	
-	}*/
 	if (estado == translacionVertex){
 		Object& obj = Objects[SelectActivo];
 		Mesh& pMesh = Meshes[obj.Id];
-		if (pMesh.vertexGroups.Count() > 0 && pMesh.vertexGroups[SelectActivo].indices.Count()){
-			estadoVertex[0] = pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[0]*3];
-			estadoVertex[1] = pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[0]*3+2];	
-			estadoVertex[2] = pMesh.vertex[pMesh.vertexGroups[SelectActivo].indices[0]*3+1];	
+		if (pMesh.vertexGroups.Count() > 0 && pMesh.vertexGroups[SelectEdicionActivo].indices.Count()){
+			estadoVertex[0] = pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[0]*3];
+			estadoVertex[1] = pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[0]*3+2];	
+			estadoVertex[2] = pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[0]*3+1];	
 		}
 		else {
 			estado = edicion;
-		}						
-		/*HBufC* noteBuf = HBufC::NewLC(100);
-		_LIT(KStaticErrorMessage, "pos: %d, %d, %d");
-		//noteBuf->Des().Format(KStaticErrorMessage, pMesh.vertexGroups.Count(), pMesh.vertexGroups[SelectActivo].indices.Count());
-		noteBuf->Des().Format(KStaticErrorMessage, 
-			pMesh.vertexGroupUI[pMesh.vertexGroups[SelectActivo].indices[0]*3],
-			pMesh.vertexGroupUI[pMesh.vertexGroups[SelectActivo].indices[0]*3+1],
-			pMesh.vertexGroupUI[pMesh.vertexGroups[SelectActivo].indices[0]*3+2]
-		);		
-		DialogAlert(noteBuf);	
-		CleanupStack::PopAndDestroy(noteBuf);*/
+		}				
 	}
 	else {
 		estadoObjetos.Close();
