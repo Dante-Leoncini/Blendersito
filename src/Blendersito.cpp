@@ -1928,10 +1928,10 @@ void CBlendersito::OnEndLoadingTexturesL(){
 void CBlendersito::SeleccionarAnterior(){
 	if (estado == navegacion){
 		if (Objects.Count() < 1){return;}
-		if (Objects[SelectActivo].seleccionado){
+		/*if (Objects[SelectActivo].seleccionado){
 			Objects[SelectActivo].seleccionado = false;
 			SelectCount--;
-		}
+		}*/
 		SelectActivo--;
 		if (0 > SelectActivo){
 			SelectActivo = Objects.Count()-1;
@@ -1950,10 +1950,10 @@ void CBlendersito::SeleccionarAnterior(){
 void CBlendersito::SeleccionarProximo(){
 	if (estado == navegacion){
 		if (Objects.Count() < 1){return;}
-		if (Objects[SelectActivo].seleccionado){
+		/*if (Objects[SelectActivo].seleccionado){
 			Objects[SelectActivo].seleccionado = false;
 			SelectCount--;
-		}
+		}*/
 		SelectActivo++;
 		if (Objects.Count() <= SelectActivo){
 			SelectActivo = 0;
