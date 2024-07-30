@@ -111,6 +111,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void Cancelar( void );
         void Aceptar( void );
 
+        void SetTranslacionVertices(TInt valor);
         void SetTranslacionObjetos(TInt valor);
         void SetRotacionObjetos(TInt valor);
         void SetEscalaObjetos(TInt valor);
