@@ -1395,7 +1395,6 @@ void CBlendersito::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glEnable( GL_BLEND );
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-
 	
 	//se encarga de dibujar el layout 
 	if (showOverlays){
@@ -1476,6 +1475,7 @@ void CBlendersito::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 		}
 		//dibuja el cursor 3D	
 		if (show3DCursor){
+			glDisable( GL_DEPTH_TEST );
 			glPushMatrix(); //guarda la matrix
 			glTranslatef( Cursor3DposX, Cursor3DposZ, Cursor3DposY);
 			
@@ -1622,6 +1622,7 @@ void CBlendersito::dibujarUI(){
 	//glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_FALSE);
 	//glEnable( GL_TEXTURE_2D ); // Permite usar texturas
 	glEnable( GL_BLEND ); //permite transparents
+	glDisable( GL_DEPTH_TEST );
 	//glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //hace que sea pixelada
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); //hace que sea pixelada
@@ -2675,7 +2676,7 @@ void CBlendersito::Borrar(){
 		if (Objects.Count() < 1){return;}
 		//pregunta de confirmacion
 		HBufC* noteBuf = HBufC::NewLC(100);
-		_LIT(KStaticErrorMessage, "Delete Object?");
+		_LIT(KStaticErrorMessage, "Delete?");
 		noteBuf->Des().Format(KStaticErrorMessage);
 		if (!DialogAlert(noteBuf)){
 			CleanupStack::PopAndDestroy(noteBuf);	
@@ -2685,100 +2686,12 @@ void CBlendersito::Borrar(){
 		Cancelar();
 
 		//libera la memoria de los punteros primero	
-		// Obtener el objeto seleccionado
-		Object& obj = Objects[SelectActivo];
-
-		// Liberar memoria de los punteros del objeto seleccionado
-		if (obj.type == mesh){
-			TInt links = 0;
-			TInt id = obj.Id;
-			
-			for(int o=0; o < Objects.Count(); o++){
-				if (Objects[o].type == mesh && Objects[o].Id == id){links++;};				
-			}
-
-			//si solo hay un objeto linkeado. borra la malla para ahorrar memoria			
-			/*HBufC* noteBuf = HBufC::NewLC(100);
-			_LIT(KFormatString, "hay %d objetos linkeados a la malla 3d (%d)");
-			noteBuf->Des().Format(KFormatString, links, Meshes.Count());
-			DialogAlert(noteBuf);*/
-			if (links < 2){	
-				for(int o=0; o < Objects.Count(); o++){
-					if (Objects[o].type == mesh && Objects[o].Id > id){
-						Objects[o].Id--;
-					};				
-				}
-				Mesh& pMesh = Meshes[id];
-				//primero se borran los objetos a los que apunta el mesh
-				delete[] pMesh.vertex;
-				delete[] pMesh.vertexColor;
-				delete[] pMesh.normals;
-				delete[] pMesh.uv;
-				for(TInt i=0; i < pMesh.vertexGroups.Count(); i++){
-					pMesh.vertexGroups[i].indices.Close();
-				}
-				pMesh.vertexGroups.Close();
-				//borra los bordes
-				for(TInt i=0; i < pMesh.edgesGroups.Count(); i++){
-					pMesh.edgesGroups[i].indices.Close();
-				}
-				pMesh.edgesGroups.Close();
-				//delete[] pMesh.vertexGroup;
-				//delete[] pMesh.vertexGroupIndiceSize;
-				//for(int f=0; f < pMesh.vertexGroupSize; f++){
-				//	delete[] pMesh.vertexGroupIndice[f];
-				//}
-				//delete[] pMesh.vertexGroupIndice;
-
-				delete[] pMesh.faces;
-				pMesh.facesGroup.Close();
-
-				//ahora se borra el mesh
-				Meshes.Remove(obj.Id);
-			}
-		}
-
-		//si existe animaciones para ese objeto. las borra		
-		for(TInt a = 0; a < Animations.Count(); a++) {
-			if (Animations[a].Id == SelectActivo) {	
-				for(TInt p = 0; p < Animations[a].Propertys.Count(); p++) {
-					Animations[a].Propertys[p].keyframes.Close();
-				}				
-				Animations[a].Propertys.Close();
-				Animations.Remove(a);
-			}
-			// Hace falta cambiar los índices
-			else if (Animations[a].Id > SelectActivo) {
-				Animations[a].Id--;
+		// Obtener el objeto seleccionado			
+		for (TInt o = Objects.Count() - 1; o >= 0; o--) {
+			if (Objects[o].seleccionado){
+				BorrarObjeto(o);
 			}			
 		}
-
-		// Borrar de la colección
-		for (int c = Collection.Count() - 1; c >= 0; c--) {
-			if (Collection[c] == SelectActivo) {
-				Collection.Remove(c);
-			}
-			// Hace falta cambiar los índices
-			else if (Collection[c] > SelectActivo) {
-				Collection[c]--;
-			}
-		}
-		
-		// Actualizar índices en los objetos
-		for (int o = 0; o < Objects.Count(); o++) {
-			for (int c = Objects[o].Childrens.Count() - 1; c >= 0; c--) {
-				if (Objects[o].Childrens[c] == SelectActivo) {
-					// Opcionalmente, puedes eliminar el hijo aquí si el objeto seleccionado es un hijo
-					Objects[o].Childrens.Remove(c);
-				} else if (Objects[o].Childrens[c] > SelectActivo) {
-					Objects[o].Childrens[c]--;
-				}
-			}
-		}
-
-		Objects.Remove(SelectActivo);
-		SelectActivo = Objects.Count()-1;		
-		colorBordeSelect = 1;	
 	}
 	else if (estado == edicion){
 		/*if (Objects[SelectActivo].vertexGroupSize < 1){return;}
@@ -2820,6 +2733,105 @@ void CBlendersito::Borrar(){
 		}*/
 	}
     redibujar = true;	
+}
+
+void CBlendersito::BorrarMesh(TInt indice){
+	TInt links = 0;
+	
+	for(int o=0; o < Objects.Count(); o++){
+		if (Objects[o].type == mesh && Objects[o].Id == indice){links++;};				
+	}
+
+	if (links < 2){	
+		for(int o=0; o < Objects.Count(); o++){
+			if (Objects[o].type == mesh && Objects[o].Id > indice){
+				Objects[o].Id--;
+			};				
+		}
+		Mesh& pMesh = Meshes[indice];
+		//primero se borran los objetos a los que apunta el mesh
+		delete[] pMesh.vertex;
+		delete[] pMesh.vertexColor;
+		delete[] pMesh.normals;
+		delete[] pMesh.uv;
+		for(TInt i=0; i < pMesh.vertexGroups.Count(); i++){
+			pMesh.vertexGroups[i].indices.Close();
+		}
+		pMesh.vertexGroups.Close();
+		//borra los bordes
+		for(TInt i=0; i < pMesh.edgesGroups.Count(); i++){
+			pMesh.edgesGroups[i].indices.Close();
+		}
+		pMesh.edgesGroups.Close();
+
+		delete[] pMesh.faces;
+		pMesh.facesGroup.Close();
+
+		//ahora se borra el mesh
+		Meshes.Remove(indice);
+	}
+}
+
+void CBlendersito::BorrarAnimaciones(TInt indice){
+	for(TInt a = 0; a < Animations.Count(); a++) {
+		if (Animations[a].Id == indice) {	
+			for(TInt p = 0; p < Animations[a].Propertys.Count(); p++) {
+				Animations[a].Propertys[p].keyframes.Close();
+			}				
+			Animations[a].Propertys.Close();
+			Animations.Remove(a);
+		}
+		// Hace falta cambiar los índices
+		else if (Animations[a].Id > indice) {
+			Animations[a].Id--;
+		}			
+	}
+}
+
+void CBlendersito::BorrarObjeto(TInt indice){
+	Object& obj = Objects[indice];
+	// Liberar memoria de los punteros del objeto seleccionado
+	if (obj.type == mesh){
+		BorrarMesh(obj.Id);
+	}
+
+	//si existe animaciones para ese objeto. las borra		
+	BorrarAnimaciones(indice);
+
+	// Borrar de la colección
+	for (int c = Collection.Count() - 1; c >= 0; c--) {
+		if (Collection[c] == indice) {
+			Collection.Remove(c);
+		}
+		// Hace falta cambiar los índices
+		else if (Collection[c] > indice) {
+			Collection[c]--;
+		}
+	}
+	
+	// Actualizar índices en los objetos
+	for (int o = 0; o < Objects.Count(); o++) {
+		for (int c = Objects[o].Childrens.Count() - 1; c >= 0; c--) {
+			if (Objects[o].Childrens[c] == indice) {
+				Objects[o].Childrens.Remove(c);
+			} 
+			else if (Objects[o].Childrens[c] > indice) {
+				Objects[o].Childrens[c]--;
+			}
+		}
+	}
+
+	Objects.Remove(indice);
+	if (Objects.Count() > 0){
+		SelectCount = 1;
+		SelectActivo = Objects.Count()-1;
+		Objects[SelectActivo].seleccionado = true;
+	}
+	else {
+		SelectCount = 0;
+		SelectActivo = 0;
+	}
+	colorBordeSelect = 1;	
 }
 
 void CBlendersito::CursorToSelect(){
@@ -3438,9 +3450,13 @@ void CBlendersito::DuplicatedObject(){
 		Mesh& tempMesh2 = Meshes[Meshes.Count()-1];
 
 		Objects.Append(obj);
+
+		DeseleccionarTodo();
 		SelectActivo = Objects.Count()-1;
-		Collection.Append(SelectActivo);
+		Objects[SelectActivo].seleccionado = true;
 		Objects[SelectActivo].Id = Meshes.Count()-1;
+		Collection.Append(SelectActivo);
+		SelectCount = 1;
 
 		//los punteros apuntan a la misma memoria que el mesh original. hay que cambiarlo
 		tempMesh2.vertex = new GLshort[tempMesh.vertexSize*3];
@@ -3479,8 +3495,11 @@ void CBlendersito::DuplicatedObject(){
 		}
 	}
 	else {
-		Objects.Append(obj);	
+		Objects.Append(obj);			
+		DeseleccionarTodo();
 		SelectActivo = Objects.Count()-1;
+		Objects[SelectActivo].seleccionado = true;
+		SelectCount = 1;
 		Collection.Append(SelectActivo);
 	}
 
@@ -3492,8 +3511,12 @@ void CBlendersito::DuplicatedLinked(){
 	if (Objects.Count() < 1){return;}	
 	Object& obj = Objects[SelectActivo];
 	Objects.Append(obj);	
+	DeseleccionarTodo();
 	SelectActivo = Objects.Count()-1;
+	Objects[SelectActivo].seleccionado = true;
+	Objects[SelectActivo].Id = Meshes.Count()-1;
 	Collection.Append(SelectActivo);
+	SelectCount = 1;
     redibujar = true;
 }
 
