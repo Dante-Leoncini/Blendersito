@@ -1026,7 +1026,7 @@ void CBlendersito::RenderObject( TInt objId ){
 	glDisable( GL_TEXTURE_2D );
 
 	//color si esta seleccionado
-	if (SelectActivo == objId){
+	if (SelectActivo == objId && obj.seleccionado){
 		glColor4f(ListaColores[naranja][0],ListaColores[naranja][1],ListaColores[naranja][2],ListaColores[naranja][3]);
 	}
 	else if (obj.seleccionado){
