@@ -220,6 +220,16 @@ class SaveState {
 };
 RArray<SaveState> estadoObjetos;
 
+//GLshort estadoVertex[3]={0, 0, 0};
+class SaveStateVertex {
+	public:
+		TInt indice;
+		GLshort x;
+		GLfloat y;
+		GLfloat z;
+};
+RArray<SaveStateVertex> estadoVertices;
+
 enum {
 	TeclaSuelta,
 	TeclaPresionada,
@@ -245,7 +255,7 @@ TInt tipoSelect = vertexSelect;
 TInt SelectActivo = 0;
 TInt SelectEdicionActivo = 0;
 TInt SelectCount = 0;
-GLshort estadoVertex[3]={0, 0, 0};
+TInt SelectEditCount = 0;
 FlechaEstado* flechasEstados;
 
 void CBlendersito::changeSelect(){
@@ -261,14 +271,39 @@ void CBlendersito::changeSelect(){
 		if (Objects.Count() > 0){
 			SelectCount = 1;
 		}
+		else {
+			SelectCount = 0;
+		}
 	}
 	else if (estado == edicion){
-		SelectEdicionActivo++;
 		Mesh& pMesh = Meshes[Objects[SelectActivo].Id];	
-		//if (tipoSelect == vertexSelect && SelectActivo >= pMesh.vertexGroupSize){
+		//si no hay grupos de vertices. no hace nada
+		if (pMesh.vertexGroups.Count() < 1){return;}
+
+		//si hay mas de un vertice seleccionado. los deselecciona
+		/*if (SelectEditCount > 1){
+			DeseleccionarTodo();
+		}
+		else {*/
+		//deselecciona solo el que estaba seleccionado
+		pMesh.vertexGroups[SelectEdicionActivo].seleccionado = false;
+		pMesh.UpdateVertexColorUI(SelectEdicionActivo);
+		//}
+
+		SelectEdicionActivo++;
 		if (tipoSelect == vertexSelect && SelectEdicionActivo >= pMesh.vertexGroups.Count()){
 			SelectEdicionActivo = 0;			
 		}	
+
+		//selecciona el nuevo vertice solo si hay vertices
+		pMesh.vertexGroups[SelectEdicionActivo].seleccionado = true;
+		pMesh.UpdateVertexColorUI(SelectEdicionActivo);
+		/*if (SelectEditCount != 1 && pMesh.vertexGroups.Count() > 0){
+			SelectEditCount = 1;
+		}
+		else {
+			SelectEditCount = 0;
+		}*/
 		/*if (tipoSelect == edgeSelect && SelectActivo >= pMesh.facesSize/2){
 			SelectActivo = 0;			
 		}	
@@ -697,7 +732,7 @@ void CBlendersito::RenderMesh( TInt objId ){
 	glDisable(GL_POLYGON_OFFSET_FILL);
 	// Set array pointers from mesh.
 	glVertexPointer( 3, GL_SHORT, 0, pMesh.vertex );
-	glColorPointer( 4, GL_UNSIGNED_BYTE, 0, pMesh.vertexColor );
+	glColorPointer( 4, GL_UNSIGNED_BYTE, 0, pMesh.vertexColor );	
 	glNormalPointer( GL_BYTE, 0, pMesh.normals );
 
 	//glShadeModel( GL_SMOOTH );
@@ -780,15 +815,17 @@ void CBlendersito::RenderMesh( TInt objId ){
 			if (estado == edicion || estado == translacionVertex){
 				glDisable( GL_CULL_FACE );
 				glDisable(GL_BLEND);
-				glDisable(GL_COLOR_MATERIAL);
-				glDisableClientState( GL_COLOR_ARRAY );
 				glDisable( GL_TEXTURE_2D );
 				glDisable( GL_LIGHTING );
-				glEnable(GL_POLYGON_OFFSET_FILL);
+				//glEnable(GL_POLYGON_OFFSET_FILL);
+				glColorPointer( 4, GL_UNSIGNED_BYTE, 0, pMesh.vertexGroupUIcolor );
 				glDepthFunc(GL_LEQUAL);
 
+				glEnableClientState( GL_COLOR_ARRAY );
+				glEnable(GL_COLOR_MATERIAL);
+
 				//bordes
-				glPolygonOffset(1.0, -1.0);
+				//glPolygonOffset(1.0, -1.0);
 				glColor4f(ListaColores[gris][0],
 						ListaColores[gris][1],
 						ListaColores[gris][2],
@@ -797,18 +834,20 @@ void CBlendersito::RenderMesh( TInt objId ){
 				//vertices
 				if (tipoSelect == vertexSelect){
 					glVertexPointer( 3, GL_SHORT, 0, pMesh.vertexGroupUI );
-					glPolygonOffset(1.0, -4.0);
+					//glPolygonOffset(1.0, -4.0);
 					glColor4f(ListaColores[negro][0], ListaColores[negro][1], ListaColores[negro][2], ListaColores[negro][3]);
 					glPointSize(4);
 					glDrawArrays( GL_POINTS, 0, pMesh.vertexGroups.Count() );
 
 					//vertice seleccionado
-					glPolygonOffset(1.0, -10.0);
+					//glPolygonOffset(1.0, -10.0);					
+					glDisableClientState( GL_COLOR_ARRAY );
+					glDisable(GL_COLOR_MATERIAL);
 					glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
 					glDrawArrays( GL_POINTS, SelectEdicionActivo, 1 );	
 				}	
 				glDepthFunc(GL_LESS);
-				glDisable(GL_POLYGON_OFFSET_FILL);	
+				//glDisable(GL_POLYGON_OFFSET_FILL);	
 			}
 		}
 	}	
@@ -1874,8 +1913,8 @@ void CBlendersito::OnEndLoadingTexturesL(){
 }
 
 void CBlendersito::SeleccionarTodo(){
+	TBool TodoSeleccionado = true;
 	if (estado == navegacion){
-		TBool TodoSeleccionado = true;
 		for(int o=0; o < Objects.Count(); o++){
 			if (!Objects[o].seleccionado){
 				TodoSeleccionado = false;
@@ -1893,7 +1932,27 @@ void CBlendersito::SeleccionarTodo(){
 		}
 	}
 	else if (estado == edicion){
-		
+		Object& obj = Objects[SelectActivo];
+		if (obj.type != mesh){return;}
+		Mesh& pMesh = Meshes[obj.Id];	
+
+		//revisa si estan todos los vertices seleccionados
+		for(int vg=0; vg < pMesh.vertexGroups.Count(); vg++){
+			if (!pMesh.vertexGroups[vg].seleccionado){
+				TodoSeleccionado = false;
+			}	
+		}
+		//solo si esta todo seleccionado hace lo contrario
+		if (TodoSeleccionado){
+			SelectEditCount = 0;
+		}
+		else {
+			SelectEditCount = pMesh.vertexGroups.Count();
+		}
+		for(int vg=0; vg < pMesh.vertexGroups.Count(); vg++){
+			pMesh.vertexGroups[vg].seleccionado = !TodoSeleccionado;
+		}		
+		pMesh.UpdateVertexColorsUI();
 	}
 	redibujar = true;
 }
@@ -2318,12 +2377,16 @@ void CBlendersito::ReestablecerEstado(){
 	Object& obj = Objects[SelectActivo];
 
 	if (estado == translacionVertex && obj.type == mesh ){
-		Mesh& pMesh = Meshes[obj.Id];
-		for(int g=0; g < pMesh.vertexGroups[SelectEdicionActivo].indices.Count(); g++){
-			pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[g]*3] = estadoVertex[0];
-			pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[g]*3+2] = estadoVertex[1];	
-			pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[g]*3+1] = estadoVertex[2];	
-		}		
+		Mesh& pMesh = Meshes[obj.Id];	
+		for(int vg=0; vg < estadoVertices.Count(); vg++){
+			for(int g=0; g < pMesh.vertexGroups[estadoVertices[vg].indice].indices.Count(); g++){
+				TInt numeroVertice = pMesh.vertexGroups[estadoVertices[vg].indice].indices[g]*3;
+				pMesh.vertex[numeroVertice] = estadoVertices[vg].x;
+				pMesh.vertex[numeroVertice+1] = estadoVertices[vg].y;	
+				pMesh.vertex[numeroVertice+2] = estadoVertices[vg].z;	
+			}			
+		}	
+		
 		pMesh.UpdateVertexUI();
 	}
 	else {
@@ -2346,16 +2409,23 @@ void CBlendersito::ReestablecerEstado(){
 
 void CBlendersito::guardarEstado(){	
 	if (estado == translacionVertex){
-		Object& obj = Objects[SelectActivo];
-		Mesh& pMesh = Meshes[obj.Id];
-		if (pMesh.vertexGroups.Count() > 0 && pMesh.vertexGroups[SelectEdicionActivo].indices.Count()){
-			estadoVertex[0] = pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[0]*3];
-			estadoVertex[1] = pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[0]*3+2];	
-			estadoVertex[2] = pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[0]*3+1];	
-		}
-		else {
-			estado = edicion;
-		}				
+		if (SelectEditCount > 0){
+			estadoVertices.Close();
+			estadoVertices.ReserveL(SelectEditCount);
+			
+			Object& obj = Objects[SelectActivo];
+			Mesh& pMesh = Meshes[obj.Id];
+			for(int vg=0; vg < pMesh.vertexGroups.Count(); vg++){
+				if ( pMesh.vertexGroups[vg].seleccionado){
+					SaveStateVertex NuevoEstadoVertice;
+					TInt primerVertice = pMesh.vertexGroups[vg].indices[0]*3;
+					NuevoEstadoVertice.x = pMesh.vertex[primerVertice];
+					NuevoEstadoVertice.y = pMesh.vertex[primerVertice+1];	
+					NuevoEstadoVertice.z = pMesh.vertex[primerVertice+2];
+					estadoVertices.Append(NuevoEstadoVertice);		
+				}		
+			}	
+		}			
 	}
 	else {
 		estadoObjetos.Close();
@@ -2733,6 +2803,7 @@ void CBlendersito::BorrarMesh(TInt indice){
 		//primero se borran los objetos a los que apunta el mesh
 		delete[] pMesh.vertex;
 		delete[] pMesh.vertexColor;
+		delete[] pMesh.vertexGroupUIcolor;
 		delete[] pMesh.normals;
 		delete[] pMesh.uv;
 		for(TInt i=0; i < pMesh.vertexGroups.Count(); i++){
@@ -2884,10 +2955,26 @@ void CBlendersito::AddObject( TInt tipo ){
 
 
 void CBlendersito::DeseleccionarTodo(){
-	for(int o=0; o < Objects.Count(); o++){
-		Objects[o].seleccionado = false;				
+	if (estado == navegacion){
+		for(int o=0; o < Objects.Count(); o++){
+			Objects[o].seleccionado = false;				
+		}
+		SelectCount = 0;
 	}
-	SelectCount = 0;
+	else if (estado == edicion){
+		Object& obj = Objects[SelectActivo];
+		if (obj.type != mesh){return;}
+		Mesh& pMesh = Meshes[obj.Id];	
+		//si no hay grupos de vertices. no hace nada
+		if (pMesh.vertexGroups.Count() < 1){return;}
+
+		for(int vg=0; vg < pMesh.vertexGroups.Count(); vg++){
+			pMesh.vertexGroups[vg].seleccionado = false;				
+		}
+		pMesh.UpdateVertexColorsUI();
+		
+		SelectEditCount = 0;
+	}
 }
 
 void CBlendersito::AddMesh( int modelo ){
@@ -2968,6 +3055,7 @@ void CBlendersito::AddMesh( int modelo ){
 	tempMesh.smooth = true;
 	tempFaceGroup.material = 0;
 	tempMesh.vertexGroupUI = NULL;
+	tempMesh.vertexGroupUIcolor = NULL;
 	tempMesh.edges = NULL;
 	Meshes.Append(tempMesh);	
 
@@ -4490,6 +4578,7 @@ void CBlendersito::ImportOBJ(){
 		tempMesh.uv = new GLfloat[tempMesh.vertexSize*2];
 		tempMesh.smooth = true;
 		tempMesh.vertexGroupUI = NULL;	
+		tempMesh.vertexGroupUIcolor = NULL;
 		tempMesh.edges = NULL;	
 
 		//valores defecto

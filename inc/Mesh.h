@@ -43,6 +43,7 @@ class Material {
 class VertexGroup { 
 	public:
         RArray<GLushort> indices;
+		TBool seleccionado;
 };
 
 class EdgesGroup { 
@@ -77,6 +78,7 @@ class Mesh {
 
 		//nuevo vertex group
 		GLshort* vertexGroupUI;
+		GLubyte* vertexGroupUIcolor;
         RArray<VertexGroup> vertexGroups;
 
 		//nuevo bordes group
@@ -86,6 +88,10 @@ class Mesh {
 			if (vertexGroupUI != NULL){
 				delete[] vertexGroupUI; 
 				vertexGroupUI = NULL;
+			}
+			if (vertexGroupUIcolor != NULL){
+				delete[] vertexGroupUIcolor; 
+				vertexGroupUIcolor = NULL;
 			}
 			for(TInt i=0; i < vertexGroups.Count(); i++){
 				vertexGroups[i].indices.Close();
@@ -118,6 +124,27 @@ class Mesh {
 			}
 		}
 
+		void Mesh::UpdateVertexColorUI(TInt indice){	
+			GLubyte colorVerticeR = 0;
+			GLubyte colorVerticeG = 0;
+			GLubyte colorVerticeB = 0;
+			if (vertexGroups[indice].seleccionado){
+				colorVerticeR = 240;
+				colorVerticeG = 150;
+				colorVerticeB = 43;
+			}
+			vertexGroupUIcolor[indice*4] = colorVerticeR;
+			vertexGroupUIcolor[indice*4+1] = colorVerticeG;
+			vertexGroupUIcolor[indice*4+2] = colorVerticeB;
+			vertexGroupUIcolor[indice*4+3] = 255;
+		}
+
+		void Mesh::UpdateVertexColorsUI(){	
+			for(TInt vg=0; vg < vertexGroups.Count(); vg++){
+				UpdateVertexColorUI(vg);
+			}
+		}
+
 		void Mesh::AgruparVertices(){	
 			VaciarGrupos();
 			for(TInt a=0; a < vertexSize; a++){
@@ -136,13 +163,15 @@ class Mesh {
 				//si no se encontro el vertice en ningun grupo. crea uno y lo guarda adentro
 				if (!iguales){
 					VertexGroup newVertexGroups;
+					newVertexGroups.seleccionado = false;
 					vertexGroups.Append(newVertexGroups);
 					vertexGroups[vertexGroups.Count()-1].indices.Append(a);
 				}
 			}
 
 			//ahora crea los vertices que openGL lee.			
-			vertexGroupUI = new GLshort[vertexGroups.Count()*3];
+			vertexGroupUI = new GLshort[vertexGroups.Count()*3];			
+			vertexGroupUIcolor = new GLubyte[vertexGroups.Count()*4];
 			UpdateVertexUI();
 
 			//agrupar bordes		
