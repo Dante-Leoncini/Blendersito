@@ -468,7 +468,7 @@ void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
             iAppContainer->iBlendersito->ImportOBJ();
             break; 
         case EShrinkFatten:
-            iAppContainer->iBlendersito->ShrinkFatten();
+            iAppContainer->iBlendersito->CalcShrinkFattenVectors();
             break; 
         case EOldImportOBJ:
             iAppContainer->iBlendersito->OldImportOBJ();

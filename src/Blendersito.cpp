@@ -234,6 +234,18 @@ class SaveStateVertex {
 };
 RArray<SaveStateVertex> estadoVertices;
 
+class VectorTInt {
+	public:
+		TInt indice;
+		TInt x;
+		TInt y;
+		TInt z;
+		GLshort posX;
+		GLshort posY;
+		GLshort posZ;
+};
+RArray<VectorTInt> VectoresTInt;
+
 enum {
 	TeclaSuelta,
 	TeclaPresionada,
@@ -2128,44 +2140,68 @@ void CBlendersito::SetTranslacionVertices(TInt valor){
 	}
 }
 
-void CBlendersito::ShrinkFatten(){
+void CBlendersito::CalcShrinkFattenVectors(){
 	if (Objects.Count() < 1){return;}
 	Object& obj = Objects[SelectActivo];
 	if (!obj.seleccionado || obj.type != mesh){return;}
 	Mesh& pMesh = Meshes[obj.Id];
+	if (estado != editNavegacion && InteractionMode != EditMode){return;};
 
-	guardarEstado();	
-	
-	HBufC* noteBuf = HBufC::NewLC(100);
-	noteBuf->Des().Copy(_L("Set Start Frame"));
-	TInt multiplicador = DialogNumber(1, -10000, 10000, noteBuf);
-	CleanupStack::PopAndDestroy(noteBuf);
+	//guardarEstado();	
+	estado = EditShrinkFatten;
+	VectoresTInt.Close();
+	VectoresTInt.ReserveL(SelectEditCount);
 
 	for(int i=0; i < pMesh.vertexGroups.Count(); i++){
 		if (pMesh.vertexGroups[i].seleccionado){
 			//calcula el vector
-			TInt vectorX = 0;
-			TInt vectorY = 0;
-			TInt vectorZ = 0;
+			VectorTInt newVectorTInt;
+			VectoresTInt.Append(newVectorTInt);
+			VectorTInt& tempVectorTInt = VectoresTInt[VectoresTInt.Count()-1];
+
+			tempVectorTInt.indice = i;
 			TInt cantidad = pMesh.vertexGroups[i].indices.Count();
+
+			//guarda la posicion original. parecido a estadoVertices
+			TInt primerVertice = pMesh.vertexGroups[i].indices[0]*3;
+			tempVectorTInt.posX = pMesh.vertex[primerVertice];
+			tempVectorTInt.posY = pMesh.vertex[primerVertice+1];	
+			tempVectorTInt.posZ = pMesh.vertex[primerVertice+2];
+			tempVectorTInt.x = 0;		
+			tempVectorTInt.y = 0;	
+			tempVectorTInt.z = 0;
+
 			for(int vg=0; vg < cantidad; vg++){
 				TInt indiceVertice = pMesh.vertexGroups[i].indices[vg]*3;
-				vectorX = vectorX + pMesh.normals[indiceVertice];		
-				vectorY = vectorY + pMesh.normals[indiceVertice+2];	
-				vectorZ = vectorZ + pMesh.normals[indiceVertice+1];
+				tempVectorTInt.x += pMesh.normals[indiceVertice];		
+				tempVectorTInt.y += pMesh.normals[indiceVertice+1];	
+				tempVectorTInt.z += pMesh.normals[indiceVertice+2];
 			}
-			//aplica el vector
-			vectorX = (vectorX/cantidad)*multiplicador;
-			vectorY = (vectorY/cantidad)*multiplicador;
-			vectorZ = (vectorZ/cantidad)*multiplicador;
-			for(int vg=0; vg < pMesh.vertexGroups[i].indices.Count(); vg++){
-				TInt indiceVertice = pMesh.vertexGroups[i].indices[vg]*3;
-				pMesh.vertex[indiceVertice] += vectorX;		
-				pMesh.vertex[indiceVertice+2] += vectorY;	
-				pMesh.vertex[indiceVertice+1] += vectorZ;
-			}
-			pMesh.UpdateVertexUI(i);
+			tempVectorTInt.x = tempVectorTInt.x/cantidad;		
+			tempVectorTInt.y = tempVectorTInt.y/cantidad;	
+			tempVectorTInt.z = tempVectorTInt.z/cantidad;
 		}		
+	}
+
+	redibujar = true;
+}
+
+void CBlendersito::SetShrinkFatten(TInt fuerza){
+	Mesh& pMesh = Meshes[Objects[SelectActivo].Id];
+	for(int i=0; i < VectoresTInt.Count(); i++){		
+		//aplica el vector
+		TInt indiceVector = VectoresTInt[i].indice;
+
+		TInt resultadoX = VectoresTInt[i].x*fuerza;
+		TInt resultadoY = VectoresTInt[i].y*fuerza;
+		TInt resultadoZ = VectoresTInt[i].z*fuerza;
+		for(int vg=0; vg < pMesh.vertexGroups[indiceVector].indices.Count(); vg++){
+			TInt indiceVertice = pMesh.vertexGroups[indiceVector].indices[vg]*3;
+			pMesh.vertex[indiceVertice] += resultadoX;		
+			pMesh.vertex[indiceVertice+1] += resultadoY;	
+			pMesh.vertex[indiceVertice+2] += resultadoZ;
+		}
+		pMesh.UpdateVertexUI(indiceVector);
 	}
 	redibujar = true;
 }
@@ -2246,6 +2282,9 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 				PivotY += 30 * leftY;
 			}	
 		}
+		else if (estado == EditShrinkFatten){
+			SetShrinkFatten(-1);
+		}
 		else if (estado == VertexMove){	
 			SetTranslacionVertices(30);
 		}
@@ -2291,6 +2330,9 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 				PivotY -= 30 * leftY;
 			}
 		}
+		else if (estado == EditShrinkFatten){
+			SetShrinkFatten(1);
+		}
 		else if (estado == VertexMove){	
 			SetTranslacionVertices(-30);	
 		}
@@ -2330,6 +2372,9 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 				PivotX-= 30 * sin(radRotX);
 			}		
 		}
+		else if (estado == EditShrinkFatten){
+			SetShrinkFatten(1);
+		}
 		else if (estado == VertexMove){	
 			SetTranslacionVertices(-30);
 		}
@@ -2356,6 +2401,9 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 				PivotY-= 30 * cos(radRotX);
 				PivotX+= 30 * sin(radRotX);
 			}
+		}
+		else if (estado == EditShrinkFatten){
+			SetShrinkFatten(-1);
 		}
 		else if (estado == VertexMove){	
 			SetTranslacionVertices(30);
@@ -2439,8 +2487,6 @@ void CBlendersito::SetEje(int eje){
 void CBlendersito::Cancelar(){
 	if (estado != editNavegacion){
 		ReestablecerEstado();
-		estado = editNavegacion;
-   		redibujar = true;
 	}
 };
 
@@ -2463,6 +2509,9 @@ void CBlendersito::Aceptar(){
 			InteractionMode = ObjectMode;
 		}
 		else if (estado != editNavegacion){
+			if (estado == EditShrinkFatten){
+				VectoresTInt.Close();
+			}
 			estado = editNavegacion;
 		}
 	}
@@ -2494,7 +2543,20 @@ void CBlendersito::Tab(){
 void CBlendersito::ReestablecerEstado(){
 	Object& obj = Objects[SelectActivo];
 
-	if (estado == VertexMove && obj.type == mesh ){
+	if (estado == EditShrinkFatten){
+		Mesh& pMesh = Meshes[obj.Id];	
+		for(int i=0; i < VectoresTInt.Count(); i++){	
+			TInt indiceVector = VectoresTInt[i].indice;
+			for(int vg=0; vg < pMesh.vertexGroups[indiceVector].indices.Count(); vg++){
+				TInt indiceVertice = pMesh.vertexGroups[indiceVector].indices[vg]*3;
+				pMesh.vertex[indiceVertice] = VectoresTInt[i].posX;		
+				pMesh.vertex[indiceVertice+1] = VectoresTInt[i].posY;	
+				pMesh.vertex[indiceVertice+2] = VectoresTInt[i].posZ;
+			}
+			pMesh.UpdateVertexUI(indiceVector);
+		}	
+	}
+	else if (estado == VertexMove && obj.type == mesh ){
 		Mesh& pMesh = Meshes[obj.Id];	
 		for(int vg=0; vg < estadoVertices.Count(); vg++){
 			for(int g=0; g < pMesh.vertexGroups[estadoVertices[vg].indice].indices.Count(); g++){
@@ -2503,8 +2565,7 @@ void CBlendersito::ReestablecerEstado(){
 				pMesh.vertex[numeroVertice+1] = estadoVertices[vg].y;	
 				pMesh.vertex[numeroVertice+2] = estadoVertices[vg].z;	
 			}			
-		}	
-		
+		}			
 		pMesh.UpdateVertexUI();
 	}
 	else {
@@ -2523,10 +2584,12 @@ void CBlendersito::ReestablecerEstado(){
 		}	
 		estadoObjetos.Close();
 	}
+	estado = editNavegacion;
+	redibujar = true;
 };
 
 void CBlendersito::guardarEstado(){	
-	if (InteractionMode == EditMode && estado == VertexMove){
+	if (InteractionMode == EditMode){
 		if (SelectEditCount > 0){
 			estadoVertices.Close();
 			estadoVertices.ReserveL(SelectEditCount);

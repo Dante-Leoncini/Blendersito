@@ -137,7 +137,8 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void SetInterpolation();
         void SetTransparencia();
         void SetAmbientLight();
-        void ShrinkFatten();
+        void CalcShrinkFattenVectors();
+        void SetShrinkFatten(TInt fuerza);
         void FlipNormals();
         void SetSmooth();
         void SetCulling();
