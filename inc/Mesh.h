@@ -73,6 +73,9 @@ class Mesh {
    		GLushort* faces;
    		GLushort* edges;
 
+		TInt SelectActivo;
+		TInt SelectCount;
+
 		//grupo de caras
 		TInt facesCount;
 		TInt facesCountIndices;
@@ -87,7 +90,7 @@ class Mesh {
 		TInt edgesDrawnSize;
         RArray<EdgesGroup> edgesGroups;
 
-		void Mesh::VaciarGrupos() {
+		void Mesh::VaciarGrupos() {		
 			if (vertexGroupUI != NULL){
 				delete[] vertexGroupUI; 
 				vertexGroupUI = NULL;
