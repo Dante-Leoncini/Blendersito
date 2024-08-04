@@ -137,6 +137,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void SetInterpolation();
         void SetTransparencia();
         void SetAmbientLight();
+        void ShrinkFatten();
         void FlipNormals();
         void SetSmooth();
         void SetCulling();
@@ -182,7 +183,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void DrawnTimeline();
         void SaveAsBMP(TInt width, TInt height, const GLubyte* pixels, const TDesC& fileName);
         void AddModificador(TInt opcion);
-        void RenderMeshAndChildren(Object& obj);
+        void RenderMeshAndChildren(Object& obj, TInt indice);
         void RenderObjectAndChildrens(TInt objId);
         void TecladoNumerico(TInt numero);
         void InsertarValor();
@@ -197,7 +198,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void SetNavigation();
         void RemoveMaterial();
 		void RemoveTexture();
-        void RenderMesh( TInt objId );
+        void RenderMesh( Object& obj, TInt indice );
 
         void calculateReflectionUVs(Mesh& pMesh);
         void createRotationMatrix(GLfloat pitch, GLfloat yaw, GLfloat* matrix);
@@ -283,7 +284,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         TBool PlayAnimation;    
         TBool iShiftPressed; 
         RArray<Object> Objects;
-        TInt objSelect;
+        TInt SelectActivo;
 
 		/**
 		 * Application states:

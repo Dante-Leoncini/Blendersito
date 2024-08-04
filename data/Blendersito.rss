@@ -78,6 +78,12 @@ RESOURCE MENU_PANE r_blendersito_menu
         { 		
 			MENU_ITEM
 			{
+				command = ETransformMenu;
+				cascade = r_transform_menu;
+				txt = STRING_r_Transform;
+			},	
+			MENU_ITEM
+			{
 				command = EBlendersitoSeleccionar;
 				cascade = r_blendersito_seleccionar_menu;
 				txt = STRING_r_blendersito_Seleccionar;
@@ -144,6 +150,34 @@ RESOURCE MENU_PANE r_blendersito_menu
                 txt = STRING_r_Render;
             }
         };
+}
+
+//----------------------------------------------------
+//
+//    r_transform_menu
+//
+//----------------------------------------------------
+//
+
+RESOURCE MENU_PANE r_transform_menu {
+    items = { 		        
+		MENU_ITEM {
+			command = EBlendersitoSetPosicion;
+			txt = STRING_r_blendersito_CambiarPosicion;
+		},
+        MENU_ITEM {
+            command = EBlendersitoSetRotacion;
+            txt = STRING_r_blendersito_CambiarRotacion;
+        },
+        MENU_ITEM {
+            command = EBlendersitoSetEscala;
+            txt = STRING_r_blendersito_CambiarEscala;
+        },
+        MENU_ITEM {
+            command = EShrinkFatten;
+            txt = STRING_r_ShrinkFatten;
+        }
+    };
 }
 
 //----------------------------------------------------
@@ -508,18 +542,6 @@ RESOURCE MENU_PANE r_viewport_object_menu{
 			command = EBlendersitoEditarMesh;
 			txt = STRING_r_blendersito_EditarMesh;
 		},
-		MENU_ITEM {
-			command = EBlendersitoSetPosicion;
-			txt = STRING_r_blendersito_CambiarPosicion;
-		},
-        MENU_ITEM {
-            command = EBlendersitoSetRotacion;
-            txt = STRING_r_blendersito_CambiarRotacion;
-        },
-        MENU_ITEM {
-            command = EBlendersitoSetEscala;
-            txt = STRING_r_blendersito_CambiarEscala;
-        },
 		MENU_ITEM
 		{
 			command = EBlendersitoBorrar;

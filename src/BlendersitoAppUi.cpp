@@ -109,7 +109,8 @@ void CBlendersitoAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
             aMenuPane->SetItemDimmed(EBlendersitoSeleccionar, EFalse);
             aMenuPane->SetItemDimmed(EViewportAdd, ETrue);
             
-        } else {
+        } 
+        else {
             aMenuPane->SetItemDimmed(EBlendersitoOrigenSetOrigen, ETrue);
             aMenuPane->SetItemDimmed(EBlendersitoSeleccionar, ETrue);
             aMenuPane->SetItemDimmed(EViewportAdd, EFalse);
@@ -117,9 +118,9 @@ void CBlendersitoAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
             //si hay objetos            
 	        if (BL.Objects.Count() > 0){
                 aMenuPane->SetItemDimmed(EViewportObject, EFalse);          
-                Object& obj = BL.Objects[BL.objSelect];
+                Object& obj = BL.Objects[BL.SelectActivo];
                 //si es una malla 3d
-                if (obj.type == mesh){
+                if (obj.type == mesh && obj.seleccionado){
                     aMenuPane->SetItemDimmed(EMaterial, EFalse);
                     aMenuPane->SetItemDimmed(EBlendersitoModificadores, EFalse);
                 }
@@ -132,6 +133,22 @@ void CBlendersitoAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
                 aMenuPane->SetItemDimmed(EMaterial, ETrue);
                 aMenuPane->SetItemDimmed(EViewportObject, ETrue);
             }
+        }
+    }
+    else if ( aResourceId == R_TRANSFORM_MENU ){
+        //si hay objetos            
+        if (BL.Objects.Count() > 0){        
+            Object& obj = BL.Objects[BL.SelectActivo];
+            //si es una malla 3d
+            if (obj.type == mesh && obj.seleccionado){
+                aMenuPane->SetItemDimmed(EShrinkFatten, EFalse);
+            }
+            else {
+                aMenuPane->SetItemDimmed(EShrinkFatten, ETrue);                  
+            }
+        }
+        else {
+            aMenuPane->SetItemDimmed(EShrinkFatten, ETrue);
         }
     }
     else if (aResourceId == R_VIEWPORT_OVERLEY_MENU ) {
@@ -452,6 +469,9 @@ void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
             break;
         case EImportOBJ:
             iAppContainer->iBlendersito->ImportOBJ();
+            break; 
+        case EShrinkFatten:
+            iAppContainer->iBlendersito->ShrinkFatten();
             break; 
         case EOldImportOBJ:
             iAppContainer->iBlendersito->OldImportOBJ();

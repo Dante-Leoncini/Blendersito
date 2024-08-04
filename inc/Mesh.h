@@ -48,16 +48,18 @@ class VertexGroup {
 
 class EdgesGroup { 
 	public:
-        RArray<GLushort> indices;
+        RArray<GLushort> indicesA;
+        RArray<GLushort> indicesB;
 };
-
 
 class FacesGroup { 
 	public:
-        TInt start; //donde esta el primer triangulo
-        TInt count; //cuantos triangulos son
-		TInt indicesCount; //cuantos vertices son
-		TInt material;
+        TInt start; //donde esta el primer triangulo real
+        TInt count; //cuantos triangulos son reales
+
+        TInt startDrawn; //indice del primer triangulo para dibujar
+		TInt indicesDrawnCount; //cuantos vertices son
+		TInt material; //de que material
 };
 
 class Mesh { 
@@ -82,6 +84,7 @@ class Mesh {
         RArray<VertexGroup> vertexGroups;
 
 		//nuevo bordes group
+		TInt edgesDrawnSize;
         RArray<EdgesGroup> edgesGroups;
 
 		void Mesh::VaciarGrupos() {
@@ -98,12 +101,14 @@ class Mesh {
 			}
 			vertexGroups.Close();
 			//bordes			
+			edgesDrawnSize = 0;
 			if (edges != NULL){
 				delete[] edges; 
 				edges = NULL;
 			}
 			for(TInt i=0; i < edgesGroups.Count(); i++){
-				edgesGroups[i].indices.Close();
+				edgesGroups[i].indicesA.Close();
+				edgesGroups[i].indicesB.Close();
 			}
 			edgesGroups.Close();
 		};
@@ -174,24 +179,73 @@ class Mesh {
 			vertexGroupUIcolor = new GLubyte[vertexGroups.Count()*4];
 			UpdateVertexUI();
 
-			//agrupar bordes		
-			/*for(TInt f=0; f < facesCount; f++){
+			//agrupar bordes
+			/*EdgesGroup nuevoEdgesGroup;	
+			for(TInt fg=0; fg < facesGroup.Count(); fg++){
 				//las caras tienen 3 bordes. revisa cada borde
-				for(TInt b=0; b < 3; b++){
-					RArray<EdgesGroup> edgesGroups;
-					TBool existe = false;
-					//busca si existe el borde
-					for(TInt e=0; e < edgesGroups.Count(); e++){
-						
-					}
-					if (!existe){
-						EdgesGroup NewEdgesGroup;
-						
-						edgesGroups.Append();
-						
-					}
-				}
-			}*/
+				//for(TInt f=facesGroup[fg].start; f < facesGroup[fg].start + facesGroup[fg].count; f++){
+				edgesGroups.Append(nuevoEdgesGroup);
+				edgesGroups[edgesGroups.Count()-1].indicesA.Append(facesGroup[fg].start*3);
+				edgesGroups[edgesGroups.Count()-1].indicesB.Append(facesGroup[fg].start*3+1);
+				
+				edgesGroups.Append(nuevoEdgesGroup);
+				edgesGroups[edgesGroups.Count()-1].indicesA.Append(facesGroup[fg].start*3+1);
+				edgesGroups[edgesGroups.Count()-1].indicesB.Append(facesGroup[fg].start*3+2);
+
+				edgesGroups.Append(nuevoEdgesGroup);
+				edgesGroups[edgesGroups.Count()-1].indicesA.Append(facesGroup[fg].start*3+2);
+				edgesGroups[edgesGroups.Count()-1].indicesB.Append(facesGroup[fg].start*3);
+				//}
+			}	*/
+
+			/*edgesGroups.Append(nuevoEdgesGroup);
+			edgesGroups[edgesGroups.Count()-1].indicesA.Append(0);
+			edgesGroups[edgesGroups.Count()-1].indicesB.Append(1);
+
+			edgesGroups.Append(nuevoEdgesGroup);
+			edgesGroups[edgesGroups.Count()-1].indicesA.Append(1);
+			edgesGroups[edgesGroups.Count()-1].indicesB.Append(2);
+
+			edgesGroups.Append(nuevoEdgesGroup);
+			edgesGroups[edgesGroups.Count()-1].indicesA.Append(2);
+			edgesGroups[edgesGroups.Count()-1].indicesB.Append(3);
+
+			edgesGroups.Append(nuevoEdgesGroup);
+			edgesGroups[edgesGroups.Count()-1].indicesA.Append(3);
+			edgesGroups[edgesGroups.Count()-1].indicesB.Append(0);
+
+			edgesGroups.Append(nuevoEdgesGroup);
+			edgesGroups[edgesGroups.Count()-1].indicesA.Append(4);
+			edgesGroups[edgesGroups.Count()-1].indicesB.Append(5);
+
+			edgesGroups.Append(nuevoEdgesGroup);
+			edgesGroups[edgesGroups.Count()-1].indicesA.Append(5);
+			edgesGroups[edgesGroups.Count()-1].indicesB.Append(6);
+
+			edgesGroups.Append(nuevoEdgesGroup);
+			edgesGroups[edgesGroups.Count()-1].indicesA.Append(6);
+			edgesGroups[edgesGroups.Count()-1].indicesB.Append(7);*/
+
+			edges = new GLushort[edgesGroups.Count()*2];
+			edgesDrawnSize = edgesGroups.Count()*2;
+			for(TInt eg=0; eg < edgesGroups.Count(); eg++){
+				edges[eg*2] = vertexGroups[edgesGroups[eg].indicesA[0]].indices[0];
+				edges[eg*2+1] = vertexGroups[edgesGroups[eg].indicesB[0]].indices[0];
+			};
+				//}
+			//}
+			/*class EdgesGroup { 
+				public:
+					RArray<GLushort> indices;
+			};
+			
+			class FacesGroup { 
+				public:
+					TInt start; //donde esta el primer triangulo
+					TInt count; //cuantos triangulos son
+					TInt indicesCount; //cuantos vertices son
+					TInt material;
+			};*/
 			
 			/*for(TInt m=0; m < materialsSize; m++){
 				for(TInt f=0; f < facesGroupsSize[m]; f++){

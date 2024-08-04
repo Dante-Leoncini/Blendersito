@@ -438,6 +438,7 @@ void CBlendersito::ConstructL( void ){
 	PlayAnimation = false;
 	ShowTimeline = true;
 	iShiftPressed = false;
+	SelectActivo = 0;
 
 	flechasEstados = new FlechaEstado[4];
 	for (TInt i = 0; i < 4; i++) {
@@ -730,8 +731,8 @@ void CBlendersito::calculateReflectionUVs(Mesh& pMesh) {
     }
 }
 
-void CBlendersito::RenderMesh( TInt objId ){
-	Mesh& pMesh = Meshes[objId];
+void CBlendersito::RenderMesh( Object& obj, TInt indice ){
+	Mesh& pMesh = Meshes[obj.Id];
 		
 	glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
 	glDisable(GL_COLOR_MATERIAL);
@@ -739,7 +740,6 @@ void CBlendersito::RenderMesh( TInt objId ){
 	glMaterialx( GL_FRONT_AND_BACK, GL_SHININESS,   12 << 16     );
 	glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, ListaColores[negro] );
 
-	glDisable(GL_POLYGON_OFFSET_FILL);
 	// Set array pointers from mesh.
 	glVertexPointer( 3, GL_SHORT, 0, pMesh.vertex );
 	glColorPointer( 4, GL_UNSIGNED_BYTE, 0, pMesh.vertexColor );	
@@ -820,47 +820,7 @@ void CBlendersito::RenderMesh( TInt objId ){
 
 			glMaterialfv(   GL_FRONT_AND_BACK, GL_EMISSION, mat.emission );
 
-			glDrawElements( GL_TRIANGLES, pMesh.facesGroup[f].indicesCount, GL_UNSIGNED_SHORT, &pMesh.faces[pMesh.facesGroup[f].start] );
-			
-			if (estado == edicion || estado == translacionVertex){
-				glDisable( GL_CULL_FACE );
-				glDisable(GL_BLEND);
-				glDisable( GL_TEXTURE_2D );
-				glDisable( GL_LIGHTING );
-				//glEnable(GL_POLYGON_OFFSET_FILL);
-				glColorPointer( 4, GL_UNSIGNED_BYTE, 0, pMesh.vertexGroupUIcolor );
-				glDepthFunc(GL_LEQUAL);
-
-				glEnableClientState( GL_COLOR_ARRAY );
-				glEnable(GL_COLOR_MATERIAL);
-
-				//bordes
-				//glPolygonOffset(1.0, -1.0);
-				glColor4f(ListaColores[gris][0],
-						ListaColores[gris][1],
-						ListaColores[gris][2],
-						ListaColores[gris][3]);
-				//glDrawElements( GL_LINES, obj.edgesSize, GL_UNSIGNED_SHORT, obj.edges );
-				//vertices
-				if (tipoSelect == vertexSelect){
-					glVertexPointer( 3, GL_SHORT, 0, pMesh.vertexGroupUI );
-					//glPolygonOffset(1.0, -4.0);
-					glColor4f(ListaColores[negro][0], ListaColores[negro][1], ListaColores[negro][2], ListaColores[negro][3]);
-					glPointSize(4);
-					glDrawArrays( GL_POINTS, 0, pMesh.vertexGroups.Count() );
-
-					//vertice seleccionado
-					//glPolygonOffset(1.0, -10.0);		
-					if (SelectEditCount > 0){	
-						glDisableClientState( GL_COLOR_ARRAY );
-						glDisable(GL_COLOR_MATERIAL);
-						glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
-						glDrawArrays( GL_POINTS, SelectEdicionActivo, 1 );	
-					}		
-				}	
-				glDepthFunc(GL_LESS);
-				//glDisable(GL_POLYGON_OFFSET_FILL);	
-			}
+			glDrawElements( GL_TRIANGLES, pMesh.facesGroup[f].indicesDrawnCount, GL_UNSIGNED_SHORT, &pMesh.faces[pMesh.facesGroup[f].startDrawn] );
 		}
 	}	
 	//modelo sin textura
@@ -888,16 +848,93 @@ void CBlendersito::RenderMesh( TInt objId ){
 		//}
 	}
 	//wireframe view
-	else if(SelectActivo != objId){    
-		glDisableClientState( GL_COLOR_ARRAY );	  
+	//else if(SelectActivo != objId){    
+	/*else if(view == Wireframe){    
+		glDisable( GL_CULL_FACE );
+		glDisable(GL_BLEND);
+		glDisable( GL_TEXTURE_2D );
 		glDisable( GL_LIGHTING );
+
+		glEnableClientState( GL_COLOR_ARRAY );
 		glEnable(GL_COLOR_MATERIAL);
-		glColor4f(ListaColores[gris][0],ListaColores[gris][1],ListaColores[gris][2],ListaColores[gris][3]);
+		
+		glColorPointer( 4, GL_UNSIGNED_BYTE, 0, pMesh.vertexGroupUIcolor );
 		glDrawElements( GL_LINES, pMesh.edgesGroups.Count(), GL_UNSIGNED_SHORT, pMesh.edges );	
-	}  
+	}  */
+
+	//si esta en modo wireframe o el objeto esta selñeccionado. tiene que dibujar los bordes
+	if (obj.seleccionado || view == Wireframe){
+		glDisable( GL_CULL_FACE );
+		glDisable(GL_BLEND);
+		glDisable( GL_TEXTURE_2D );
+		glDisable( GL_LIGHTING );
+		glEnable(GL_POLYGON_OFFSET_FILL);
+		glDepthFunc(GL_LEQUAL);
+		
+		//se usa el GL_POLYGON_OFFSET_FILL para el modo solido, render o material si no esta en modo edicion
+		//esto dibuja el contorno con una linea mas gruesa. lo malo es que hay que dibujar 2 veces las lineas lo cual es lento
+		if (view != Wireframe && estado != edicion && estado != translacionVertex){
+			glPolygonOffset(1.0, 40.0);
+			glLineWidth(4);	 
+			glDisable(GL_COLOR_MATERIAL);
+			glDisableClientState( GL_COLOR_ARRAY );
+
+			if (SelectActivo == indice && obj.seleccionado){
+				glColor4f(ListaColores[naranja][0],ListaColores[naranja][1],ListaColores[naranja][2],ListaColores[naranja][3]);
+			}
+			else if (obj.seleccionado) {
+				glColor4f(ListaColores[naranjaOscuro][0],ListaColores[naranjaOscuro][1],ListaColores[naranjaOscuro][2],ListaColores[naranjaOscuro][3]);
+			}
+			else {
+				glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);
+			}
+
+			glDrawElements( GL_LINES, pMesh.edgesDrawnSize, GL_UNSIGNED_SHORT, pMesh.edges );
+		}
+		else if ((estado == edicion || estado == translacionVertex) && tipoSelect == vertexSelect && SelectActivo == indice){				
+			glPolygonOffset(1.0, -1.0);
+			glEnableClientState( GL_COLOR_ARRAY );
+			glEnable(GL_COLOR_MATERIAL);
+			glColorPointer( 4, GL_UNSIGNED_BYTE, 0, pMesh.vertexGroupUIcolor );
+			glLineWidth(1);	 
+			glDrawElements( GL_LINES, pMesh.edgesDrawnSize, GL_UNSIGNED_SHORT, pMesh.edges );
+
+			glVertexPointer( 3, GL_SHORT, 0, pMesh.vertexGroupUI );
+			glPointSize(4);
+			glDrawArrays( GL_POINTS, 0, pMesh.vertexGroups.Count() );
+
+			//vertice seleccionado	
+			if (SelectEditCount > 0){	
+				glDisableClientState( GL_COLOR_ARRAY );
+				glDisable(GL_COLOR_MATERIAL);
+				glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
+				glDrawArrays( GL_POINTS, SelectEdicionActivo, 1 );	
+			}	
+		}
+		else {	
+			glPolygonOffset(1.0, -1.0);
+			glDisable(GL_COLOR_MATERIAL);
+			glDisableClientState( GL_COLOR_ARRAY );
+			glLineWidth(1);	 
+
+			if (SelectActivo == indice && obj.seleccionado){
+				glColor4f(ListaColores[naranja][0],ListaColores[naranja][1],ListaColores[naranja][2],ListaColores[naranja][3]);
+			}
+			else if (obj.seleccionado) {
+				glColor4f(ListaColores[naranjaOscuro][0],ListaColores[naranjaOscuro][1],ListaColores[naranjaOscuro][2],ListaColores[naranjaOscuro][3]);
+			}
+			else {
+				glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);
+			}
+			glDrawElements( GL_LINES, pMesh.edgesDrawnSize, GL_UNSIGNED_SHORT, pMesh.edges );
+
+		}
+		glDisable(GL_POLYGON_OFFSET_FILL);
+		glDepthFunc(GL_LESS);
+	}
 	
 	//dibuja el borde seleccionado
-	if(SelectActivo == objId && showOverlays && showOutlineSelect){
+	/*if(SelectActivo == objId && showOverlays && showOutlineSelect){
 		glDisableClientState( GL_COLOR_ARRAY );	  
 		glDisable( GL_LIGHTING );
 		glEnable(GL_COLOR_MATERIAL);
@@ -930,13 +967,13 @@ void CBlendersito::RenderMesh( TInt objId ){
 			}
 			//borde seleccionado
 			else if (tipoSelect == edgeSelect){		
-				//vertice seleccionado
+				//vertice seleccionado*/
 				/*if (obj.edgesSize > 0){		
 					glPolygonOffset(1.0, -10.0);
 					glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
 					glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, &obj.edges[SelectActivo*2]);
-				}	*/		
-			}
+				}			
+			}*/
 			//cara seleccionado
 			/*else if (tipoSelect == faceSelect){	
 				//vertice seleccionado
@@ -950,7 +987,7 @@ void CBlendersito::RenderMesh( TInt objId ){
 					glDisable(GL_BLEND);
 				}				
 			}*/
-		}
+		/*}
 		else if (view != 2){
 			glPolygonOffset(1.0, 200.0);
 			glLineWidth(3);	 
@@ -963,11 +1000,11 @@ void CBlendersito::RenderMesh( TInt objId ){
 			glColor4f(ListaColores[colorBordeSelect][0],ListaColores[colorBordeSelect][1],ListaColores[colorBordeSelect][2],ListaColores[colorBordeSelect][3]);
 			//glDrawElements( GL_LINES, obj.edgesSize, GL_UNSIGNED_SHORT, obj.edges );	
 		}
-	};
+	};*/
 }
 
 // Función recursiva para renderizar un objeto y sus hijos
-void CBlendersito::RenderMeshAndChildren(Object& obj){
+void CBlendersito::RenderMeshAndChildren(Object& obj, TInt indice){
     // Guardar la matriz actual
     glPushMatrix();
     
@@ -980,13 +1017,13 @@ void CBlendersito::RenderMeshAndChildren(Object& obj){
 
     // Si es visible y es un mesh, lo dibuja
     if (obj.visible && obj.type == mesh) {
-        RenderMesh(obj.Id); // Ajusta el segundo parámetro si es necesario
+        RenderMesh(obj, indice); // Ajusta el segundo parámetro si es necesario
     }
     
     // Procesar cada hijo
     for (int c = 0; c < obj.Childrens.Count(); c++) {
         Object& objChild = Objects[obj.Childrens[c]];
-        RenderMeshAndChildren(objChild);
+        RenderMeshAndChildren(objChild, indice);
     }
 
     // Restaurar la matriz previa
@@ -1419,7 +1456,7 @@ void CBlendersito::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 		// Función principal para iterar sobre la colección
 		for (int o = 0; o < Collection.Count(); o++) {
 			Object& obj = Objects[Collection[o]];
-			RenderMeshAndChildren(obj);
+			RenderMeshAndChildren(obj, Collection[o]);
 		}
 	}
 	//el valor que tiene que tener para dibujar el resto correctamente
@@ -1439,7 +1476,6 @@ void CBlendersito::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	glMaterialfv(   GL_FRONT_AND_BACK, GL_SPECULAR, ListaColores[negro] );
 	glDisable( GL_CULL_FACE ); // Enable back face culling.
 	glDisable( GL_LIGHTING );
-	glDisable(GL_POLYGON_OFFSET_FILL);
 	glEnable(GL_COLOR_MATERIAL);
 	glDisable( GL_TEXTURE_2D );
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -1457,6 +1493,7 @@ void CBlendersito::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 			glFogf(GL_FOG_END, FRUSTUM_FAR);     // Distancia final de la niebla
 			GLfloat fogColor[] = {0.23f, 0.23f, 0.23f, 1.f};
 			glFogfv(GL_FOG_COLOR, fogColor); // Color de la niebla
+			glLineWidth(1);	 
 
 			glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
 			//glNormalPointer( GL_BYTE, 0, objNormaldataFloor );
@@ -2087,6 +2124,46 @@ void CBlendersito::SetTranslacionVertices(TInt valor){
 	}
 }
 
+void CBlendersito::ShrinkFatten(){
+	if (Objects.Count() < 1){return;}
+	Object& obj = Objects[SelectActivo];
+	if (!obj.seleccionado || obj.type != mesh){return;}
+	Mesh& pMesh = Meshes[obj.Id];	
+	
+	HBufC* noteBuf = HBufC::NewLC(100);
+	noteBuf->Des().Copy(_L("Set Start Frame"));
+	TInt multiplicador = DialogNumber(1, -10000, 10000, noteBuf);
+	CleanupStack::PopAndDestroy(noteBuf);
+
+	for(int i=0; i < pMesh.vertexGroups.Count(); i++){
+		if (pMesh.vertexGroups[i].seleccionado){
+			//calcula el vector
+			TInt vectorX = 0;
+			TInt vectorY = 0;
+			TInt vectorZ = 0;
+			TInt cantidad = pMesh.vertexGroups[i].indices.Count();
+			for(int vg=0; vg < cantidad; vg++){
+				TInt indiceVertice = pMesh.vertexGroups[i].indices[vg]*3;
+				vectorX = vectorX + pMesh.normals[indiceVertice];		
+				vectorY = vectorY + pMesh.normals[indiceVertice+2];	
+				vectorZ = vectorZ + pMesh.normals[indiceVertice+1];
+			}
+			//aplica el vector
+			vectorX = (vectorX/cantidad)*multiplicador;
+			vectorY = (vectorY/cantidad)*multiplicador;
+			vectorZ = (vectorZ/cantidad)*multiplicador;
+			for(int vg=0; vg < pMesh.vertexGroups[i].indices.Count(); vg++){
+				TInt indiceVertice = pMesh.vertexGroups[i].indices[vg]*3;
+				pMesh.vertex[indiceVertice] += vectorX;		
+				pMesh.vertex[indiceVertice+2] += vectorY;	
+				pMesh.vertex[indiceVertice+1] += vectorZ;
+			}
+			pMesh.UpdateVertexUI(i);
+		}		
+	}
+	redibujar = true;
+}
+
 TInt ShiftCount = 0;
 void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 	//revisa las 4 direcciones
@@ -2443,7 +2520,7 @@ void CBlendersito::ReestablecerEstado(){
 };
 
 void CBlendersito::guardarEstado(){	
-	if (estado == translacionVertex){
+	if (estado == translacionVertex || estado == edicion){
 		if (SelectEditCount > 0){
 			estadoVertices.Close();
 			estadoVertices.ReserveL(SelectEditCount);
@@ -2744,7 +2821,7 @@ void CBlendersito::FlipNormals(){
 	if (Objects.Count() < 1){return;}	
 	Object& obj = Objects[SelectActivo];
 	//si no es un mesh
-	if (obj.type != mesh){return;}
+	if (obj.type != mesh || !obj.seleccionado){return;}
 	Mesh& pMesh = Meshes[obj.Id];	
 
 	for(TInt a = 0; a < pMesh.vertexSize*3; a++) {
@@ -2854,7 +2931,8 @@ void CBlendersito::BorrarMesh(TInt indice){
 		pMesh.vertexGroups.Close();
 		//borra los bordes
 		for(TInt i=0; i < pMesh.edgesGroups.Count(); i++){
-			pMesh.edgesGroups[i].indices.Close();
+			pMesh.edgesGroups[i].indicesA.Close();
+			pMesh.edgesGroups[i].indicesB.Close();
 		}
 		pMesh.edgesGroups.Close();
 
@@ -3034,7 +3112,7 @@ void CBlendersito::AddMesh( int modelo ){
 	
 	Mesh tempMesh;
 	FacesGroup tempFaceGroup;
-	tempFaceGroup.start = 0;
+	tempFaceGroup.startDrawn = 0;
 	if (modelo == cubo){ 
     	tempMesh.vertexSize = 24;
 		tempMesh.vertex = new GLshort[tempMesh.vertexSize*3];
@@ -3055,10 +3133,10 @@ void CBlendersito::AddMesh( int modelo ){
 		}
 
 		tempMesh.facesCount = tempFaceGroup.count = 12;
-		tempMesh.facesCountIndices = tempFaceGroup.indicesCount = 36;
+		tempMesh.facesCountIndices = tempFaceGroup.indicesDrawnCount = 36;
 
-		tempMesh.faces = new GLushort[tempFaceGroup.indicesCount];
-		for (int i = 0; i < tempFaceGroup.indicesCount; i++) {
+		tempMesh.faces = new GLushort[tempFaceGroup.indicesDrawnCount];
+		for (int i = 0; i < tempFaceGroup.indicesDrawnCount; i++) {
 			tempMesh.faces[i] = CuboTriangles[i];
 		}
 	}	
@@ -3079,9 +3157,9 @@ void CBlendersito::AddMesh( int modelo ){
 		}	
 
 		tempMesh.facesCount = tempFaceGroup.count = MonkeyFaceSize;
-		tempMesh.facesCountIndices = tempFaceGroup.indicesCount = MonkeyFaceSize*3;
-		tempMesh.faces = new GLushort[tempFaceGroup.indicesCount];
-		for(int a=0; a < tempFaceGroup.indicesCount; a++){
+		tempMesh.facesCountIndices = tempFaceGroup.indicesDrawnCount = MonkeyFaceSize*3;
+		tempMesh.faces = new GLushort[tempFaceGroup.indicesDrawnCount];
+		for(int a=0; a < tempFaceGroup.indicesDrawnCount; a++){
 			tempMesh.faces[a] = MonkeyFace[a];	
 		}
 		//tempMesh.edges = new GLushort[tempMesh.edgesSize];
@@ -3554,6 +3632,7 @@ void CBlendersito::DuplicatedObject(){
 	//si no hay objetos
 	if (Objects.Count() < 1){return;}	
 	Object& obj = Objects[SelectActivo];
+	if (!obj.seleccionado){return;}
 	//si no es un mesh
 	if (obj.type == mesh){
 		Mesh& tempMesh = Meshes[obj.Id];
@@ -3573,9 +3652,7 @@ void CBlendersito::DuplicatedObject(){
 		tempMesh2.vertex = new GLshort[tempMesh.vertexSize*3];
 		tempMesh2.normals = new GLbyte[tempMesh.vertexSize*3];
 		tempMesh2.vertexColor = new GLubyte[tempMesh.vertexSize*4];
-		//tempMesh2.uv = new GLbyte[tempMesh.vertexSize*2];
-		tempMesh2.uv = new GLfloat[tempMesh.vertexSize*2];
-		
+		tempMesh2.uv = new GLfloat[tempMesh.vertexSize*2];		
 
 		/*for(int m=0; m < tempMesh.facesGroup.Count(); m++){	
 			
@@ -4448,7 +4525,7 @@ void CBlendersito::ImportOBJ(){
 							contador++;
 						}
 						FacesGroup[FacesGroup.Count()-1].count++;
-						FacesGroup[FacesGroup.Count()-1].indicesCount += 3;
+						FacesGroup[FacesGroup.Count()-1].indicesDrawnCount += 3;
 						facesCountIndices += 3;
 						facesCount++;
 					}
@@ -5314,7 +5391,7 @@ TBool CBlendersito::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 						//MeshsGroups[MeshsGroups.Count()-1] += (contador - 2);
 						if (TempFacesGroup.Count() < 1){
 							FacesGroup tempFaceGroup;
-							tempFaceGroup.count = tempFaceGroup.indicesCount = tempFaceGroup.material = 0;
+							tempFaceGroup.count = tempFaceGroup.indicesDrawnCount = tempFaceGroup.material = 0;
 							tempFaceGroup.start = facesCountIndices;
 							TempFacesGroup.Append(tempFaceGroup);
 						}
@@ -5322,13 +5399,13 @@ TBool CBlendersito::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 						facesCount ++;
 						facesCountIndices += 3;
 						TempFacesGroup[TempFacesGroup.Count()-1].count ++;
-						TempFacesGroup[TempFacesGroup.Count()-1].indicesCount += 3;
+						TempFacesGroup[TempFacesGroup.Count()-1].indicesDrawnCount += 3;
 
 						//MeshsGroups[MeshsGroups.Count()-1]++;
 					}
 					else if (line.Left(7) == _L8("usemtl ")) {	
 						FacesGroup tempFaceGroup;
-						tempFaceGroup.count = tempFaceGroup.indicesCount = tempFaceGroup.material = 0;
+						tempFaceGroup.count = tempFaceGroup.indicesDrawnCount = tempFaceGroup.material = 0;
 						tempFaceGroup.start = facesCountIndices;
 						TempFacesGroup.Append(tempFaceGroup);
 						Material mat;	
@@ -5447,7 +5524,7 @@ TBool CBlendersito::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 	for(TInt m=0; m < TempFacesGroup.Count(); m++){			
 		HBufC* noteBuf3 = HBufC::NewLC(180);
 		_LIT(KFormatString33, "FaceGroup: %d\nStart: %d\nCount: %d (%d)\nMaterial: %d"); //\nvalores: %d/%f/%d"
-		noteBuf3->Des().Format(KFormatString33, m+1, TempFacesGroup[m].start, TempFacesGroup[m].count, TempFacesGroup[m].indicesCount, TempFacesGroup[m].material);
+		noteBuf3->Des().Format(KFormatString33, m+1, TempFacesGroup[m].start, TempFacesGroup[m].count, TempFacesGroup[m].indicesDrawnCount, TempFacesGroup[m].material);
 		DialogAlert(noteBuf3);
 		
 		//valores reales
