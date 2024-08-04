@@ -297,6 +297,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
 		};
         
         TInt estado;
+        TInt InteractionMode;
         TInt navegacionMode;
 
     private:  // Data

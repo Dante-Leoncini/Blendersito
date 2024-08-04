@@ -52,10 +52,7 @@ enum{
 	navegacion,
 	rotacion,
 	escala,
-	translacion, 
-	translacionVertex,
-	translacionEdge,
-	translacionFace,
+	translacion,
 	edicion
 };
 
@@ -64,7 +61,7 @@ enum {Solid, MaterialPreview, Wireframe, Rendered};
 void CBlendersitoAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPane ){
     //para trabajar mas facil
     CBlendersito& BL = *(iAppContainer->iBlendersito); 
-    //BL.estado = ...;
+    //BL.InteractionMode = ...;
 
     //prepara el menu de materiales    
 	/*if (aResourceId == R_MATERIAL_MENU){
@@ -98,7 +95,7 @@ void CBlendersitoAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
     }*/
 	//oculta el SetOrigen si no esta en modo edicion
     if (aResourceId == R_BLENDERSITO_MENU ) {
-        if (BL.estado == edicion) {
+        if (BL.InteractionMode == edicion) {
 	        if (BL.Objects.Count() > 0){
                 aMenuPane->SetItemDimmed(EViewportObject, EFalse);
             }

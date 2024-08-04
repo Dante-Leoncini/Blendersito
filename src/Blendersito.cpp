@@ -99,7 +99,6 @@ enum{
 	grisUI,
 	naranjaOscuro
 };
-TInt colorBordeSelect = 1;
 
 //Piso
 static const GLfloat LineaPiso[4]  =      { MATERIALCOLOR(0.29, 0.29, 0.29, 1.0) };
@@ -172,15 +171,20 @@ enum {lineal, closest};
 enum {Solid, MaterialPreview, Wireframe, Rendered};
 
 enum{
-	navegacion,
+	ObjectMode,
+	EditMode
+};
+
+enum {
+	editNavegacion,
+	VertexMove, //translacionVertex
+    EdgeMove,
+	FaceMove,
+	EditShrinkFatten,
+	timelineMove,
 	rotacion,
 	escala,
-	translacion, 
-	translacionVertex,
-	translacionEdge,
-	translacionFace,
-	edicion,
-	timelineMove
+	translacion
 };
 
 enum{
@@ -259,7 +263,7 @@ TInt SelectEditCount = 0;
 FlechaEstado* flechasEstados;
 
 void CBlendersito::changeSelect(){
-	if (estado == navegacion){
+	if (InteractionMode == ObjectMode){
 		DeseleccionarTodo();
 		if (SelectActivo+1 > Objects.Count()-1){
 			SelectActivo = 0;
@@ -275,7 +279,7 @@ void CBlendersito::changeSelect(){
 			SelectCount = 0;
 		}
 	}
-	else if (estado == edicion){
+	else if (InteractionMode == EditMode){
 		Mesh& pMesh = Meshes[Objects[SelectActivo].Id];	
 		//si no hay grupos de vertices. no hace nada
 		if (pMesh.vertexGroups.Count() < 1){return;}
@@ -325,7 +329,7 @@ void CBlendersito::changeSelect(){
 }
 
 void CBlendersito::SetTipoSelect(TInt tipo){
-	if (estado != edicion){return;}
+	if (InteractionMode != EditMode){return;}
 	tipoSelect = tipo;
 	SelectEdicionActivo = 0;	
     redibujar = true;
@@ -426,7 +430,8 @@ enum{
 	FlechaIzquierda
 };
 void CBlendersito::ConstructL( void ){
-	estado = navegacion;
+	InteractionMode = ObjectMode;
+	estado = editNavegacion;
 	navegacionMode = Orbit;
 	showOverlays = true;
 	show3DCursor = true;
@@ -872,8 +877,8 @@ void CBlendersito::RenderMesh( Object& obj, TInt indice ){
 		glDepthFunc(GL_LEQUAL);
 		
 		//se usa el GL_POLYGON_OFFSET_FILL para el modo solido, render o material si no esta en modo edicion
-		//esto dibuja el contorno con una linea mas gruesa. lo malo es que hay que dibujar 2 veces las lineas lo cual es lento
-		if (view != Wireframe && estado != edicion && estado != translacionVertex){
+		//esto dibuja el contorno con una linea mas gruesa
+		if (view != Wireframe && InteractionMode != EditMode){
 			glPolygonOffset(1.0, 40.0);
 			glLineWidth(4);	 
 			glDisable(GL_COLOR_MATERIAL);
@@ -891,7 +896,7 @@ void CBlendersito::RenderMesh( Object& obj, TInt indice ){
 
 			glDrawElements( GL_LINES, pMesh.edgesDrawnSize, GL_UNSIGNED_SHORT, pMesh.edges );
 		}
-		else if ((estado == edicion || estado == translacionVertex) && tipoSelect == vertexSelect && SelectActivo == indice){				
+		else if (InteractionMode == EditMode && tipoSelect == vertexSelect && SelectActivo == indice){				
 			glPolygonOffset(1.0, -1.0);
 			glEnableClientState( GL_COLOR_ARRAY );
 			glEnable(GL_COLOR_MATERIAL);
@@ -942,7 +947,7 @@ void CBlendersito::RenderMesh( Object& obj, TInt indice ){
 		glEnable(GL_POLYGON_OFFSET_FILL);
 		
 		//si se esta editando
-		if (estado == edicion){ // || estado == translacionVertex
+		if (InteractionMode == EditMode){ // || estado == VertexMove
 			//bordes
 			glPolygonOffset(1.0, -1.0);
 			glColor4f(ListaColores[gris][0],
@@ -1536,7 +1541,7 @@ void CBlendersito::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 
 			glDisable( GL_DEPTH_TEST );
 			//dibuja los ejes de transformacion
-			if (estado == translacion || estado == translacionVertex || estado == rotacion || estado == escala) {
+			if (estado == translacion || estado == VertexMove || estado == rotacion || estado == escala) {
 				for (TInt o = 0; o < Collection.Count(); o++) {
 					TBool found = false;
 					Object& obj = Objects[Collection[o]];
@@ -1611,7 +1616,7 @@ void CBlendersito::SearchSelectObj(Object& obj, TInt objIndex, TBool& found) {
 			glRotatef(obj.rotY, 0, 0, 1); //angulo, X Y Z
 		}		
 		//dibuja los ejes de transformacion
-		if (estado == translacion || estado == translacionVertex || estado == rotacion || estado == escala){		
+		if (estado == translacion || estado == VertexMove || estado == rotacion || estado == escala){		
         	DrawTransformAxis(obj);
 		}		
         found = true;
@@ -1634,7 +1639,7 @@ void CBlendersito::DrawTransformAxis(Object& obj) {
 	glPushMatrix();    
 	glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
 	glLineWidth(2);	
-	if (estado == translacionVertex){
+	if (estado == VertexMove){
 		Mesh& pMesh = Meshes[obj.Id];
 		glTranslatef(pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[0]*3]     *obj.scaleX/65000, 
 						pMesh.vertex[pMesh.vertexGroups[SelectEdicionActivo].indices[0]*3+1]*obj.scaleY/65000, 
@@ -1676,7 +1681,6 @@ void CBlendersito::DibujarOrigen(Object& obj, TInt objIndex){
 		else {
 			glColor4f(ListaColores[naranjaOscuro][0],ListaColores[naranjaOscuro][1],ListaColores[naranjaOscuro][2],ListaColores[naranjaOscuro][3]);
 		}
-		//dibuja los ejes de transformacion		
 		glVertexPointer( 3, GL_SHORT, 0, pointVertex );
 		glBindTexture( GL_TEXTURE_2D, Textures[0].iID ); //selecciona la textura
 		glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE );
@@ -1743,7 +1747,7 @@ void CBlendersito::dibujarUI(){
 
 	//icono de modo objeto
 	UiMoveTo(25,0);
-	if (estado != edicion){
+	if (InteractionMode != EditMode){
 		SetUvSprite(1*2,113*2,28,28);
 	}
 	//icono de edicion de mesh
@@ -1963,7 +1967,7 @@ void CBlendersito::OnEndLoadingTexturesL(){
 
 
 void CBlendersito::SeleccionarAnterior(){
-	if (estado == navegacion){
+	if (InteractionMode == ObjectMode){
 		if (Objects.Count() < 1){return;}
 		/*if (Objects[SelectActivo].seleccionado){
 			Objects[SelectActivo].seleccionado = false;
@@ -1978,14 +1982,14 @@ void CBlendersito::SeleccionarAnterior(){
 			SelectCount++;
 		}
 	}
-	else if (estado == edicion){
+	else if (InteractionMode == EditMode){
 		
 	}
 	redibujar = true;
 }
 
 void CBlendersito::SeleccionarProximo(){
-	if (estado == navegacion){
+	if (InteractionMode == ObjectMode){
 		if (Objects.Count() < 1){return;}
 		/*if (Objects[SelectActivo].seleccionado){
 			Objects[SelectActivo].seleccionado = false;
@@ -2000,7 +2004,7 @@ void CBlendersito::SeleccionarProximo(){
 			SelectCount++;
 		}
 	}
-	else if (estado == edicion){
+	else if (InteractionMode == EditMode){
 
 	}
 	redibujar = true;
@@ -2008,7 +2012,7 @@ void CBlendersito::SeleccionarProximo(){
 
 void CBlendersito::SeleccionarTodo(){
 	TBool TodoSeleccionado = true;
-	if (estado == navegacion){
+	if (InteractionMode == ObjectMode){
 		for(int o=0; o < Objects.Count(); o++){
 			if (!Objects[o].seleccionado){
 				TodoSeleccionado = false;
@@ -2025,7 +2029,7 @@ void CBlendersito::SeleccionarTodo(){
 			Objects[o].seleccionado = !TodoSeleccionado;
 		}
 	}
-	else if (estado == edicion){
+	else if (InteractionMode == EditMode){
 		Object& obj = Objects[SelectActivo];
 		if (obj.type != mesh){return;}
 		Mesh& pMesh = Meshes[obj.Id];	
@@ -2128,7 +2132,9 @@ void CBlendersito::ShrinkFatten(){
 	if (Objects.Count() < 1){return;}
 	Object& obj = Objects[SelectActivo];
 	if (!obj.seleccionado || obj.type != mesh){return;}
-	Mesh& pMesh = Meshes[obj.Id];	
+	Mesh& pMesh = Meshes[obj.Id];
+
+	guardarEstado();	
 	
 	HBufC* noteBuf = HBufC::NewLC(100);
 	noteBuf->Des().Copy(_L("Set Start Frame"));
@@ -2223,7 +2229,7 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 		}
 
 		//rotX += fixedMul( 0.1, aDeltaTimeSecs );
-		if (estado == navegacion || estado == edicion){
+		if (estado == editNavegacion){ //InteractionMode == navegacion || InteractionMode == EditMode){
 			if (navegacionMode == Orbit){
 				rotX-= 0.5;		
 			}
@@ -2240,7 +2246,7 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 				PivotY += 30 * leftY;
 			}	
 		}
-		else if (estado == translacionVertex){	
+		else if (estado == VertexMove){	
 			SetTranslacionVertices(30);
 		}
 		else if (estado == translacion){	
@@ -2268,7 +2274,7 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 		}
 
 		//rotX -= fixedMul( 1, aDeltaTimeSecs );
-		if (estado == navegacion || estado == edicion){					
+		if (estado == editNavegacion){ //InteractionMode == ObjectMode || InteractionMode == EditMode){					
 			if (navegacionMode == Orbit){
 				rotX+= 0.5;			
 			}
@@ -2285,7 +2291,7 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 				PivotY -= 30 * leftY;
 			}
 		}
-		else if (estado == translacionVertex){	
+		else if (estado == VertexMove){	
 			SetTranslacionVertices(-30);	
 		}
 		else if (estado == translacion){
@@ -2312,7 +2318,7 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 			if (mouseY < 0){mouseY = 0;};
 		}
 
-		if (estado == navegacion || estado == edicion){			
+		if (estado == editNavegacion){ //InteractionMode == ObjectMode || InteractionMode == EditMode){			
 			if (navegacionMode == Orbit){
 				rotY-= 0.5;		
 			}
@@ -2324,7 +2330,7 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 				PivotX-= 30 * sin(radRotX);
 			}		
 		}
-		else if (estado == translacionVertex){	
+		else if (estado == VertexMove){	
 			SetTranslacionVertices(-30);
 		}
 		else if (estado == translacion){
@@ -2339,7 +2345,7 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 			if (mouseY > iScreenHeight-17){mouseY = iScreenHeight-17;};
 		}
 
-		if (estado == navegacion || estado == edicion){					
+		if (estado == editNavegacion){ //InteractionMode == ObjectMode || InteractionMode == EditMode){					
 			if (navegacionMode == Orbit){
 				rotY+= 0.5;		
 			}
@@ -2351,7 +2357,7 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 				PivotX+= 30 * sin(radRotX);
 			}
 		}
-		else if (estado == translacionVertex){	
+		else if (estado == VertexMove){	
 			SetTranslacionVertices(30);
 		}
 		else if (estado == translacion){
@@ -2364,57 +2370,56 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 void CBlendersito::SetRotacion(){
 	//si no hay objetos
 	if (Objects.Count() < 1){return;}
-	else if (estado == navegacion && Objects[SelectActivo].seleccionado){
+	else if (InteractionMode == ObjectMode && Objects[SelectActivo].seleccionado){
 		guardarEstado();
 		estado = rotacion;	
-		colorBordeSelect = 0;
 		axisSelect = X;
 	}	
 	else if (axisSelect+1 > 2){axisSelect = X;}
 	else {axisSelect++;}
     redibujar = true;	
 };
+
 void CBlendersito::SetEscala(){
 	//XYZ tiene escala
 	//si no hay objetos
 	if (Objects.Count() < 1){return;}
-	else if (estado == navegacion && Objects[SelectActivo].seleccionado){
+	else if (InteractionMode == ObjectMode && Objects[SelectActivo].seleccionado){
 		guardarEstado();
 		estado = escala;
-		colorBordeSelect = 0;
 		axisSelect = XYZ;	
 	}	
 	else if (axisSelect+1 > 3){axisSelect = X;}
 	else {axisSelect++;}
     redibujar = true;	
 };
+
 void CBlendersito::SetPosicion(){
 	//si no hay objetos
 	if (Objects.Count() < 1){return;}
 
-	if (estado == navegacion && Objects[SelectActivo].seleccionado){
+	if (InteractionMode == ObjectMode && Objects[SelectActivo].seleccionado){
 		guardarEstado();
 		estado = translacion;
 		if (axisSelect > 2){axisSelect = X;}
-		colorBordeSelect = 0;
 	}
-	else if (estado == edicion){
+	else if (InteractionMode == EditMode){
 		switch (tipoSelect) {
 			case vertexSelect:
-				estado = translacionVertex;
+				estado = VertexMove;
 				break;
 			case edgeSelect:
-				estado = translacionEdge;
+				estado = EdgeMove;
 				break;
 			case faceSelect:
-				estado = translacionFace;
+				estado = FaceMove;
 				break;
 			default:
 				// Manejar cualquier otro caso aquí si es necesario
 				break;
 		}
-		if (estado == translacionVertex && SelectEditCount < 1){
-			estado = edicion;
+		if (estado == VertexMove && SelectEditCount < 1){
+			estado = editNavegacion;
 			return;
 		}
 		guardarEstado();
@@ -2425,58 +2430,59 @@ void CBlendersito::SetPosicion(){
 };
 
 void CBlendersito::SetEje(int eje){
-	if (estado != navegacion){
+	if (InteractionMode != ObjectMode){
 		axisSelect = eje;
 	}	
     redibujar = true;	
 };
 
 void CBlendersito::Cancelar(){
-	if (estado == translacionVertex){
+	if (estado != editNavegacion){
 		ReestablecerEstado();
-		estado = edicion;		
+		estado = editNavegacion;
+   		redibujar = true;
 	}
-	else if (estado == translacion || estado == rotacion || estado == escala){
-		ReestablecerEstado();
-		estado = navegacion;	
-	}
-    redibujar = true;
 };
 
 void CBlendersito::Aceptar(){	
 	//si no hay objetos
-	if (Objects.Count() < 1){return;}	
+	if (Objects.Count() < 1){return;}
 
-	Object& obj = Objects[SelectActivo];	
-
-	if ( estado == navegacion && obj.seleccionado && obj.type == mesh ){
-		estado = edicion;
-		SelectEdicionActivo = 0;
-		colorBordeSelect = 1;	
+	if ( InteractionMode == ObjectMode ){
+		Object& obj = Objects[SelectActivo];	
+		if (estado == editNavegacion && obj.seleccionado && obj.type == mesh ){
+			InteractionMode = EditMode;
+			SelectEdicionActivo = 0;
+		}
+		else if (estado != editNavegacion){
+			estado = editNavegacion;
+		}
 	}
-	else if (estado == edicion){
-		estado = navegacion;		
-		colorBordeSelect = 1;
+	else if (InteractionMode == EditMode){
+		if (estado == editNavegacion ){
+			InteractionMode = ObjectMode;
+		}
+		else if (estado != editNavegacion){
+			estado = editNavegacion;
+		}
 	}
-	else if (estado == translacionVertex){
-		estado = edicion;		
+	/*else if (estado == VertexMove){
+		estado = editNavegacion;
 	}
-	else if (estado != navegacion){
+	else {
 		guardarEstado();
-		estado = navegacion;	
-		colorBordeSelect = 1;
-	};
+	};*/
     redibujar = true;
 };
 
 void CBlendersito::Tab(){
-	if (estado == navegacion || estado == edicion){
+	if (InteractionMode == ObjectMode || InteractionMode == EditMode){
 		changeSelect();
 	}
-	else if (estado == translacion || estado == rotacion || estado == escala || estado == translacionVertex){
+	else if (estado == translacion || estado == rotacion || estado == escala || estado == VertexMove){
 		InsertarValor();
 	}
-	else if (estado == timelineMove){	
+	else if (InteractionMode == timelineMove){	
 		HBufC* noteBuf = HBufC::NewLC(100);
 		noteBuf->Des().Copy(_L("Set Current Frame"));
 		CurrentFrame = DialogNumber(CurrentFrame, StartFrame-1, EndFrame+100, noteBuf);	
@@ -2488,7 +2494,7 @@ void CBlendersito::Tab(){
 void CBlendersito::ReestablecerEstado(){
 	Object& obj = Objects[SelectActivo];
 
-	if (estado == translacionVertex && obj.type == mesh ){
+	if (estado == VertexMove && obj.type == mesh ){
 		Mesh& pMesh = Meshes[obj.Id];	
 		for(int vg=0; vg < estadoVertices.Count(); vg++){
 			for(int g=0; g < pMesh.vertexGroups[estadoVertices[vg].indice].indices.Count(); g++){
@@ -2520,7 +2526,7 @@ void CBlendersito::ReestablecerEstado(){
 };
 
 void CBlendersito::guardarEstado(){	
-	if (estado == translacionVertex || estado == edicion){
+	if (InteractionMode == EditMode && estado == VertexMove){
 		if (SelectEditCount > 0){
 			estadoVertices.Close();
 			estadoVertices.ReserveL(SelectEditCount);
@@ -2644,7 +2650,7 @@ void CBlendersito::InsertarValor(){
 			}		
 		}
 	}
-	else if (estado == edicion){
+	else if (InteractionMode == EditMode){
 		/*if (axisSelect == X){
 			buf->Des().Copy(_L("Posicion en X"));
 			TInt valorX = DialogNumber((TInt)Objects[SelectActivo].vertex[Objects[SelectActivo].vertexGroupIndice[SelectActivo][0]*3], -1000000, 1000000,buf);
@@ -2667,7 +2673,7 @@ void CBlendersito::InsertarValor(){
 			}
 		}*/	
 	}
-	else if (estado == translacionVertex){
+	else if (estado == VertexMove){
 		/*if (axisSelect == X){
 			buf->Des().Copy(_L("Posicion en X")); //(Objects[SelectActivo].vertex[Objects[SelectActivo].vertexGroupIndice[SelectActivo][0]*3]-
 			TInt valorX = DialogNumber((TInt)(Objects[SelectActivo].vertex[Objects[SelectActivo].vertexGroupIndice[SelectActivo][0]*3]-estadoVertex[0]), -1000000, 1000000,buf);
@@ -2725,13 +2731,13 @@ void CBlendersito::TecladoNumerico(TInt numero){
 			//InsertarValor();			
 		}
 	}	
-	else if (estado == edicion){
+	else if (InteractionMode == EditMode){
 		if (numero == 1){SetPosicion();}
 		else if (numero == 7){
 			Extruir();
 		}
 	}
-	else if (estado == translacionVertex){
+	else if (estado == VertexMove){
 		//InsertarValor();
 	}
 	else if (numero == 1){SetPosicion();}
@@ -2839,10 +2845,10 @@ void CBlendersito::FlipNormals(){
 }
 
 void CBlendersito::Borrar(){
-	if (estado != navegacion && estado != edicion ){
+	if (estado != editNavegacion ){
 		Cancelar();
 	}
-	else if (estado == navegacion){
+	else if (InteractionMode == ObjectMode){
 		if (Objects.Count() < 1){return;}
 		//pregunta de confirmacion
 		HBufC* noteBuf = HBufC::NewLC(100);
@@ -2863,7 +2869,7 @@ void CBlendersito::Borrar(){
 			}			
 		}
 	}
-	else if (estado == edicion){
+	else if (InteractionMode == EditMode){
 		/*if (Objects[SelectActivo].vertexGroupSize < 1){return;}
 		//pregunta de confirmacion
 		_LIT(KStaticErrorMessage, "¿Eliminar Vertice?");
@@ -3003,7 +3009,6 @@ void CBlendersito::BorrarObjeto(TInt indice){
 		SelectCount = 0;
 		SelectActivo = 0;
 	}
-	colorBordeSelect = 1;	
 }
 
 void CBlendersito::CursorToSelect(){
@@ -3075,13 +3080,13 @@ void CBlendersito::AddObject( TInt tipo ){
 
 
 void CBlendersito::DeseleccionarTodo(){
-	if (estado == navegacion){
+	if (InteractionMode == ObjectMode){
 		for(int o=0; o < Objects.Count(); o++){
 			Objects[o].seleccionado = false;				
 		}
 		SelectCount = 0;
 	}
-	else if (estado == edicion){
+	else if (InteractionMode == EditMode){
 		Object& obj = Objects[SelectActivo];
 		if (obj.type != mesh){return;}
 		Mesh& pMesh = Meshes[obj.Id];	
@@ -3196,7 +3201,7 @@ void CBlendersito::AddMesh( int modelo ){
 }
 
 void CBlendersito::Extruir(){
-	/*if (estado == edicion && Objects[SelectActivo].vertexGroupSize > 0){
+	/*if (InteractionMode == EditMode && Objects[SelectActivo].vertexGroupSize > 0){
 		Object& obj = Objects[SelectActivo];
 		//primero crea los array temporales y les suma el espacio del nuevo vertice
 		GLshort* TempVertex = new GLshort[obj.vertexSize+3];
@@ -3276,7 +3281,7 @@ void CBlendersito::Extruir(){
 		}
 		
 		SelectActivo = obj.vertexGroupSize-1;
-		estado = translacionVertex;
+		estado = VertexMove;
 		guardarEstado();
 		//libera memoria
 		delete[] TempVertex;
@@ -3608,12 +3613,12 @@ void CBlendersito::SetEditMode(){
 	if (obj.type != mesh){return;}	
 	
 	Cancelar();
-	if ( estado != edicion ){
+	if ( InteractionMode != EditMode ){
 		SelectActivo = 0;
-		estado = edicion;
+		InteractionMode = EditMode;
 	}	
     else {
-    	estado = navegacion;
+    	InteractionMode = ObjectMode;
 	}
     redibujar = true;
 }
@@ -5615,7 +5620,7 @@ TBool CBlendersito::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 
 
 void CBlendersito::SetOrigen( TInt opcion ){
-	if (estado != edicion){
+	if (InteractionMode != EditMode){
 		return;
 	}
 	//a la geometria
