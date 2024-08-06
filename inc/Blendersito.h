@@ -20,7 +20,7 @@
 #include <AknWaitDialog.h>
 
 // Forward declaration de Object
-class CBlendersitoContainer;
+//class CBlendersitoContainer;
 class Object;
 
 // MACROS
@@ -309,7 +309,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
     private:  // Data
         CAknWaitDialog* iWaitDialog;
 
-        CBlendersitoContainer*    iContainer;
+        //CBlendersitoContainer*    iContainer;
 
 		/** Texture manager that is used to load the used textures. */
 		CTextureManager * iTextureManager;

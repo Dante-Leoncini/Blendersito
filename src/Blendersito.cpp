@@ -274,19 +274,27 @@ FlechaEstado* flechasEstados;
 
 void CBlendersito::changeSelect(){
 	if (InteractionMode == ObjectMode){
-		DeseleccionarTodo();
-		if (SelectActivo+1 > Objects.Count()-1){
+		//si no hay objetos
+		//o si esta moviendo, rotando o haciendo algo... no deja que continue
+		if (1 > Objects.Count() || estado != editNavegacion){
+			return;
+		}
+		//DeseleccionarTodo();
+		//deselecciona el objeto actual si es que estaba seleccionado
+		if (Objects[SelectActivo].seleccionado){
+			Objects[SelectActivo].seleccionado = false;
+			SelectCount--;
+		}
+
+		//pasa al siguiente
+		SelectActivo++;
+		if (SelectActivo > Objects.Count()-1){
 			SelectActivo = 0;
 		}
-		else {
-			SelectActivo++;
-		}
-		Objects[SelectActivo].seleccionado = true;
-		if (Objects.Count() > 0){
-			SelectCount = 1;
-		}
-		else {
-			SelectCount = 0;
+		//selecciona el proximo objeto
+		if (!Objects[SelectActivo].seleccionado){
+			Objects[SelectActivo].seleccionado = true;
+			SelectCount++;
 		}
 	}
 	else if (InteractionMode == EditMode){
@@ -420,7 +428,7 @@ GLfloat CBlendersito::atan2(GLfloat y, GLfloat x) {
 // -----------------------------------------------------------------------------
 //
 CBlendersito::CBlendersito( TUint aWidth, TUint aHeight, CBlendersitoInput* aInputHandler )
-: iContainer( NULL ),CFiniteStateMachine()
+: CFiniteStateMachine() // iContainer( NULL ),CFiniteStateMachine()
 	{
     iScreenWidth  = aWidth;
     iScreenHeight = aHeight;	
@@ -590,7 +598,7 @@ CBlendersito* CBlendersito::NewL( TUint aWidth, TUint aHeight, CBlendersitoInput
 
 // Destructor.
 CBlendersito::~CBlendersito(){
-    delete iContainer;
+    //delete iContainer;
 }
 
 // -----------------------------------------------------------------------------
@@ -2315,7 +2323,7 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 		}
 	}
 
-	if ( iShiftPressed ){
+	if ( iShiftPressed && estado == editNavegacion){
 		ShiftCount++;
 		if( flechasEstados[FlechaIzquierda].estado == TeclaPresionada ){
 			SeleccionarAnterior();
@@ -3000,6 +3008,9 @@ void CBlendersito::Borrar(){
 	}
 	else if (InteractionMode == ObjectMode){
 		if (Objects.Count() < 1){return;}
+
+		//si no hay nada seleccionado. no borra
+		if (!Objects[SelectActivo].seleccionado){return;}
 		//pregunta de confirmacion
 		HBufC* noteBuf = HBufC::NewLC(100);
 		_LIT(KStaticErrorMessage, "Delete?");
@@ -3136,6 +3147,19 @@ void CBlendersito::BorrarObjeto(TInt indice){
 			Collection[c]--;
 		}
 	}
+
+	Objects.Remove(indice);
+	SelectCount--;
+	SelectActivo = 0;
+	/*if (Objects.Count() > 0){
+		SelectCount = 1;
+		SelectActivo = Objects.Count()-1;
+		Objects[SelectActivo].seleccionado = true;
+	}
+	else {
+		SelectCount = 0;
+		SelectActivo = 0;
+	}*/
 	
 	// Actualizar índices en los objetos
 	for (int o = 0; o < Objects.Count(); o++) {
@@ -3147,17 +3171,6 @@ void CBlendersito::BorrarObjeto(TInt indice){
 				Objects[o].Childrens[c]--;
 			}
 		}
-	}
-
-	Objects.Remove(indice);
-	if (Objects.Count() > 0){
-		SelectCount = 1;
-		SelectActivo = Objects.Count()-1;
-		Objects[SelectActivo].seleccionado = true;
-	}
-	else {
-		SelectCount = 0;
-		SelectActivo = 0;
 	}
 }
 
