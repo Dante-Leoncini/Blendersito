@@ -87,7 +87,7 @@ lo malo... se rompio el modo edicion, el agrupado de vertices y bordes en esta v
 ![photo Example](https://github.com/Dante-Leoncini/Blendersito/blob/main/capturas/nuevaUI.png?raw=true)
 
 Actualmente permite:
-1) Crear y Eliminar multiples objetos: Suzanne, Cube, Claude y Vertice
+1) Crear y Eliminar multiples objetos: Suzanne, Cube y Vertice
 
 ![photo Example](https://github.com/Dante-Leoncini/Blendersito/blob/main/capturas/Screenshot0007.jpg?raw=true)
 ![photo Example](https://github.com/Dante-Leoncini/Blendersito/blob/main/capturas/Screenshot0034.jpg?raw=true)

@@ -171,7 +171,14 @@ class Mesh {
 				//si no se encontro el vertice en ningun grupo. crea uno y lo guarda adentro
 				if (!iguales){
 					VertexGroup newVertexGroups;
-					newVertexGroups.seleccionado = false;
+					if (vertexGroups.Count() > 0){
+						newVertexGroups.seleccionado = false;
+					}
+					else {
+						SelectActivo = 0;
+						SelectCount = 1;
+						newVertexGroups.seleccionado = true;
+					}
 					vertexGroups.Append(newVertexGroups);
 					vertexGroups[vertexGroups.Count()-1].indices.Append(a);
 				}

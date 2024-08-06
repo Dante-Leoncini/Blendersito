@@ -376,18 +376,8 @@ TKeyResponse CBlendersitoAppUi::HandleKeyEventL(const TKeyEvent& aKeyEvent, TEve
 }
 
 enum{
-	cubo,
-    esfera,
-    cilindro,
-    plano,
-    vacio,
-    camara,
-    cad,
-    luz,
-    monkey,
-    claude,
-    marcus,
-    vertice
+	cubo, esfera, cilindro, plano, vacio, camara,
+    cad, luz, monkey,vertice
 };
 
 enum{

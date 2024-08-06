@@ -3337,6 +3337,21 @@ void CBlendersito::AddMesh( int modelo ){
 			tempMesh.uv[a] = (GLfloat)MonkeyUV[a];			
 		}
 	}
+	else if (modelo == vertice){
+    	tempMesh.vertexSize = 1;
+		tempMesh.vertex = new GLshort[3];
+		tempMesh.normals = new GLbyte[3];	
+		tempMesh.vertexColor = new GLubyte[4];
+		tempMesh.faces = new GLushort[0];
+		tempMesh.uv = new GLfloat[2];
+		tempMesh.vertex[0] = tempMesh.vertex[1] = tempMesh.vertex[2] = 0;
+		tempMesh.normals[0] = tempMesh.normals[1] = 0;	
+		tempMesh.normals[2] = 127;	
+		tempMesh.uv[0] = tempMesh.uv[1] = 0.0f;		
+		tempMesh.vertexColor[0] = tempMesh.vertexColor[1] = tempMesh.vertexColor[2] = 255;
+		tempMesh.facesCount = tempFaceGroup.count = 0;
+		tempMesh.facesCountIndices = tempFaceGroup.indicesDrawnCount = 0;
+	}
 	else {
 		return;
 	}
