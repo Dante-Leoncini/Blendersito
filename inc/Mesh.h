@@ -125,11 +125,215 @@ class Mesh {
 
 		void Mesh::UpdateVertexUI(){	
 			for(TInt s=0; s < vertexGroups.Count(); s++){
-				TInt indiceVertex = vertexGroups[s].indices[0]*3;
+				UpdateVertexUI(s);
+				/*TInt indiceVertex = vertexGroups[s].indices[0]*3;
 				vertexGroupUI[s*3] = vertex[indiceVertex];
 				vertexGroupUI[s*3+1] = vertex[indiceVertex+1];
-				vertexGroupUI[s*3+2] = vertex[indiceVertex+2];
+				vertexGroupUI[s*3+2] = vertex[indiceVertex+2];*/
 			}
+		}
+
+		void Mesh::NewVertexUI() {		
+			delete[] vertexGroupUI; 
+			delete[] vertexGroupUIcolor;		
+			vertexGroupUI = new GLshort[vertexGroups.Count()*3];			
+			vertexGroupUIcolor = new GLubyte[vertexGroups.Count()*4];
+			UpdateVertexUI();
+			UpdateVertexColorsUI();
+		};
+
+		void Mesh::DuplicateVertices() {	
+			TInt realSelectCount = 0;
+			TInt vertexGroupsCount = vertexGroups.Count();
+			for(int vg=0; vg < vertexGroupsCount; vg++){
+				if ( vertexGroups[vg].seleccionado ){
+					realSelectCount += vertexGroups[vg].indices.Count();
+				}
+			}
+
+			//primero crea los array temporales y les suma el espacio del nuevo vertice
+			GLshort* TempVertex = new GLshort[vertexSize*3+realSelectCount*3];
+			GLbyte* TempNormals = new GLbyte[vertexSize*3+realSelectCount*3];
+			GLubyte* TempColors = new GLubyte[vertexSize*4+realSelectCount*4];
+			//GLushort* TempEdges = new GLushort[edgesGroups.Count()*2+realSelectCount*2];
+			GLfloat* TempUv = new GLfloat[vertexSize*2+realSelectCount*2];
+			
+			//TInt edgesGroupsCount = vertexGedgesGroupsroups.Count();
+			vertexGroups.ReserveL(vertexGroupsCount+SelectCount);
+			//edgesGroups.ReserveL(edgesGroupsCount+SelectCount);
+
+			//copia los valores originales al array temporal
+			for(int a=0; a < vertexSize*2; a++){
+				TempUv[a] = uv[a];			
+			}
+			for(int a=0; a < vertexSize*3; a++){
+				TempVertex[a] = vertex[a];
+				TempNormals[a] = normals[a];	
+			}
+			for(int a=0; a < vertexSize*4; a++){
+				TempColors[a] = vertexColor[a];	
+			}
+			/*for(int a=0; a < edgesGroups.Count()*2; a++){
+				TempEdges[a] = edges[a];			
+			}*/
+
+			//copia los vertices seleccionados	
+			TInt newSelectActivo = 0;
+			for(int vg=0; vg < vertexGroupsCount; vg++){
+				if ( vertexGroups[vg].seleccionado ){
+					vertexGroups[vg].seleccionado = false;
+					VertexGroup TempVertexGroup;
+					TInt indiceNewVG = vertexGroups.Count();
+					TInt indicesCount = vertexGroups[vg].indices.Count();
+					//si era el activo original	
+					if (vg == SelectActivo){newSelectActivo = indiceNewVG;};		
+					vertexGroups.Append(TempVertexGroup);
+					vertexGroups[indiceNewVG].seleccionado = true;
+					vertexGroups[indiceNewVG].indices.ReserveL(indicesCount);
+
+					for(int i=0; i < indicesCount; i++){
+						TInt NewIndice2 = vertexSize*2;
+						TInt NewIndice3 = vertexSize*3;
+						TInt NewIndice4 = vertexSize*4;
+						TInt numeroVertice2 = vertexGroups[vg].indices[i]*2;
+						TInt numeroVertice3 = vertexGroups[vg].indices[i]*3;
+						TInt numeroVertice4 = vertexGroups[vg].indices[i]*4;
+
+						TempUv[NewIndice2]   = uv[numeroVertice2];
+						TempUv[NewIndice2+1] = uv[numeroVertice2+1];
+				
+						TempVertex[NewIndice3]   = vertex[numeroVertice3];
+						TempVertex[NewIndice3+1] = vertex[numeroVertice3+1];	
+						TempVertex[NewIndice3+2] = vertex[numeroVertice3+2];	
+
+						TempNormals[NewIndice3]   = normals[numeroVertice3];
+						TempNormals[NewIndice3+1] = normals[numeroVertice3+1];	
+						TempNormals[NewIndice3+2] = normals[numeroVertice3+2];	
+
+						TempColors[NewIndice4]   = vertexColor[numeroVertice4];
+						TempColors[NewIndice4+1] = vertexColor[numeroVertice4+1];	
+						TempColors[NewIndice4+2] = vertexColor[numeroVertice4+2];	
+						TempColors[NewIndice4+3] = vertexColor[numeroVertice4+3];	
+
+						vertexGroups[indiceNewVG].indices.Append(vertexSize);
+						vertexSize++;
+					}
+				}		
+			}
+			SelectActivo = newSelectActivo;
+			
+			//libera memoria
+			delete[] vertex;
+			delete[] normals;
+			delete[] vertexColor;
+			//delete[] edges;
+			delete[] uv;
+
+			//los temporales ahora son los reales
+			vertex = TempVertex;
+			normals = TempNormals;
+			vertexColor = TempColors;
+			//edges = TempEdges;
+			uv = TempUv;
+			//borra la representacion grafica de la edicion y crea una nueva
+			NewVertexUI();
+		}
+		
+		void Mesh::ExtrudeVertices() {	
+			TInt realSelectCount = 0;
+			TInt vertexGroupsCount = vertexGroups.Count();
+			for(int vg=0; vg < vertexGroupsCount; vg++){
+				if ( vertexGroups[vg].seleccionado ){
+					realSelectCount += vertexGroups[vg].indices.Count();
+				}
+			}
+
+			//primero crea los array temporales y les suma el espacio del nuevo vertice
+			GLshort* TempVertex = new GLshort[vertexSize*3+realSelectCount*3];
+			GLbyte* TempNormals = new GLbyte[vertexSize*3+realSelectCount*3];
+			GLubyte* TempColors = new GLubyte[vertexSize*4+realSelectCount*4];
+			//GLushort* TempEdges = new GLushort[edgesGroups.Count()*2+realSelectCount*2];
+			GLfloat* TempUv = new GLfloat[vertexSize*2+realSelectCount*2];
+			
+			//TInt edgesGroupsCount = vertexGedgesGroupsroups.Count();
+			vertexGroups.ReserveL(vertexGroupsCount+SelectCount);
+			//edgesGroups.ReserveL(edgesGroupsCount+SelectCount);
+
+			//copia los valores originales al array temporal
+			for(int a=0; a < vertexSize*2; a++){
+				TempUv[a] = uv[a];			
+			}
+			for(int a=0; a < vertexSize*3; a++){
+				TempVertex[a] = vertex[a];
+				TempNormals[a] = normals[a];	
+			}
+			for(int a=0; a < vertexSize*4; a++){
+				TempColors[a] = vertexColor[a];	
+			}
+			/*for(int a=0; a < edgesGroups.Count()*2; a++){
+				TempEdges[a] = edges[a];			
+			}*/
+
+			//copia los vertices seleccionados	
+			TInt newSelectActivo = 0;
+			for(int vg=0; vg < vertexGroupsCount; vg++){
+				if ( vertexGroups[vg].seleccionado ){
+					vertexGroups[vg].seleccionado = false;
+					VertexGroup TempVertexGroup;
+					TInt indiceNewVG = vertexGroups.Count();
+					TInt indicesCount = vertexGroups[vg].indices.Count();
+					//si era el activo original	
+					if (vg == SelectActivo){newSelectActivo = indiceNewVG;};		
+					vertexGroups.Append(TempVertexGroup);
+					vertexGroups[indiceNewVG].seleccionado = true;
+					vertexGroups[indiceNewVG].indices.ReserveL(indicesCount);
+
+					for(int i=0; i < indicesCount; i++){
+						TInt NewIndice2 = vertexSize*2;
+						TInt NewIndice3 = vertexSize*3;
+						TInt NewIndice4 = vertexSize*4;
+						TInt numeroVertice2 = vertexGroups[vg].indices[i]*2;
+						TInt numeroVertice3 = vertexGroups[vg].indices[i]*3;
+						TInt numeroVertice4 = vertexGroups[vg].indices[i]*4;
+
+						TempUv[NewIndice2]   = uv[numeroVertice2];
+						TempUv[NewIndice2+1] = uv[numeroVertice2+1];
+				
+						TempVertex[NewIndice3]   = vertex[numeroVertice3];
+						TempVertex[NewIndice3+1] = vertex[numeroVertice3+1];	
+						TempVertex[NewIndice3+2] = vertex[numeroVertice3+2];	
+
+						TempNormals[NewIndice3]   = normals[numeroVertice3];
+						TempNormals[NewIndice3+1] = normals[numeroVertice3+1];	
+						TempNormals[NewIndice3+2] = normals[numeroVertice3+2];	
+
+						TempColors[NewIndice4]   = vertexColor[numeroVertice4];
+						TempColors[NewIndice4+1] = vertexColor[numeroVertice4+1];	
+						TempColors[NewIndice4+2] = vertexColor[numeroVertice4+2];	
+						TempColors[NewIndice4+3] = vertexColor[numeroVertice4+3];	
+
+						vertexGroups[indiceNewVG].indices.Append(vertexSize);
+						vertexSize++;
+					}
+				}		
+			}
+			SelectActivo = newSelectActivo;
+			
+			//libera memoria
+			delete[] vertex;
+			delete[] normals;
+			delete[] vertexColor;
+			//delete[] edges;
+			delete[] uv;
+
+			//los temporales ahora son los reales
+			vertex = TempVertex;
+			normals = TempNormals;
+			vertexColor = TempColors;
+			//edges = TempEdges;
+			uv = TempUv;
+			//borra la representacion grafica de la edicion y crea una nueva
+			NewVertexUI();
 		}
 
 		void Mesh::UpdateVertexColorUI(TInt indice){	
@@ -141,10 +345,11 @@ class Mesh {
 				colorVerticeG = 150;
 				colorVerticeB = 43;
 			}
-			vertexGroupUIcolor[indice*4] = colorVerticeR;
-			vertexGroupUIcolor[indice*4+1] = colorVerticeG;
-			vertexGroupUIcolor[indice*4+2] = colorVerticeB;
-			vertexGroupUIcolor[indice*4+3] = 255;
+			TInt indiceReal = indice*4;
+			vertexGroupUIcolor[indiceReal] = colorVerticeR;
+			vertexGroupUIcolor[indiceReal+1] = colorVerticeG;
+			vertexGroupUIcolor[indiceReal+2] = colorVerticeB;
+			vertexGroupUIcolor[indiceReal+3] = 255;
 		}
 
 		void Mesh::UpdateVertexColorsUI(){	

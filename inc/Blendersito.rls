@@ -92,6 +92,8 @@ rls_string STRING_r_blendersito_ModificadorSrew   "Srew"
 
 rls_string STRING_r_Transform       "Transform"
 rls_string STRING_r_ShrinkFatten    "Shrink/Fatten"
+rls_string STRING_r_Extrude         "Extrude"
+rls_string STRING_r_Duplicate       "Duplicate"
 
 rls_string STRING_r_blendersito_Seleccionar      "Menu de Seleccion"
 rls_string STRING_r_blendersito_SeleccionVertice "Seleccionar Vertices"

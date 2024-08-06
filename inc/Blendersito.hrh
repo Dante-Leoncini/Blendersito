@@ -60,6 +60,9 @@ enum TBlendersitoMenuCommands
     ETransformMenu,
     EShrinkFatten,
     
+    EExtrude,
+    EDuplicate,
+    
     EBlendersitoSeleccionar,
     EBlendersitoSetTipoVertex,
     EBlendersitoSetTipoEdge,

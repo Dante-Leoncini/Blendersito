@@ -2512,7 +2512,7 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 void CBlendersito::SetRotacion(){
 	//si no hay objetos
 	if (Objects.Count() < 1){return;}
-	else if (InteractionMode == ObjectMode && Objects[SelectActivo].seleccionado){
+	else if (InteractionMode == ObjectMode && Objects[SelectActivo].seleccionado && estado == editNavegacion){
 		guardarEstado();
 		estado = rotacion;	
 		axisSelect = X;
@@ -2526,7 +2526,7 @@ void CBlendersito::SetEscala(){
 	//XYZ tiene escala
 	//si no hay objetos
 	if (Objects.Count() < 1){return;}
-	else if (InteractionMode == ObjectMode && Objects[SelectActivo].seleccionado){
+	else if (InteractionMode == ObjectMode && Objects[SelectActivo].seleccionado && estado == editNavegacion){
 		guardarEstado();
 		estado = EditScale;
 		axisSelect = XYZ;	
@@ -2545,7 +2545,7 @@ void CBlendersito::SetPosicion(){
 		estado = translacion;
 		if (axisSelect > 2){axisSelect = X;}
 	}
-	else if (InteractionMode == EditMode){
+	else if (InteractionMode == EditMode && estado == editNavegacion){
 		Object& obj = Objects[SelectActivo];
 		Mesh& pMesh = Meshes[obj.Id];
 		switch (tipoSelect) {
@@ -2892,7 +2892,10 @@ void CBlendersito::TecladoNumerico(TInt numero){
 	else if (InteractionMode == EditMode){
 		if (numero == 1){SetPosicion();}
 		else if (numero == 7){
-			Extruir();
+			Extrude();
+		}
+		else if (numero == 8){
+			Duplicate();
 		}
 	}
 	else if (estado == VertexMove){
@@ -3380,99 +3383,28 @@ void CBlendersito::AddMesh( int modelo ){
     redibujar = true;
 }
 
-void CBlendersito::Extruir(){
-	/*if (InteractionMode == EditMode && Objects[SelectActivo].vertexGroupSize > 0){
-		Object& obj = Objects[SelectActivo];
-		//primero crea los array temporales y les suma el espacio del nuevo vertice
-		GLshort* TempVertex = new GLshort[obj.vertexSize+3];
-		GLbyte* TempNormals = new GLbyte[obj.normalsSize+3];
-		GLushort* TempEdges = new GLushort[obj.edgesSize+2];
-		GLbyte* TempUv = new GLbyte[obj.uvSize+2];
-	    GLushort* TempVertexGroup = new GLushort[obj.vertexGroupSize+1];
-		GLushort** TempVertexGroupIndices = new GLushort*[obj.vertexGroupSize+1];
-		TInt* TempVertexGroupIndicesSize =  new TInt[obj.vertexGroupSize+1];
-		//copia los valores originales al array temporal
-		for(int a=0; a < obj.vertexSize; a++){
-			TempVertex[a] = obj.vertex[a];
-			TempNormals[a] = obj.normals[a];	
-		}
-		for(int a=0; a < obj.edgesSize; a++){
-			TempEdges[a] = obj.edges[a];			
-		}
-		for(int a=0; a < obj.uvSize; a++){
-			TempUv[a] = obj.uv[a];			
-		}
-		for(int a=0; a < obj.vertexGroupSize; a++){
-			TempVertexGroup[a] = obj.vertexGroup[a];
-			TempVertexGroupIndicesSize[a] = obj.vertexGroupIndiceSize[a];
-			TempVertexGroupIndices[a] = new GLushort[obj.vertexGroupIndiceSize[a]];
-			for(int s=0; s < obj.vertexGroupIndiceSize[a]; s++){
-				TempVertexGroupIndices[a][s] = obj.vertexGroupIndice[a][s];			
-			}
-		}
+void CBlendersito::Extrude(){
+	if (InteractionMode != EditMode && estado != editNavegacion){return;};
+	Object& obj = Objects[SelectActivo];
+	Mesh& pMesh = Meshes[obj.Id];
+	if (pMesh.vertexGroups.Count() < 1){return;}
+	if (!pMesh.vertexGroups[pMesh.SelectActivo].seleccionado){return;}	
 
-		//copia el vertice seleccionado al nuevo vertice
-		TempVertex[obj.vertexSize] = obj.vertex[obj.vertexGroup[SelectActivo]*3];
-		TempVertex[obj.vertexSize+1] = obj.vertex[obj.vertexGroup[SelectActivo]*3+1];
-		TempVertex[obj.vertexSize+2] = obj.vertex[obj.vertexGroup[SelectActivo]*3+2];
-	    TempNormals[obj.vertexSize] = obj.normals[obj.vertexGroup[SelectActivo]*3];
-	    TempNormals[obj.vertexSize+1] = obj.normals[obj.vertexGroup[SelectActivo]*3+1];
-	    TempNormals[obj.vertexSize+2] = obj.normals[obj.vertexGroup[SelectActivo]*3+2];
-	    TempUv[obj.uvSize] = obj.uv[obj.vertexGroup[SelectActivo]*2];
-	    TempUv[obj.uvSize+1] = obj.uv[obj.vertexGroup[SelectActivo]*2+1];	    
-	    TempEdges[obj.edgesSize] =   obj.vertexGroup[SelectActivo];
-	    TempEdges[obj.edgesSize+1] = obj.vertexSize/3;
-	    TempVertexGroup[obj.vertexGroupSize] = obj.vertexSize/3; //ultimo indice creado
-	    TempVertexGroupIndices[obj.vertexGroupSize] = new GLushort[1]; //le agrega a la memoria
-	    TempVertexGroupIndices[obj.vertexGroupSize][0] = obj.vertexSize/3; //ultimo indice creado
-	    TempVertexGroupIndicesSize[obj.vertexGroupSize] = 1; //ultimo indice creado
-		//suma el nuevo tama�o
-		obj.vertexSize += 3;
-		obj.normalsSize += 3;
-		obj.edgesSize += 2;
-		obj.uvSize += 2;
-		obj.vertexGroupSize++;
-		//asigna el nuevo tama�o
-		obj.vertex =  new GLshort[obj.vertexSize];
-		obj.normals = new GLbyte[obj.normalsSize];
-		obj.edges =   new GLushort[obj.edgesSize];
-		obj.uv =      new GLbyte[obj.uvSize];
-		obj.vertexGroup = new GLushort[obj.vertexGroupSize];
-		obj.vertexGroupIndiceSize = new TInt[obj.vertexGroupSize];
-		obj.vertexGroupIndice = new GLushort*[obj.vertexGroupSize];
-		//agrega los valores temporales al objeto
-		for(int a=0; a < obj.vertexSize; a++){
-			obj.vertex[a] = TempVertex[a];
-			obj.normals[a] = TempNormals[a];			
-		}
-		for(int a=0; a < obj.edgesSize; a++){
-			obj.edges[a] = TempEdges[a];			
-		}
-		for(int a=0; a < obj.uvSize; a++){
-			obj.uv[a]= TempUv[a];			
-		}
-		for(int a=0; a < obj.vertexGroupSize; a++){
-			obj.vertexGroup[a] = TempVertexGroup[a];	
-			obj.vertexGroupIndiceSize[a] = TempVertexGroupIndicesSize[a];
-			obj.vertexGroupIndice[a] = new GLushort[obj.vertexGroupIndiceSize[a]];
-			for(int s=0; s < obj.vertexGroupIndiceSize[a]; s++){
-				obj.vertexGroupIndice[a][s] = TempVertexGroupIndices[a][s];			
-			}
-		}
-		
-		SelectActivo = obj.vertexGroupSize-1;
-		estado = VertexMove;
-		guardarEstado();
-		//libera memoria
-		delete[] TempVertex;
-		delete[] TempNormals;
-		delete[] TempEdges;
-		delete[] TempUv;
-		delete[] TempVertexGroup;
-		delete[] TempVertexGroupIndicesSize;
-		delete[] TempVertexGroupIndices;
-		redibujar = true;
-	}	*/
+	pMesh.ExtrudeVertices();
+	SetPosicion();
+	redibujar = true;
+}
+
+void CBlendersito::Duplicate(){
+	if (InteractionMode != EditMode && estado != editNavegacion){return;};
+	Object& obj = Objects[SelectActivo];
+	Mesh& pMesh = Meshes[obj.Id];
+	if (pMesh.vertexGroups.Count() < 1){return;}
+	if (!pMesh.vertexGroups[pMesh.SelectActivo].seleccionado){return;}	
+
+	pMesh.DuplicateVertices();
+	SetPosicion();
+	redibujar = true;
 }
 
 void CBlendersito::ActivarTextura(){

@@ -176,6 +176,14 @@ RESOURCE MENU_PANE r_transform_menu {
         MENU_ITEM {
             command = EShrinkFatten;
             txt = STRING_r_ShrinkFatten;
+        },
+        MENU_ITEM {
+            command = EExtrude;
+            txt = STRING_r_Extrude;
+        },
+        MENU_ITEM {
+            command = EDuplicate;
+            txt = STRING_r_Duplicate;
         }
     };
 }

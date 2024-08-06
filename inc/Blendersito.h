@@ -143,6 +143,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void SetShrinkFatten(TInt fuerza);
         void CalcScaleVectors();
         void SetScale(TInt fuerza);
+        void Duplicate();
 
         void FlipNormals();
         void SetSmooth();
@@ -156,7 +157,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void ClearKeyframes();
         void SetEmission();
         void SetEditMode();
-        void Extruir();
+        void Extrude();
         void SetPerspectiva( TBool redibuja = true );
         void EnfocarObject();
         void CursorToSelect();

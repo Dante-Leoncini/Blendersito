@@ -139,9 +139,11 @@ void CBlendersitoAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
             //si es una malla 3d
             if (obj.type == mesh && obj.seleccionado){
                 aMenuPane->SetItemDimmed(EShrinkFatten, EFalse);
+                aMenuPane->SetItemDimmed(EExtrude, EFalse);
             }
             else {
-                aMenuPane->SetItemDimmed(EShrinkFatten, ETrue);                  
+                aMenuPane->SetItemDimmed(EShrinkFatten, ETrue);    
+                aMenuPane->SetItemDimmed(EExtrude, ETrue);                  
             }
         }
         else {
@@ -296,7 +298,7 @@ TKeyResponse CBlendersitoAppUi::HandleKeyEventL(const TKeyEvent& aKeyEvent, TEve
                     iAppContainer->iBlendersito->TecladoNumerico(11);
                     return EKeyWasConsumed;
                 case(226): //camara
-                    iAppContainer->iBlendersito->Extruir();
+                    iAppContainer->iBlendersito->Extrude();
                     return EKeyWasConsumed;
                 case(196): //llamada
                     iAppContainer->iBlendersito->SetPosicion();
@@ -459,6 +461,12 @@ void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
             break; 
         case EShrinkFatten:
             iAppContainer->iBlendersito->CalcShrinkFattenVectors();
+            break; 
+        case EExtrude:
+            iAppContainer->iBlendersito->Extrude();
+            break; 
+        case EDuplicate:
+            iAppContainer->iBlendersito->Duplicate();
             break; 
         case EOldImportOBJ:
             iAppContainer->iBlendersito->OldImportOBJ();
