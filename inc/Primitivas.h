@@ -114,6 +114,21 @@ static const GLshort CuboVertices[CuboVertexSize] = {
 	-2000, -2000, -2000
 };
 
+static const GLushort CuboBordes[CuboEdgesSize] = {
+	0, 1,
+	1, 2,
+	2, 3,
+	3, 0,
+	1, 4,
+	2, 5,
+	4, 5,
+	4, 6,
+	6, 7,
+	7, 5,
+	0, 6,
+	3, 7
+};
+
 static const GLbyte CuboUV[CuboUvSize] = {
 	//derecha ok
 	-128,-128,

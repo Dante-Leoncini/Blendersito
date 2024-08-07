@@ -104,11 +104,11 @@ class Mesh {
 			}
 			vertexGroups.Close();
 			//bordes			
-			edgesDrawnSize = 0;
+			/*edgesDrawnSize = 0;
 			if (edges != NULL){
 				delete[] edges; 
 				edges = NULL;
-			}
+			}*/
 			for(TInt i=0; i < edgesGroups.Count(); i++){
 				edgesGroups[i].indicesA.Close();
 				edgesGroups[i].indicesB.Close();

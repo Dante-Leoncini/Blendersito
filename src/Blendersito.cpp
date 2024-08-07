@@ -3310,6 +3310,12 @@ void CBlendersito::AddMesh( int modelo ){
 		for (int i = 0; i < tempFaceGroup.indicesDrawnCount; i++) {
 			tempMesh.faces[i] = CuboTriangles[i];
 		}
+		//bordes
+		tempMesh.edgesDrawnSize = CuboEdgesSize;
+		tempMesh.edges = new GLushort[tempMesh.edgesDrawnSize];
+		for(int a=0; a < tempMesh.edgesDrawnSize; a++){
+			tempMesh.edges[a] = CuboBordes[a];			
+		}
 	}	
 	else if (modelo == monkey){  
 		obj.rotZ = 180;
@@ -3339,6 +3345,9 @@ void CBlendersito::AddMesh( int modelo ){
 			//tempMesh.uv[a] = (GLfloat)(MonkeyUV+128)[a]/255;	
 			tempMesh.uv[a] = (GLfloat)MonkeyUV[a];			
 		}
+		//bordes
+		tempMesh.edgesDrawnSize = 0;
+		tempMesh.edges = NULL;
 	}
 	else if (modelo == vertice){
     	tempMesh.vertexSize = 1;
@@ -3354,6 +3363,8 @@ void CBlendersito::AddMesh( int modelo ){
 		tempMesh.vertexColor[0] = tempMesh.vertexColor[1] = tempMesh.vertexColor[2] = 255;
 		tempMesh.facesCount = tempFaceGroup.count = 0;
 		tempMesh.facesCountIndices = tempFaceGroup.indicesDrawnCount = 0;
+		tempMesh.edgesDrawnSize = 0;
+		tempMesh.edges = NULL;
 	}
 	else {
 		return;
@@ -3362,7 +3373,6 @@ void CBlendersito::AddMesh( int modelo ){
 	tempFaceGroup.material = 0;
 	tempMesh.vertexGroupUI = NULL;
 	tempMesh.vertexGroupUIcolor = NULL;
-	tempMesh.edges = NULL;
 	tempMesh.SelectActivo = 0;
 	tempMesh.SelectCount = 0;
 	Meshes.Append(tempMesh);	
