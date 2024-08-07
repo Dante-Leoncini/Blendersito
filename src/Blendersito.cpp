@@ -893,6 +893,7 @@ void CBlendersito::RenderMesh( Object& obj, TInt indice ){
 		glDisable( GL_LIGHTING );
 		glEnable(GL_POLYGON_OFFSET_FILL);
 		glDepthFunc(GL_LEQUAL);
+		glVertexPointer( 3, GL_SHORT, 0, pMesh.vertexGroupUI );			
 		
 		//se usa el GL_POLYGON_OFFSET_FILL para el modo solido, render o material si no esta en modo edicion
 		//esto dibuja el contorno con una linea mas gruesa
@@ -914,15 +915,13 @@ void CBlendersito::RenderMesh( Object& obj, TInt indice ){
 
 			glDrawElements( GL_LINES, pMesh.edgesDrawnSize, GL_UNSIGNED_SHORT, pMesh.edges );
 		}
-		else if (InteractionMode == EditMode && tipoSelect == vertexSelect && SelectActivo == indice){				
+		else if (InteractionMode == EditMode && tipoSelect == vertexSelect && SelectActivo == indice){		
 			glPolygonOffset(1.0, -1.0);
 			glEnableClientState( GL_COLOR_ARRAY );
 			glEnable(GL_COLOR_MATERIAL);
 			glColorPointer( 4, GL_UNSIGNED_BYTE, 0, pMesh.vertexGroupUIcolor );
 			glLineWidth(1);	 
 			glDrawElements( GL_LINES, pMesh.edgesDrawnSize, GL_UNSIGNED_SHORT, pMesh.edges );
-
-			glVertexPointer( 3, GL_SHORT, 0, pMesh.vertexGroupUI );
 			glPointSize(4);
 			glDrawArrays( GL_POINTS, 0, pMesh.vertexGroups.Count() );
 
@@ -2540,7 +2539,7 @@ void CBlendersito::SetPosicion(){
 	//si no hay objetos
 	if (Objects.Count() < 1){return;}
 
-	if (InteractionMode == ObjectMode && Objects[SelectActivo].seleccionado){
+	if (InteractionMode == ObjectMode && Objects[SelectActivo].seleccionado && estado == editNavegacion){
 		guardarEstado();
 		estado = translacion;
 		if (axisSelect > 2){axisSelect = X;}
@@ -3284,6 +3283,7 @@ void CBlendersito::AddMesh( int modelo ){
 	Mesh tempMesh;
 	FacesGroup tempFaceGroup;
 	tempFaceGroup.startDrawn = 0;
+	tempMesh.edgesDrawnSize = 0;
 	if (modelo == cubo){ 
     	tempMesh.vertexSize = 24;
 		tempMesh.vertex = new GLshort[tempMesh.vertexSize*3];

@@ -125,11 +125,10 @@ class Mesh {
 
 		void Mesh::UpdateVertexUI(){	
 			for(TInt s=0; s < vertexGroups.Count(); s++){
-				UpdateVertexUI(s);
-				/*TInt indiceVertex = vertexGroups[s].indices[0]*3;
+				TInt indiceVertex = vertexGroups[s].indices[0]*3;
 				vertexGroupUI[s*3] = vertex[indiceVertex];
 				vertexGroupUI[s*3+1] = vertex[indiceVertex+1];
-				vertexGroupUI[s*3+2] = vertex[indiceVertex+2];*/
+				vertexGroupUI[s*3+2] = vertex[indiceVertex+2];
 			}
 		}
 
@@ -155,12 +154,9 @@ class Mesh {
 			GLshort* TempVertex = new GLshort[vertexSize*3+realSelectCount*3];
 			GLbyte* TempNormals = new GLbyte[vertexSize*3+realSelectCount*3];
 			GLubyte* TempColors = new GLubyte[vertexSize*4+realSelectCount*4];
-			//GLushort* TempEdges = new GLushort[edgesGroups.Count()*2+realSelectCount*2];
 			GLfloat* TempUv = new GLfloat[vertexSize*2+realSelectCount*2];
 			
-			//TInt edgesGroupsCount = vertexGedgesGroupsroups.Count();
 			vertexGroups.ReserveL(vertexGroupsCount+SelectCount);
-			//edgesGroups.ReserveL(edgesGroupsCount+SelectCount);
 
 			//copia los valores originales al array temporal
 			for(int a=0; a < vertexSize*2; a++){
@@ -173,9 +169,6 @@ class Mesh {
 			for(int a=0; a < vertexSize*4; a++){
 				TempColors[a] = vertexColor[a];	
 			}
-			/*for(int a=0; a < edgesGroups.Count()*2; a++){
-				TempEdges[a] = edges[a];			
-			}*/
 
 			//copia los vertices seleccionados	
 			TInt newSelectActivo = 0;
@@ -252,10 +245,10 @@ class Mesh {
 			GLshort* TempVertex = new GLshort[vertexSize*3+realSelectCount*3];
 			GLbyte* TempNormals = new GLbyte[vertexSize*3+realSelectCount*3];
 			GLubyte* TempColors = new GLubyte[vertexSize*4+realSelectCount*4];
-			//GLushort* TempEdges = new GLushort[edgesGroups.Count()*2+realSelectCount*2];
+			GLushort* TempEdges = new GLushort[edgesDrawnSize+SelectCount*2];
 			GLfloat* TempUv = new GLfloat[vertexSize*2+realSelectCount*2];
 			
-			//TInt edgesGroupsCount = vertexGedgesGroupsroups.Count();
+			//TInt edgesGroupsCount = edgesGroups.Count();
 			vertexGroups.ReserveL(vertexGroupsCount+SelectCount);
 			//edgesGroups.ReserveL(edgesGroupsCount+SelectCount);
 
@@ -270,9 +263,9 @@ class Mesh {
 			for(int a=0; a < vertexSize*4; a++){
 				TempColors[a] = vertexColor[a];	
 			}
-			/*for(int a=0; a < edgesGroups.Count()*2; a++){
+			for(int a=0; a < edgesDrawnSize; a++){
 				TempEdges[a] = edges[a];			
-			}*/
+			}
 
 			//copia los vertices seleccionados	
 			TInt newSelectActivo = 0;
@@ -280,7 +273,9 @@ class Mesh {
 				if ( vertexGroups[vg].seleccionado ){
 					vertexGroups[vg].seleccionado = false;
 					VertexGroup TempVertexGroup;
+					//EdgesGroup TempEdgesGroup;
 					TInt indiceNewVG = vertexGroups.Count();
+					//TInt indiceNewEG = edgesGroups.Count();
 					TInt indicesCount = vertexGroups[vg].indices.Count();
 					//si era el activo original	
 					if (vg == SelectActivo){newSelectActivo = indiceNewVG;};		
@@ -288,6 +283,13 @@ class Mesh {
 					vertexGroups[indiceNewVG].seleccionado = true;
 					vertexGroups[indiceNewVG].indices.ReserveL(indicesCount);
 
+					//edgesGroups.Append(TempEdgesGroup);
+					//edgesGroups[indiceNewEG].indicesA.ReserveL(indicesCount);
+					//edgesGroups[indiceNewEG].indicesB.ReserveL(indicesCount);
+											
+					TempEdges[edgesDrawnSize]   = vg;
+					TempEdges[edgesDrawnSize+1] = indiceNewVG;
+					edgesDrawnSize+=2;
 					for(int i=0; i < indicesCount; i++){
 						TInt NewIndice2 = vertexSize*2;
 						TInt NewIndice3 = vertexSize*3;
@@ -313,8 +315,10 @@ class Mesh {
 						TempColors[NewIndice4+3] = vertexColor[numeroVertice4+3];	
 
 						vertexGroups[indiceNewVG].indices.Append(vertexSize);
+						//edgesGroups[indiceNewEG].indicesA.Append(vertexGroups[vg].indices[i]);
+						//edgesGroups[indiceNewEG].indicesB.Append(vertexSize);
 						vertexSize++;
-					}
+					}	
 				}		
 			}
 			SelectActivo = newSelectActivo;
@@ -323,14 +327,16 @@ class Mesh {
 			delete[] vertex;
 			delete[] normals;
 			delete[] vertexColor;
-			//delete[] edges;
+			if (edges != NULL){
+				delete[] edges;
+			}
 			delete[] uv;
 
 			//los temporales ahora son los reales
 			vertex = TempVertex;
 			normals = TempNormals;
 			vertexColor = TempColors;
-			//edges = TempEdges;
+			edges = TempEdges;
 			uv = TempUv;
 			//borra la representacion grafica de la edicion y crea una nueva
 			NewVertexUI();
@@ -393,6 +399,7 @@ class Mesh {
 			vertexGroupUI = new GLshort[vertexGroups.Count()*3];			
 			vertexGroupUIcolor = new GLubyte[vertexGroups.Count()*4];
 			UpdateVertexUI();
+			UpdateVertexColorsUI();
 
 			//agrupar bordes
 			/*EdgesGroup nuevoEdgesGroup;	
@@ -441,12 +448,13 @@ class Mesh {
 			edgesGroups[edgesGroups.Count()-1].indicesA.Append(6);
 			edgesGroups[edgesGroups.Count()-1].indicesB.Append(7);*/
 
-			edges = new GLushort[edgesGroups.Count()*2];
+			/*edges = new GLushort[edgesGroups.Count()*2];
 			edgesDrawnSize = edgesGroups.Count()*2;
 			for(TInt eg=0; eg < edgesGroups.Count(); eg++){
 				edges[eg*2] = vertexGroups[edgesGroups[eg].indicesA[0]].indices[0];
 				edges[eg*2+1] = vertexGroups[edgesGroups[eg].indicesB[0]].indices[0];
-			};
+			};*/
+
 				//}
 			//}
 			/*class EdgesGroup { 
