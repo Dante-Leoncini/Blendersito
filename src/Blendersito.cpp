@@ -2820,7 +2820,6 @@ void CBlendersito::InsertarValor(){
 				obj.rotZ = estadoObj.rotZ+valor;
 			}
 		}
-		dialogoSymbian = false;
 	}
 	else if (estado == translacion ){
 		if (axisSelect == X){
@@ -2899,6 +2898,7 @@ void CBlendersito::InsertarValor(){
 		Aceptar();*/
 	}	
 	CleanupStack::PopAndDestroy(buf);
+	dialogoSymbian = false;
 	redibujar = true;	
 }
 
