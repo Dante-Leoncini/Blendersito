@@ -1,12 +1,49 @@
 //constantes
 #define CuboVertexSize 24 * 3
-#define CuboNormalsSize 24 * 3
 #define CuboFacesSize 12 * 3
 #define CuboEdgesSize 12 * 6
 #define CuboUvSize 24 * 2
 
+#define PlaneVertexSize 4 * 3
+#define PlaneUvSize 4*2
+#define PlaneFacesSize 2 * 3
+#define PlaneEdgesSize 4 * 2
+
+static const GLushort PlaneTriangles[PlaneFacesSize] = {
+	1,0,3,
+	1,3,2
+};
+
+static const GLshort PlaneVertices[PlaneVertexSize] = {
+	-1, 0,  1, 
+	-1, 0, -1,
+	1,  0, -1,
+	1,  0,  1
+};
+
+static const GLbyte PlaneUV[PlaneUvSize] = {
+	127,127,
+	-128,127,
+	-128,-128,
+	127,-128
+};
+
+static const GLushort PlaneBordes[PlaneEdgesSize] = {
+	0, 1,
+	1, 2,
+	2, 3,
+	3, 0
+};
+
+static const GLbyte PlaneNormals[PlaneVertexSize] = {
+    0,127,0,
+    0,127,0,
+    0,127,0,
+    0,127,0
+};
+
 /* Define normals for the cube */
-static const GLbyte CuboNormals[CuboNormalsSize] = {
+static const GLbyte CuboNormals[CuboVertexSize] = {
     /* top */
     0,0,127,
     0,0,127,
@@ -44,8 +81,6 @@ static const GLbyte CuboNormals[CuboNormalsSize] = {
     0,0,-128
 };
 
-/* Define indices for drawing the triangles ( 5 sides of the cube )
-   Nasa Hubble texture is drawn on these sides. */
 static const GLushort CuboTriangles[CuboFacesSize] = {
     /* top */
      1,0,3,

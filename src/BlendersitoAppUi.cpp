@@ -378,7 +378,7 @@ TKeyResponse CBlendersitoAppUi::HandleKeyEventL(const TKeyEvent& aKeyEvent, TEve
 }
 
 enum{
-	cubo, esfera, cilindro, plano, vacio, camara,
+	cubo, esfera, cilindro, plane, vacio, camara,
     cad, luz, monkey,vertice
 };
 
@@ -480,22 +480,25 @@ void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
         case EViewportSelectToCursor:
             iAppContainer->iBlendersito->SelectToCursor();
             break;            
-        case EAddCamera:            
+        case ECamera:            
             iAppContainer->iBlendersito->AddObject(camera);
             break;   
-        case EAddLight:            
+        case ELight:            
             iAppContainer->iBlendersito->AddObject(light);
             break;       
-        case EAddEmpty:            
+        case EEmpty:            
             iAppContainer->iBlendersito->AddObject(empty);
             break;
-        case EAddCube:            
+        case ECube:            
             iAppContainer->iBlendersito->AddMesh(cubo);
             break;  
-        case EAddMonkey:
+        case EPlane:            
+            iAppContainer->iBlendersito->AddMesh(plane);
+            break;          
+        case EMonkey:
             iAppContainer->iBlendersito->AddMesh(monkey);
             break;  
-        case EAddVertex:
+        case EVertex:
             iAppContainer->iBlendersito->AddMesh(vertice);
             break; 
         case ESetMaterial:

@@ -311,28 +311,32 @@ RESOURCE MENU_PANE r_blendersito_modificadores_menu
 RESOURCE MENU_PANE r_viewport_add_menu{
 	items = {
         MENU_ITEM {
-            command = EAddCube;
-            txt = STRING_r_AddCube;
+            command = EPlane;
+            txt = STRING_r_Plane;
         },
         MENU_ITEM {
-            command = EAddVertex;
-            txt = STRING_r_AddVertex;
+            command = ECube;
+            txt = STRING_r_Cube;
         },
         MENU_ITEM {
-            command = EAddEmpty;
-            txt = STRING_r_AddEmpty;
+            command = EVertex;
+            txt = STRING_r_Vertex;
         },
         MENU_ITEM {
-            command = EAddCamera;
-            txt = STRING_r_AddCamera;
+            command = EEmpty;
+            txt = STRING_r_Empty;
         },
         MENU_ITEM {
-            command = EAddLight;
-            txt = STRING_r_AddLight;
+            command = ECamera;
+            txt = STRING_r_Camera;
         },
         MENU_ITEM {
-            command = EAddMonkey;
-            txt = STRING_r_AddMonkey;
+            command = ELight;
+            txt = STRING_r_Light;
+        },
+        MENU_ITEM {
+            command = EMonkey;
+            txt = STRING_r_Monkey;
         },        
         //MENU_ITEM
         //{

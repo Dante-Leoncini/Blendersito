@@ -198,7 +198,7 @@ enum{
 };
 
 enum{
-	cubo, esfera, cilindro, plano, vacio, camara,
+	cubo, esfera, cilindro, plane, vacio, camara,
     cad, luz, monkey,vertice
 };
 
@@ -1386,6 +1386,7 @@ void CBlendersito::SetStartFrame(){
 }
 
 TBool postProcesado = true;
+TBool dialogoSymbian = false;
 void CBlendersito::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeSecs ){
     // If texture loading is still going on, return from this method without doing anything.
 	if ( GetState() == ELoadingTextures ){
@@ -1393,7 +1394,9 @@ void CBlendersito::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
     }
 	GLfixed fixedDeltaTimeSecs = FLOAT_2_FIXED( aDeltaTimeSecs );
 	// Controles
-	InputUsuario( fixedDeltaTimeSecs );
+	if (!dialogoSymbian){
+		InputUsuario( fixedDeltaTimeSecs );
+	}
 	
 	if ( !redibujar && !PlayAnimation ){	
 		if (postProcesado){
@@ -2340,6 +2343,10 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 		}
 		return;
 	}
+	if ( iShiftPressed && estado != editNavegacion){
+		ShiftCount++;
+		return;
+	}
 	else if (ShiftCount > 0){
 		if (ShiftCount < 30){
 			Tab();
@@ -2619,11 +2626,11 @@ void CBlendersito::Aceptar(){
 };
 
 void CBlendersito::Tab(){
-	if (InteractionMode == ObjectMode || InteractionMode == EditMode){
-		changeSelect();
-	}
-	else if (estado == translacion || estado == rotacion || estado == EditScale || estado == VertexMove){
+	if (estado != editNavegacion){ //} estado == translacion || estado == rotacion || estado == EditScale || estado == VertexMove){
 		InsertarValor();
+	}
+	else if (InteractionMode == ObjectMode || InteractionMode == EditMode){
+		changeSelect();
 	}
 	else if (InteractionMode == timelineMove){	
 		HBufC* noteBuf = HBufC::NewLC(100);
@@ -2777,8 +2784,45 @@ void CBlendersito::OnEnterStateL( TInt /*aState*/ ){
 }
 
 void CBlendersito::InsertarValor(){
-	HBufC* buf = HBufC::NewLC( 20 );
-	if (estado == translacion ){
+	dialogoSymbian = true;
+	HBufC* buf = HBufC::NewLC( 100 );
+	if (estado == rotacion ){
+		if (axisSelect == X){	
+			GLfloat valorActual = Objects[SelectActivo].rotX-estadoObjetos[estadoObjetos.Count()-1].rotX;		
+			_LIT(KFormatString, "Rotarion: %d along global X");
+			buf->Des().Format(KFormatString, (TInt)valorActual);
+			TInt valor = DialogNumber((TInt)valorActual, -100000, 100000,buf);
+			for(int o=0; o < estadoObjetos.Count(); o++){
+				SaveState& estadoObj = estadoObjetos[o];
+				Object& obj = Objects[estadoObj.indice];
+				obj.rotX = estadoObj.rotX+valor;
+			}
+		}
+		if (axisSelect == Y){	
+			GLfloat valorActual = Objects[SelectActivo].rotY-estadoObjetos[estadoObjetos.Count()-1].rotY;		
+			_LIT(KFormatString, "Rotarion: %d along global Y");
+			buf->Des().Format(KFormatString, (TInt)valorActual);
+			TInt valor = DialogNumber((TInt)valorActual, -100000, 100000,buf);
+			for(int o=0; o < estadoObjetos.Count(); o++){
+				SaveState& estadoObj = estadoObjetos[o];
+				Object& obj = Objects[estadoObj.indice];
+				obj.rotY = estadoObj.rotY+valor;
+			}
+		}
+		if (axisSelect == Z){	
+			GLfloat valorActual = Objects[SelectActivo].rotZ-estadoObjetos[estadoObjetos.Count()-1].rotZ;		
+			_LIT(KFormatString, "Rotarion: %d along global Z");
+			buf->Des().Format(KFormatString, (TInt)valorActual);
+			TInt valor = DialogNumber((TInt)valorActual, -100000, 100000,buf);
+			for(int o=0; o < estadoObjetos.Count(); o++){
+				SaveState& estadoObj = estadoObjetos[o];
+				Object& obj = Objects[estadoObj.indice];
+				obj.rotZ = estadoObj.rotZ+valor;
+			}
+		}
+		dialogoSymbian = false;
+	}
+	else if (estado == translacion ){
 		if (axisSelect == X){
 			buf->Des().Copy(_L("Mover en X"));
 			TInt valorX = DialogNumber((TInt)(Objects[SelectActivo].posX-estadoObjetos[SelectActivo].posX), -100000, 100000,buf);	
@@ -2854,7 +2898,7 @@ void CBlendersito::InsertarValor(){
 		}	
 		Aceptar();*/
 	}	
-	//CleanupStack::PopAndDestroy(buf);
+	CleanupStack::PopAndDestroy(buf);
 	redibujar = true;	
 }
 
@@ -3284,7 +3328,44 @@ void CBlendersito::AddMesh( int modelo ){
 	FacesGroup tempFaceGroup;
 	tempFaceGroup.startDrawn = 0;
 	tempMesh.edgesDrawnSize = 0;
-	if (modelo == cubo){ 
+	if (modelo == plane){ 
+    	tempMesh.vertexSize = 4;
+		tempMesh.vertex = new GLshort[tempMesh.vertexSize*3];
+		tempMesh.vertexColor = new GLubyte[tempMesh.vertexSize*4];
+		tempMesh.normals = new GLbyte[tempMesh.vertexSize*3];
+		tempMesh.uv = new GLfloat[tempMesh.vertexSize*2];
+		HBufC* noteBuf = HBufC::NewLC(100);
+		noteBuf->Des().Copy(_L("Add Plane Size"));
+		TInt InputSize = DialogNumber(2, 0, 20, noteBuf);		
+		CleanupStack::PopAndDestroy(noteBuf);
+		InputSize = InputSize*1000;	
+
+		for (int i = 0; i < tempMesh.vertexSize*3; i++) {
+			tempMesh.vertex[i] = PlaneVertices[i]*InputSize;
+			tempMesh.normals[i] = PlaneNormals[i];
+		}
+		for (int i = 0; i < tempMesh.vertexSize*4; i++) {
+			tempMesh.vertexColor[i] = 255;
+		}
+		for (int i = 0; i < tempMesh.vertexSize*2; i++) {
+			tempMesh.uv[i] = (GLfloat)PlaneUV[i];
+		}
+
+		tempMesh.facesCount = tempFaceGroup.count = 2;
+		tempMesh.facesCountIndices = tempFaceGroup.indicesDrawnCount = 6;
+
+		tempMesh.faces = new GLushort[tempFaceGroup.indicesDrawnCount];
+		for (int i = 0; i < tempFaceGroup.indicesDrawnCount; i++) {
+			tempMesh.faces[i] = PlaneTriangles[i];
+		}
+		//bordes
+		tempMesh.edgesDrawnSize = PlaneEdgesSize;
+		tempMesh.edges = new GLushort[tempMesh.edgesDrawnSize];
+		for(int a=0; a < tempMesh.edgesDrawnSize; a++){
+			tempMesh.edges[a] = PlaneBordes[a];			
+		}
+	}
+	else if (modelo == cubo){ 
     	tempMesh.vertexSize = 24;
 		tempMesh.vertex = new GLshort[tempMesh.vertexSize*3];
 		tempMesh.vertexColor = new GLubyte[tempMesh.vertexSize*4];
