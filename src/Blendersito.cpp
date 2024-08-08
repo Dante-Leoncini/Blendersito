@@ -1555,6 +1555,7 @@ void CBlendersito::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 		//esto solo se hace si hay objetos
 		if (Objects.Count() > 0){
 			//dibujo de objetos nuevo!
+			glLineWidth(1);	 
 			for (int o = 0; o < Collection.Count(); o++) {
 				RenderObjectAndChildrens(Collection[o]);
 			}
