@@ -2825,7 +2825,7 @@ void CBlendersito::InsertarValor(){
 	else if (estado == translacion ){
 		if (axisSelect == X){
 			buf->Des().Copy(_L("Mover en X"));
-			TInt valorX = DialogNumber((TInt)(Objects[SelectActivo].posX-estadoObjetos[SelectActivo].posX), -100000, 100000,buf);	
+			TInt valorX = DialogNumber((TInt)(Objects[SelectActivo].posX-estadoObjetos[estadoObjetos.Count()-1].posX), -100000, 100000,buf);	
 			for(int o=0; o < estadoObjetos.Count(); o++){
 				SaveState& estadoObj = estadoObjetos[o];
 				Object& obj = Objects[estadoObj.indice];
@@ -2834,7 +2834,7 @@ void CBlendersito::InsertarValor(){
 		}
 		else if (axisSelect == Y){
 			buf->Des().Copy(_L("Mover en Y"));
-			TInt valorY = DialogNumber((TInt)(Objects[SelectActivo].posY-estadoObjetos[SelectActivo].posY), -100000, 100000,buf);	
+			TInt valorY = DialogNumber((TInt)(Objects[SelectActivo].posY-estadoObjetos[estadoObjetos.Count()-1].posY), -100000, 100000,buf);	
 			for(int o=0; o < estadoObjetos.Count(); o++){
 				SaveState& estadoObj = estadoObjetos[o];
 				Object& obj = Objects[estadoObj.indice];
@@ -2843,7 +2843,7 @@ void CBlendersito::InsertarValor(){
 		}
 		else if (axisSelect == Z){
 			buf->Des().Copy(_L("Mover en Z"));
-			TInt valorZ = DialogNumber((TInt)(Objects[SelectActivo].posZ-estadoObjetos[SelectActivo].posZ), -100000, 100000,buf);
+			TInt valorZ = DialogNumber((TInt)(Objects[SelectActivo].posZ-estadoObjetos[estadoObjetos.Count()-1].posZ), -100000, 100000,buf);
 			for(int o=0; o < estadoObjetos.Count(); o++){
 				SaveState& estadoObj = estadoObjetos[o];
 				Object& obj = Objects[estadoObj.indice];
