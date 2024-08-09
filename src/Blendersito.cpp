@@ -1665,12 +1665,16 @@ void CBlendersito::DrawTransformAxis(Object& obj) {
 	glPushMatrix();    
 	glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
 	glLineWidth(2);	
-	if (estado == VertexMove){
+	if (estado != editNavegacion){
 		Mesh& pMesh = Meshes[obj.Id];
-		glTranslatef(pMesh.vertex[pMesh.vertexGroups[pMesh.SelectActivo].indices[0]*3]     *obj.scaleX/65000, 
+		glTranslatef(TransformPivotPoint[0]*obj.scaleX/65000, 
+					 TransformPivotPoint[1]*obj.scaleY/65000, 
+					 TransformPivotPoint[2]*obj.scaleZ/65000
+		);		
+		/*glTranslatef(pMesh.vertex[pMesh.vertexGroups[pMesh.SelectActivo].indices[0]*3]     *obj.scaleX/65000, 
 						pMesh.vertex[pMesh.vertexGroups[pMesh.SelectActivo].indices[0]*3+1]*obj.scaleY/65000, 
 						pMesh.vertex[pMesh.vertexGroups[pMesh.SelectActivo].indices[0]*3+2]*obj.scaleZ/65000
-		);		
+		);*/		
 	}
 	if (axisSelect == X){
 		glColor4f(ColorTransformX[0],ColorTransformX[1],ColorTransformX[2],ColorTransformX[3]);
@@ -2145,29 +2149,32 @@ void CBlendersito::SetRotacion(TInt valor){
 	else if (InteractionMode == EditMode){
 		GLfloat theta = GradosARadianes(valor); // Convertir a radianes
 		Mesh& pMesh = Meshes[Objects[SelectActivo].Id];	
+		GLfloat cosTheta = cos(theta);
+		GLfloat sinTheta = sin(theta);
+
 		for(int g=0; g < estadoVertices.Count(); g++){
 			for(int vg=0; vg < pMesh.vertexGroups[estadoVertices[g].indice].indices.Count(); vg++){
 				TInt indiceVertice = pMesh.vertexGroups[estadoVertices[g].indice].indices[vg]*3;
 				// Obtener las coordenadas del vértice
-				TReal x = pMesh.vertex[indiceVertice] - TransformPivotPoint[0];
-				TReal y = pMesh.vertex[indiceVertice + 1] - TransformPivotPoint[1];
-				TReal z = pMesh.vertex[indiceVertice + 2] - TransformPivotPoint[2];
+				GLfloat x = pMesh.vertex[indiceVertice] - TransformPivotPoint[0];
+				GLfloat y = pMesh.vertex[indiceVertice + 1] - TransformPivotPoint[1];
+				GLfloat z = pMesh.vertex[indiceVertice + 2] - TransformPivotPoint[2];
 
-				TReal xNuevo, yNuevo, zNuevo;
+				GLfloat xNuevo, yNuevo, zNuevo;
 				if (axisSelect == X) {
 					// Rotar alrededor del eje X
-					yNuevo = y * cos(theta) - z * sin(theta);
-					zNuevo = y * sin(theta) + z * cos(theta);
+					yNuevo = y * cosTheta - z * sinTheta;
+					zNuevo = y * sinTheta + z * cosTheta;
 					xNuevo = x;
 				} else if (axisSelect == Y) {
 					// Rotar alrededor del eje Y
-					xNuevo = x * cos(theta) - y * sin(theta);
-					yNuevo = x * sin(theta) + y * cos(theta);
+					xNuevo = x * cosTheta - y * sinTheta;
+					yNuevo = x * sinTheta + y * cosTheta;
 					zNuevo = z;
 				} else if (axisSelect == Z) {
 					// Rotar alrededor del eje Z
-					xNuevo = x * cos(theta) + z * sin(theta);
-					zNuevo = -x * sin(theta) + z * cos(theta);
+					xNuevo = x * cosTheta + z * sinTheta;
+					zNuevo = -x * sinTheta + z * cosTheta;
 					yNuevo = y;
 				}
 
@@ -2741,6 +2748,22 @@ void CBlendersito::ReestablecerEstado(){
 	redibujar = true;
 };
 
+
+void CBlendersito::SetTransformPivotPoint(){	
+	Object& obj = Objects[SelectActivo];
+	Mesh& pMesh = Meshes[obj.Id];
+	TransformPivotPoint[0] = TransformPivotPoint[1] = TransformPivotPoint[2] = 0;
+	for(int i=0; i < estadoVertices.Count(); i++){
+		TInt primerVertice = pMesh.vertexGroups[estadoVertices[i].indice].indices[0]*3;
+		TransformPivotPoint[0] += pMesh.vertex[primerVertice];
+		TransformPivotPoint[1] += pMesh.vertex[primerVertice+1];	
+		TransformPivotPoint[2] += pMesh.vertex[primerVertice+2];
+	}
+	TransformPivotPoint[0] = TransformPivotPoint[0]/pMesh.SelectCount;
+	TransformPivotPoint[1] = TransformPivotPoint[1]/pMesh.SelectCount;	
+	TransformPivotPoint[2] = TransformPivotPoint[2]/pMesh.SelectCount;
+}
+
 void CBlendersito::guardarEstado(){	
 	if (InteractionMode == EditMode){
 		Object& obj = Objects[SelectActivo];
@@ -2761,6 +2784,7 @@ void CBlendersito::guardarEstado(){
 				}		
 			}	
 		}	
+		SetTransformPivotPoint();
 		/*HBufC* noteBuf = HBufC::NewLC(180);
 		_LIT(KFormatString, "vertices count: %d\nSelectCount: %d");
 		noteBuf->Des().Format(KFormatString, estadoVertices.Count(), SelectEditCount);
