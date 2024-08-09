@@ -43,13 +43,16 @@ class Material {
 class VertexGroup { 
 	public:
         RArray<GLushort> indices;
+        RArray<TInt> edgeLinks;
 		TBool seleccionado;
 };
 
 class EdgesGroup { 
 	public:
-        RArray<GLushort> indicesA;
-        RArray<GLushort> indicesB;
+        TInt indicesA;
+        TInt indicesB;
+		RArray<TInt> faces;  // Indices de las caras que usan este borde
+		TBool seleccionado;
 };
 
 class FacesGroup { 
@@ -89,32 +92,6 @@ class Mesh {
 		//nuevo bordes group
 		TInt edgesDrawnSize;
         RArray<EdgesGroup> edgesGroups;
-
-		void Mesh::VaciarGrupos() {		
-			if (vertexGroupUI != NULL){
-				delete[] vertexGroupUI; 
-				vertexGroupUI = NULL;
-			}
-			if (vertexGroupUIcolor != NULL){
-				delete[] vertexGroupUIcolor; 
-				vertexGroupUIcolor = NULL;
-			}
-			for(TInt i=0; i < vertexGroups.Count(); i++){
-				vertexGroups[i].indices.Close();
-			}
-			vertexGroups.Close();
-			//bordes			
-			/*edgesDrawnSize = 0;
-			if (edges != NULL){
-				delete[] edges; 
-				edges = NULL;
-			}*/
-			for(TInt i=0; i < edgesGroups.Count(); i++){
-				edgesGroups[i].indicesA.Close();
-				edgesGroups[i].indicesB.Close();
-			}
-			edgesGroups.Close();
-		};
 		
 		void Mesh::UpdateVertexUI(TInt EditSelect){	
 			TInt indiceVertex = vertexGroups[EditSelect].indices[0]*3;
@@ -140,6 +117,16 @@ class Mesh {
 			UpdateVertexUI();
 			UpdateVertexColorsUI();
 		};
+
+		void Mesh::RecalcularBordes(){
+			edgesDrawnSize = edgesGroups.Count()*2;
+			if (edges == NULL){delete[] edges;}
+			edges = new GLushort[edgesDrawnSize];
+			for(int a=0; a < edgesGroups.Count(); a++){
+				edges[a*2] = edgesGroups[a].indicesA;
+				edges[a*2+1] = edgesGroups[a].indicesB;
+			}	
+		}
 
 		void Mesh::DuplicateVertices() {	
 			TInt realSelectCount = 0;
@@ -273,9 +260,7 @@ class Mesh {
 				if ( vertexGroups[vg].seleccionado ){
 					vertexGroups[vg].seleccionado = false;
 					VertexGroup TempVertexGroup;
-					//EdgesGroup TempEdgesGroup;
 					TInt indiceNewVG = vertexGroups.Count();
-					//TInt indiceNewEG = edgesGroups.Count();
 					TInt indicesCount = vertexGroups[vg].indices.Count();
 					//si era el activo original	
 					if (vg == SelectActivo){newSelectActivo = indiceNewVG;};		
@@ -283,10 +268,11 @@ class Mesh {
 					vertexGroups[indiceNewVG].seleccionado = true;
 					vertexGroups[indiceNewVG].indices.ReserveL(indicesCount);
 
-					//edgesGroups.Append(TempEdgesGroup);
-					//edgesGroups[indiceNewEG].indicesA.ReserveL(indicesCount);
-					//edgesGroups[indiceNewEG].indicesB.ReserveL(indicesCount);
-											
+					EdgesGroup TempEdgesGroup;
+					TInt indiceNewEG = edgesGroups.Count();
+					edgesGroups.Append(TempEdgesGroup);
+					edgesGroups[indiceNewEG].indicesA = vg;
+					edgesGroups[indiceNewEG].indicesB = indiceNewVG;										
 					TempEdges[edgesDrawnSize]   = vg;
 					TempEdges[edgesDrawnSize+1] = indiceNewVG;
 					edgesDrawnSize+=2;
@@ -365,7 +351,19 @@ class Mesh {
 		}
 
 		void Mesh::AgruparVertices(){	
-			VaciarGrupos();
+			if (vertexGroupUI != NULL){
+				delete[] vertexGroupUI; 
+				vertexGroupUI = NULL;
+			}
+			if (vertexGroupUIcolor != NULL){
+				delete[] vertexGroupUIcolor; 
+				vertexGroupUIcolor = NULL;
+			}
+			for(TInt i=0; i < vertexGroups.Count(); i++){
+				vertexGroups[i].indices.Close();
+			}
+			vertexGroups.Close();
+
 			for(TInt a=0; a < vertexSize; a++){
 		    	TBool iguales = false;
 				//busca copias

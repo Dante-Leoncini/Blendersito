@@ -1,7 +1,7 @@
 //constantes
 #define CuboVertexSize 24 * 3
 #define CuboFacesSize 12 * 3
-#define CuboEdgesSize 12 * 6
+#define CuboEdgesSize 12 * 2
 #define CuboUvSize 24 * 2
 
 #define PlaneVertexSize 4 * 3

@@ -105,6 +105,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         //mover al siguiente casillero
         void InputUsuario( GLfixed aDeltaTimeSecs );
         
+        GLfloat GradosARadianes(TInt grados);
         void SetRotacion( void );
         void SetEscala( void );
         void SetPosicion( void );
@@ -113,7 +114,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
 
         void SetTranslacionVertices(TInt valor);
         void SetTranslacionObjetos(TInt valor);
-        void SetRotacionObjetos(TInt valor);
+        void SetRotacion(TInt valor);
         void SetEscalaObjetos(TInt valor);
         void BorrarObjeto(TInt indice);
         void BorrarMesh(TInt indice);
