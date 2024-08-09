@@ -47,6 +47,12 @@ class VertexGroup {
 		TBool seleccionado;
 };
 
+class NewVertexGroup { 
+	public:
+        TInt oldIndex;
+        TInt newIndex;
+};
+
 class EdgesGroup { 
 	public:
         TInt indicesA;
@@ -78,6 +84,8 @@ class Mesh {
 
 		TInt SelectActivo;
 		TInt SelectCount;
+		TInt SelectEdgesCount;
+		TInt SelectFacesCount;
 
 		//grupo de caras
 		TInt facesCount;
@@ -92,6 +100,26 @@ class Mesh {
 		//nuevo bordes group
 		TInt edgesDrawnSize;
         RArray<EdgesGroup> edgesGroups;
+
+		void Mesh::VertexSelect(TInt index, TBool select){
+			vertexGroups[index].seleccionado = select;
+			for(TInt i=0; i < vertexGroups[index].edgeLinks.Count(); i++){
+				CheckEdgeSelect(vertexGroups[index].edgeLinks[i]);
+			}
+		}
+
+		void Mesh::CheckEdgeSelect(TInt index){
+			TBool seleccionA = vertexGroups[edgesGroups[index].indicesA].seleccionado;
+			TBool seleccionB = vertexGroups[edgesGroups[index].indicesB].seleccionado;
+			if (seleccionA && seleccionB && !edgesGroups[index].seleccionado){
+				SelectEdgesCount++;
+				edgesGroups[index].seleccionado = true;
+			}
+			else if (edgesGroups[index].seleccionado){
+				edgesGroups[index].seleccionado = false;
+				SelectEdgesCount--;
+			}
+		}
 		
 		void Mesh::UpdateVertexUI(TInt EditSelect){	
 			TInt indiceVertex = vertexGroups[EditSelect].indices[0]*3;
@@ -119,12 +147,19 @@ class Mesh {
 		};
 
 		void Mesh::RecalcularBordes(){
+			for(int i=0; i < vertexGroups.Count(); i++){
+				vertexGroups[i].edgeLinks.Close();
+			}	
+
 			edgesDrawnSize = edgesGroups.Count()*2;
 			if (edges == NULL){delete[] edges;}
 			edges = new GLushort[edgesDrawnSize];
 			for(int a=0; a < edgesGroups.Count(); a++){
 				edges[a*2] = edgesGroups[a].indicesA;
 				edges[a*2+1] = edgesGroups[a].indicesB;
+				//links de bordes
+				vertexGroups[edgesGroups[a].indicesA].edgeLinks.Append(a);
+				vertexGroups[edgesGroups[a].indicesB].edgeLinks.Append(a);
 			}	
 		}
 
@@ -232,12 +267,15 @@ class Mesh {
 			GLshort* TempVertex = new GLshort[vertexSize*3+realSelectCount*3];
 			GLbyte* TempNormals = new GLbyte[vertexSize*3+realSelectCount*3];
 			GLubyte* TempColors = new GLubyte[vertexSize*4+realSelectCount*4];
-			GLushort* TempEdges = new GLushort[edgesDrawnSize+SelectCount*2];
+			GLushort* TempEdges = new GLushort[edgesDrawnSize+SelectCount*2+SelectEdgesCount*2];
 			GLfloat* TempUv = new GLfloat[vertexSize*2+realSelectCount*2];
 			
-			//TInt edgesGroupsCount = edgesGroups.Count();
+			TInt edgesGroupsCount = edgesGroups.Count();
 			vertexGroups.ReserveL(vertexGroupsCount+SelectCount);
-			//edgesGroups.ReserveL(edgesGroupsCount+SelectCount);
+			edgesGroups.ReserveL(edgesGroupsCount+SelectCount+SelectEdgesCount);
+
+			RArray<NewVertexGroup> newVertexGroup;
+			newVertexGroup.ReserveL(SelectCount);
 
 			//copia los valores originales al array temporal
 			for(int a=0; a < vertexSize*2; a++){
@@ -268,14 +306,6 @@ class Mesh {
 					vertexGroups[indiceNewVG].seleccionado = true;
 					vertexGroups[indiceNewVG].indices.ReserveL(indicesCount);
 
-					EdgesGroup TempEdgesGroup;
-					TInt indiceNewEG = edgesGroups.Count();
-					edgesGroups.Append(TempEdgesGroup);
-					edgesGroups[indiceNewEG].indicesA = vg;
-					edgesGroups[indiceNewEG].indicesB = indiceNewVG;										
-					TempEdges[edgesDrawnSize]   = vg;
-					TempEdges[edgesDrawnSize+1] = indiceNewVG;
-					edgesDrawnSize+=2;
 					for(int i=0; i < indicesCount; i++){
 						TInt NewIndice2 = vertexSize*2;
 						TInt NewIndice3 = vertexSize*3;
@@ -305,11 +335,78 @@ class Mesh {
 						//edgesGroups[indiceNewEG].indicesB.Append(vertexSize);
 						vertexSize++;
 					}	
+					// Duplicar bordes seleccionados
+					EdgesGroup TempEdgesGroup;
+					TInt indiceNewEG = edgesGroups.Count();
+					edgesGroups.Append(TempEdgesGroup);
+					edgesGroups[indiceNewEG].indicesA = vg;
+					edgesGroups[indiceNewEG].indicesB = indiceNewVG;						
+					vertexGroups[vg].edgeLinks.Append(indiceNewEG);		
+					vertexGroups[indiceNewVG].edgeLinks.Append(indiceNewEG);								
+					TempEdges[edgesDrawnSize]   = vg;
+					TempEdges[edgesDrawnSize+1] = indiceNewVG;
+					edgesDrawnSize+=2;
+
+					NewVertexGroup TempNewVertexGroup;
+					TempNewVertexGroup.oldIndex = vg;
+					TempNewVertexGroup.newIndex = indiceNewVG;
+					newVertexGroup.Append(TempNewVertexGroup);
+					/*for (TInt eg = 0; eg < edgesGroupsCount; eg++) {
+						if (edgesGroups[eg].seleccionado && (edgesGroups[eg].indicesA == vg || edgesGroups[eg].indicesB == vg)){					
+							EdgesGroup TempEdgesGroup;
+							TInt indiceNewEG = edgesGroups.Count();
+							edgesGroups.Append(TempEdgesGroup);
+							edgesGroups[indiceNewEG].indicesA = edgesGroups[eg].indicesA == vg ? indiceNewVG : edgesGroups[eg].indicesA;
+							edgesGroups[indiceNewEG].indicesB = edgesGroups[eg].indicesB == vg ? indiceNewVG : edgesGroups[eg].indicesB;
+							edgesGroups[indiceNewEG].faces = edgesGroups[eg].faces;
+							
+							vertexGroups[indiceNewVG].edgeLinks.Append(indiceNewEG);
+							TempEdges[edgesDrawnSize] = edgesGroups[indiceNewEG].indicesA;
+							TempEdges[edgesDrawnSize + 1] = edgesGroups[indiceNewEG].indicesB;
+							edgesDrawnSize += 2;
+						}
+					}*/
 				}		
 			}
+			//bordes seleccionados
+			for (TInt eg = 0; eg < edgesGroupsCount; eg++) {
+				if (edgesGroups[eg].seleccionado){
+					TInt oldIndexA = -1;
+					TInt oldIndexB = -1;
+					for (TInt nv = 0; nv < newVertexGroup.Count(); nv++){
+						//borde encontrado
+						if (edgesGroups[eg].indicesA == newVertexGroup[nv].oldIndex){
+							oldIndexA = nv;
+						}
+						else if (edgesGroups[eg].indicesB == newVertexGroup[nv].oldIndex){
+							oldIndexB = nv;
+						}
+					}
+					//detecta un error
+					if (oldIndexA < 0 || oldIndexB < 0){
+						continue;
+					}
+					newVertexGroup[oldIndexA].newIndex;
+					newVertexGroup[oldIndexB].newIndex;
+					
+					EdgesGroup TempEdgesGroup;
+					TInt indiceNewEG = edgesGroups.Count();
+					edgesGroups.Append(TempEdgesGroup);
+					edgesGroups[indiceNewEG].indicesA = newVertexGroup[oldIndexA].newIndex;
+					edgesGroups[indiceNewEG].indicesB = newVertexGroup[oldIndexB].newIndex;		
+									
+					vertexGroups[newVertexGroup[oldIndexA].newIndex].edgeLinks.Append(indiceNewEG);		
+					vertexGroups[newVertexGroup[oldIndexB].newIndex].edgeLinks.Append(indiceNewEG);								
+					TempEdges[edgesDrawnSize]   = newVertexGroup[oldIndexA].newIndex;
+					TempEdges[edgesDrawnSize+1] = newVertexGroup[oldIndexB].newIndex;
+					edgesDrawnSize+=2;
+				}
+			}
+
 			SelectActivo = newSelectActivo;
 			
 			//libera memoria
+			newVertexGroup.Close();
 			delete[] vertex;
 			delete[] normals;
 			delete[] vertexColor;

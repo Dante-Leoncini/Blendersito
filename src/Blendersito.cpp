@@ -309,7 +309,7 @@ void CBlendersito::changeSelect(){
 		}
 		else {*/
 		//deselecciona solo el que estaba seleccionado
-		pMesh.vertexGroups[pMesh.SelectActivo].seleccionado = false;
+		pMesh.VertexSelect(pMesh.SelectActivo, false);
 		pMesh.UpdateVertexColorUI(pMesh.SelectActivo);
 		//}
 
@@ -323,7 +323,7 @@ void CBlendersito::changeSelect(){
 			pMesh.SelectCount--;			
 		}
 		else {
-			pMesh.vertexGroups[pMesh.SelectActivo].seleccionado = true;
+			pMesh.VertexSelect(pMesh.SelectActivo, true);
 		}
 		pMesh.UpdateVertexColorUI(pMesh.SelectActivo);
 		/*if (SelectEditCount != 1 && pMesh.vertexGroups.Count() > 0){
@@ -2022,7 +2022,7 @@ void CBlendersito::SeleccionarAnterior(){
 			pMesh.SelectActivo = pMesh.vertexGroups.Count()-1;
 		}
 		if (!pMesh.vertexGroups[pMesh.SelectActivo].seleccionado){
-			pMesh.vertexGroups[pMesh.SelectActivo].seleccionado = true;
+			pMesh.VertexSelect(pMesh.SelectActivo, true);
 			pMesh.UpdateVertexColorUI(pMesh.SelectActivo);
 			pMesh.SelectCount++;
 		}		
@@ -2056,7 +2056,7 @@ void CBlendersito::SeleccionarProximo(){
 			pMesh.SelectActivo = 0;
 		}
 		if (!pMesh.vertexGroups[pMesh.SelectActivo].seleccionado){
-			pMesh.vertexGroups[pMesh.SelectActivo].seleccionado = true;
+			pMesh.VertexSelect(pMesh.SelectActivo, true);
 			pMesh.UpdateVertexColorUI(pMesh.SelectActivo);
 			pMesh.SelectCount++;
 		}
@@ -2102,7 +2102,7 @@ void CBlendersito::SeleccionarTodo(){
 			pMesh.SelectCount = pMesh.vertexGroups.Count();
 		}
 		for(int vg=0; vg < pMesh.vertexGroups.Count(); vg++){
-			pMesh.vertexGroups[vg].seleccionado = !TodoSeleccionado;
+			pMesh.VertexSelect(vg, !TodoSeleccionado);
 		}		
 		pMesh.UpdateVertexColorsUI();
 	}
@@ -2387,9 +2387,11 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 		ShiftCount++;
 		if( flechasEstados[FlechaIzquierda].estado == TeclaPresionada ){
 			SeleccionarAnterior();
+			ShiftCount = 40;
 		}		
 		else if( flechasEstados[FlechaDerecha].estado == TeclaPresionada ){
 			SeleccionarProximo();
+			ShiftCount = 40;
 		}
 		else if( flechasEstados[FlechaArriba].estado == TeclaPresionada ){
 			SeleccionarTodo();
@@ -3380,7 +3382,7 @@ void CBlendersito::DeseleccionarTodo(){
 		if (pMesh.vertexGroups.Count() < 1){return;}
 
 		for(int vg=0; vg < pMesh.vertexGroups.Count(); vg++){
-			pMesh.vertexGroups[vg].seleccionado = false;				
+			pMesh.VertexSelect(vg, false);			
 		}
 		pMesh.UpdateVertexColorsUI();
 		
@@ -3415,6 +3417,7 @@ void CBlendersito::AddMesh( int modelo ){
 	tempMesh.vertexGroupUIcolor = NULL;
 	tempMesh.SelectActivo = 0;
 	tempMesh.SelectCount = 0;
+	tempMesh.SelectEdgesCount = 0;
 	Meshes.Append(tempMesh);
 	obj.Id = Meshes.Count()-1;
 	Mesh& pMesh = Meshes[obj.Id];
