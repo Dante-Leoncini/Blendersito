@@ -301,7 +301,7 @@ TKeyResponse CBlendersitoAppUi::HandleKeyEventL(const TKeyEvent& aKeyEvent, TEve
                     iAppContainer->iBlendersito->Extrude();
                     return EKeyWasConsumed;
                 case(196): //llamada
-                    iAppContainer->iBlendersito->SetPosicion();
+                    iAppContainer->iBlendersito->ChangeEje();
                     return EKeyWasConsumed;
                 case(71): //G
                     iAppContainer->iBlendersito->SetPosicion();

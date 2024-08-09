@@ -2614,6 +2614,18 @@ void CBlendersito::SetEscala(){
     redibujar = true;	
 };
 
+void CBlendersito::ChangeEje(){
+	if (Objects.Count() < 1){return;}
+	if (estado != editNavegacion){
+		axisSelect++;
+		if (axisSelect > 2){
+			axisSelect = 0;
+		}
+	}
+	else {SetPosicion();}
+	redibujar = true;
+}
+
 void CBlendersito::SetPosicion(){
 	//si no hay objetos
 	if (Objects.Count() < 1){return;}
@@ -2772,15 +2784,17 @@ void CBlendersito::SetTransformPivotPoint(){
 	Object& obj = Objects[SelectActivo];
 	Mesh& pMesh = Meshes[obj.Id];
 	TransformPivotPoint[0] = TransformPivotPoint[1] = TransformPivotPoint[2] = 0;
-	for(int i=0; i < estadoVertices.Count(); i++){
-		TInt primerVertice = pMesh.vertexGroups[estadoVertices[i].indice].indices[0]*3;
-		TransformPivotPoint[0] += pMesh.vertex[primerVertice];
-		TransformPivotPoint[1] += pMesh.vertex[primerVertice+1];	
-		TransformPivotPoint[2] += pMesh.vertex[primerVertice+2];
+	if (InteractionMode == EditMode){
+		for(int i=0; i < estadoVertices.Count(); i++){
+			TInt primerVertice = pMesh.vertexGroups[estadoVertices[i].indice].indices[0]*3;
+			TransformPivotPoint[0] += pMesh.vertex[primerVertice];
+			TransformPivotPoint[1] += pMesh.vertex[primerVertice+1];	
+			TransformPivotPoint[2] += pMesh.vertex[primerVertice+2];
+		}
+		TransformPivotPoint[0] = TransformPivotPoint[0]/pMesh.SelectCount;
+		TransformPivotPoint[1] = TransformPivotPoint[1]/pMesh.SelectCount;	
+		TransformPivotPoint[2] = TransformPivotPoint[2]/pMesh.SelectCount;
 	}
-	TransformPivotPoint[0] = TransformPivotPoint[0]/pMesh.SelectCount;
-	TransformPivotPoint[1] = TransformPivotPoint[1]/pMesh.SelectCount;	
-	TransformPivotPoint[2] = TransformPivotPoint[2]/pMesh.SelectCount;
 }
 
 void CBlendersito::guardarEstado(){	
