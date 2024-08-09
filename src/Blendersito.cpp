@@ -2130,6 +2130,7 @@ GLfloat CBlendersito::GradosARadianes(TInt grados) {
     return grados * (PI / 180.0);
 }
 
+TInt valorRotacion = 0;
 void CBlendersito::SetRotacion(TInt valor){
 	if (InteractionMode == ObjectMode){
 		for (int o = 0; o < estadoObjetos.Count(); o++) {
@@ -2147,43 +2148,45 @@ void CBlendersito::SetRotacion(TInt valor){
 		}
 	}
 	else if (InteractionMode == EditMode){
-		GLfloat theta = GradosARadianes(valor); // Convertir a radianes
+		valorRotacion +=valor;
+		GLfloat theta = GradosARadianes(valorRotacion); // Convertir a radianes
 		Mesh& pMesh = Meshes[Objects[SelectActivo].Id];	
 		GLfloat cosTheta = cos(theta);
 		GLfloat sinTheta = sin(theta);
 
 		for(int g=0; g < estadoVertices.Count(); g++){
+			GLfloat x = estadoVertices[g].x - TransformPivotPoint[0];
+			GLfloat y = estadoVertices[g].y - TransformPivotPoint[1];
+			GLfloat z = estadoVertices[g].z - TransformPivotPoint[2];
+
+			GLshort xNuevo = 0;
+			GLshort yNuevo = 0;
+			GLshort zNuevo = 0;
+			switch (axisSelect) {
+				case X:
+					yNuevo = (GLshort)(y * cosTheta - z * sinTheta)+ TransformPivotPoint[1];
+					zNuevo = (GLshort)(y * sinTheta + z * cosTheta)+ TransformPivotPoint[2];
+					xNuevo = (GLshort)x + TransformPivotPoint[0];
+					break;
+				case Y:
+					xNuevo = (GLshort)(x * cosTheta - y * sinTheta) + TransformPivotPoint[0];
+					yNuevo = (GLshort)(x * sinTheta + y * cosTheta) + TransformPivotPoint[1];
+					zNuevo = (GLshort)z + TransformPivotPoint[2];
+					break;
+				case Z:
+					xNuevo = (GLshort)(x * cosTheta + z * sinTheta)+ TransformPivotPoint[0];
+					zNuevo = (GLshort)(-x * sinTheta + z * cosTheta)+ TransformPivotPoint[2];
+					yNuevo = (GLshort)y + TransformPivotPoint[1];
+					break;
+			}
+
 			for(int vg=0; vg < pMesh.vertexGroups[estadoVertices[g].indice].indices.Count(); vg++){
 				TInt indiceVertice = pMesh.vertexGroups[estadoVertices[g].indice].indices[vg]*3;
-				// Obtener las coordenadas del vértice
-				GLfloat x = pMesh.vertex[indiceVertice] - TransformPivotPoint[0];
-				GLfloat y = pMesh.vertex[indiceVertice + 1] - TransformPivotPoint[1];
-				GLfloat z = pMesh.vertex[indiceVertice + 2] - TransformPivotPoint[2];
-
-				GLfloat xNuevo, yNuevo, zNuevo;
-				if (axisSelect == X) {
-					// Rotar alrededor del eje X
-					yNuevo = y * cosTheta - z * sinTheta;
-					zNuevo = y * sinTheta + z * cosTheta;
-					xNuevo = x;
-				} else if (axisSelect == Y) {
-					// Rotar alrededor del eje Y
-					xNuevo = x * cosTheta - y * sinTheta;
-					yNuevo = x * sinTheta + y * cosTheta;
-					zNuevo = z;
-				} else if (axisSelect == Z) {
-					// Rotar alrededor del eje Z
-					xNuevo = x * cosTheta + z * sinTheta;
-					zNuevo = -x * sinTheta + z * cosTheta;
-					yNuevo = y;
-				}
-
-				// Ajustar de nuevo a las coordenadas globales y almacenar el vértice transformado
-				pMesh.vertex[indiceVertice] = (GLshort)xNuevo + TransformPivotPoint[0];
-				pMesh.vertex[indiceVertice + 1] = (GLshort)yNuevo + TransformPivotPoint[1];
-				pMesh.vertex[indiceVertice + 2] = (GLshort)zNuevo + TransformPivotPoint[2];
-				pMesh.UpdateVertexUI(estadoVertices[g].indice);
+				pMesh.vertex[indiceVertice] = xNuevo;
+				pMesh.vertex[indiceVertice + 1] = yNuevo;
+				pMesh.vertex[indiceVertice + 2] = zNuevo;
 			}
+			pMesh.UpdateVertexUI(estadoVertices[g].indice);
 		}
 
 	}
@@ -2581,10 +2584,15 @@ void CBlendersito::SetRotacion(){
 	else if (Objects[SelectActivo].seleccionado && estado == editNavegacion){
 		guardarEstado();
 		estado = rotacion;	
+		valorRotacion = 0;
 		if (axisSelect > 2){axisSelect = X;}
 	}	
-	else if (axisSelect+1 > 2){axisSelect = X;}
-	else {axisSelect++;}
+	else {
+		axisSelect = Y;
+	}
+	if (estado == rotacion){
+		SetRotacion(0);
+	}
     redibujar = true;	
 };
 
@@ -2597,8 +2605,12 @@ void CBlendersito::SetEscala(){
 		estado = EditScale;
 		axisSelect = XYZ;	
 	}	
-	else if (axisSelect+1 > 3){axisSelect = X;}
-	else {axisSelect++;}
+	else {
+		axisSelect = Z;
+	}
+	if (estado == rotacion){
+		SetRotacion(0);
+	}
     redibujar = true;	
 };
 
@@ -2635,8 +2647,12 @@ void CBlendersito::SetPosicion(){
 		if (axisSelect > 2){axisSelect = X;}
 		guardarEstado();
 	}	
-	else if (axisSelect+1 > 2){axisSelect = X;}
-	else {axisSelect++;}
+	else {
+		axisSelect = X;
+	}
+	if (estado == rotacion){
+		SetRotacion(0);
+	}
     redibujar = true;	
 };
 
@@ -2705,32 +2721,33 @@ void CBlendersito::Tab(){
 void CBlendersito::ReestablecerEstado(){
 	Object& obj = Objects[SelectActivo];
 
-	if (estado == EditShrinkFatten){
+	if (InteractionMode == EditMode){
 		Mesh& pMesh = Meshes[obj.Id];	
-		for(int i=0; i < VectoresTInt.Count(); i++){	
-			TInt indiceVector = VectoresTInt[i].indice;
-			for(int vg=0; vg < pMesh.vertexGroups[indiceVector].indices.Count(); vg++){
-				TInt indiceVertice = pMesh.vertexGroups[indiceVector].indices[vg]*3;
-				pMesh.vertex[indiceVertice] = VectoresTInt[i].posX;		
-				pMesh.vertex[indiceVertice+1] = VectoresTInt[i].posY;	
-				pMesh.vertex[indiceVertice+2] = VectoresTInt[i].posZ;
-			}
-			pMesh.UpdateVertexUI(indiceVector);
-		}	
-	}
-	else if ((estado == VertexMove || estado == rotacion) && obj.type == mesh ){
-		Mesh& pMesh = Meshes[obj.Id];	
-		for(int vg=0; vg < estadoVertices.Count(); vg++){
-			for(int g=0; g < pMesh.vertexGroups[estadoVertices[vg].indice].indices.Count(); g++){
-				TInt numeroVertice = pMesh.vertexGroups[estadoVertices[vg].indice].indices[g]*3;
-				pMesh.vertex[numeroVertice] = estadoVertices[vg].x;
-				pMesh.vertex[numeroVertice+1] = estadoVertices[vg].y;	
-				pMesh.vertex[numeroVertice+2] = estadoVertices[vg].z;	
+		if (estado == EditShrinkFatten){
+			for(int i=0; i < VectoresTInt.Count(); i++){	
+				TInt indiceVector = VectoresTInt[i].indice;
+				for(int vg=0; vg < pMesh.vertexGroups[indiceVector].indices.Count(); vg++){
+					TInt indiceVertice = pMesh.vertexGroups[indiceVector].indices[vg]*3;
+					pMesh.vertex[indiceVertice] = VectoresTInt[i].posX;		
+					pMesh.vertex[indiceVertice+1] = VectoresTInt[i].posY;	
+					pMesh.vertex[indiceVertice+2] = VectoresTInt[i].posZ;
+				}
+				pMesh.UpdateVertexUI(indiceVector);
+			}	
+		}
+		else {
+			for(int vg=0; vg < estadoVertices.Count(); vg++){
+				for(int g=0; g < pMesh.vertexGroups[estadoVertices[vg].indice].indices.Count(); g++){
+					TInt numeroVertice = pMesh.vertexGroups[estadoVertices[vg].indice].indices[g]*3;
+					pMesh.vertex[numeroVertice] = estadoVertices[vg].x;
+					pMesh.vertex[numeroVertice+1] = estadoVertices[vg].y;	
+					pMesh.vertex[numeroVertice+2] = estadoVertices[vg].z;	
+				}			
 			}			
-		}			
-		pMesh.UpdateVertexUI();
+			pMesh.UpdateVertexUI();
+		}
 	}
-	else {
+	else if (InteractionMode == ObjectMode){
 		for(int o=0; o < estadoObjetos.Count(); o++){
 			SaveState& estadoObj = estadoObjetos[o];
 			Object& obj = Objects[estadoObj.indice];
@@ -2767,6 +2784,7 @@ void CBlendersito::SetTransformPivotPoint(){
 }
 
 void CBlendersito::guardarEstado(){	
+	SetTransformPivotPoint();
 	if (InteractionMode == EditMode){
 		Object& obj = Objects[SelectActivo];
 		Mesh& pMesh = Meshes[obj.Id];
@@ -2786,7 +2804,6 @@ void CBlendersito::guardarEstado(){
 				}		
 			}	
 		}	
-		SetTransformPivotPoint();
 		/*HBufC* noteBuf = HBufC::NewLC(180);
 		_LIT(KFormatString, "vertices count: %d\nSelectCount: %d");
 		noteBuf->Des().Format(KFormatString, estadoVertices.Count(), SelectEditCount);
@@ -2981,60 +2998,59 @@ void CBlendersito::InsertarValor(){
 }
 
 void CBlendersito::TecladoNumerico(TInt numero){
-	if (estado == translacion || estado == rotacion || estado == EditScale ){
-		if (numero == 10){ //invertir
-			if (axisSelect == X){
-				for(int o=0; o < estadoObjetos.Count(); o++){
-					SaveState& estadoObj = estadoObjetos[o];
-					Object& obj = Objects[estadoObj.indice];
-					obj.posX = estadoObj.posX-(obj.posX-estadoObj.posX);
-				}				
-			}	
-			else if (axisSelect == Y){
-				for(int o=0; o < estadoObjetos.Count(); o++){
-					SaveState& estadoObj = estadoObjetos[o];
-					Object& obj = Objects[estadoObj.indice];
-					obj.posX = estadoObj.posY-(obj.posY-estadoObj.posY);
-				}				
-			}	
-			else if (axisSelect == Z){
-				for(int o=0; o < estadoObjetos.Count(); o++){
-					SaveState& estadoObj = estadoObjetos[o];
-					Object& obj = Objects[estadoObj.indice];
-					obj.posZ = estadoObj.posZ-(obj.posZ-estadoObj.posZ);
-				}					
-			}	
-			redibujar = true;	
-		}
-		else {
-			//InsertarValor();			
-		}
-	}	
+	if (InteractionMode == ObjectMode){
+		switch (numero) {
+			case 1:
+				SetPosicion();
+				break;
+			case 2:
+				SetRotacion();
+				break;
+			case 3:
+				SetEscala();
+				break;
+			case 4:
+				SetShading(0);	
+				break;
+			case 5:
+				SetShading(1);	
+				break;
+			case 6:
+				SetShading(2);	
+				break;
+			default:
+				break;
+		}	
+	}
 	else if (InteractionMode == EditMode){
-		if (numero == 1){SetPosicion();}
-		else if (numero == 2){SetRotacion();}
-		else if (numero == 3){SetEscala();}
-		else if (numero == 7){
-			Extrude();
-		}
-		else if (numero == 8){
-			Duplicate();
-		}
-	}
-	else if (estado == VertexMove){
-		//InsertarValor();
-	}
-	else if (numero == 1){SetPosicion();}
-	else if (numero == 2){SetRotacion();}
-	else if (numero == 3){SetEscala();}
-	else if (numero == 4){
-		SetShading(0);	
-	}
-	else if (numero == 5){
-		SetShading(1);
-	}
-	else if (numero == 6){
-		SetShading(2);
+		switch (numero) {
+			case 1:
+				SetPosicion();
+				break;
+			case 2:
+				SetRotacion();
+				break;
+			case 3:
+				SetEscala();
+				break;
+			case 4:
+				SetShading(0);	
+				break;
+			case 5:
+				SetShading(1);	
+				break;
+			case 6:
+				SetShading(2);	
+				break;
+			case 7:
+				Extrude();
+				break;
+			case 8:
+				Duplicate();
+				break;
+			default:
+				break;
+		}	
 	}
 };
 

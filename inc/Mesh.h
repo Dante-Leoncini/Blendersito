@@ -269,6 +269,7 @@ class Mesh {
 			GLubyte* TempColors = new GLubyte[vertexSize*4+realSelectCount*4];
 			GLushort* TempEdges = new GLushort[edgesDrawnSize+SelectCount*2+SelectEdgesCount*2];
 			GLfloat* TempUv = new GLfloat[vertexSize*2+realSelectCount*2];
+			GLushort* TempFaces = new GLushort[facesCountIndices+SelectEdgesCount*6];
 			
 			TInt edgesGroupsCount = edgesGroups.Count();
 			vertexGroups.ReserveL(vertexGroupsCount+SelectCount);
@@ -291,6 +292,9 @@ class Mesh {
 			for(int a=0; a < edgesDrawnSize; a++){
 				TempEdges[a] = edges[a];			
 			}
+			for(int a=0; a < facesCountIndices; a++){
+				TempFaces[a] = faces[a];			
+			}			
 
 			//copia los vertices seleccionados	
 			TInt newSelectActivo = 0;
@@ -331,8 +335,6 @@ class Mesh {
 						TempColors[NewIndice4+3] = vertexColor[numeroVertice4+3];	
 
 						vertexGroups[indiceNewVG].indices.Append(vertexSize);
-						//edgesGroups[indiceNewEG].indicesA.Append(vertexGroups[vg].indices[i]);
-						//edgesGroups[indiceNewEG].indicesB.Append(vertexSize);
 						vertexSize++;
 					}	
 					// Duplicar bordes seleccionados
@@ -351,21 +353,6 @@ class Mesh {
 					TempNewVertexGroup.oldIndex = vg;
 					TempNewVertexGroup.newIndex = indiceNewVG;
 					newVertexGroup.Append(TempNewVertexGroup);
-					/*for (TInt eg = 0; eg < edgesGroupsCount; eg++) {
-						if (edgesGroups[eg].seleccionado && (edgesGroups[eg].indicesA == vg || edgesGroups[eg].indicesB == vg)){					
-							EdgesGroup TempEdgesGroup;
-							TInt indiceNewEG = edgesGroups.Count();
-							edgesGroups.Append(TempEdgesGroup);
-							edgesGroups[indiceNewEG].indicesA = edgesGroups[eg].indicesA == vg ? indiceNewVG : edgesGroups[eg].indicesA;
-							edgesGroups[indiceNewEG].indicesB = edgesGroups[eg].indicesB == vg ? indiceNewVG : edgesGroups[eg].indicesB;
-							edgesGroups[indiceNewEG].faces = edgesGroups[eg].faces;
-							
-							vertexGroups[indiceNewVG].edgeLinks.Append(indiceNewEG);
-							TempEdges[edgesDrawnSize] = edgesGroups[indiceNewEG].indicesA;
-							TempEdges[edgesDrawnSize + 1] = edgesGroups[indiceNewEG].indicesB;
-							edgesDrawnSize += 2;
-						}
-					}*/
 				}		
 			}
 			//bordes seleccionados
@@ -400,6 +387,21 @@ class Mesh {
 					TempEdges[edgesDrawnSize]   = newVertexGroup[oldIndexA].newIndex;
 					TempEdges[edgesDrawnSize+1] = newVertexGroup[oldIndexB].newIndex;
 					edgesDrawnSize+=2;
+
+					//nuevas caras
+					facesCount += 1;
+					TempFaces[facesCountIndices] = vertexGroups[oldIndexB].indices[0];
+					TempFaces[facesCountIndices+1] = vertexGroups[edgesGroups[indiceNewEG].indicesA].indices[0];
+					TempFaces[facesCountIndices+2] = vertexGroups[edgesGroups[indiceNewEG].indicesB].indices[0];
+					facesCountIndices += 3;
+					/*TempFaces[facesCountIndices] = oldIndexA;
+					TempFaces[facesCountIndices+1] = oldIndexB;
+					TempFaces[facesCountIndices+2] = vertexGroups[edgesGroups[indiceNewEG].indicesB].indices[0];
+					facesCountIndices += 3;*/
+
+					TInt indiceFG = facesGroup.Count()-1;
+					facesGroup[indiceFG].count += 1; 
+					facesGroup[indiceFG].indicesDrawnCount +=3;
 				}
 			}
 
@@ -414,6 +416,7 @@ class Mesh {
 				delete[] edges;
 			}
 			delete[] uv;
+			delete[] faces;			
 
 			//los temporales ahora son los reales
 			vertex = TempVertex;
@@ -421,6 +424,7 @@ class Mesh {
 			vertexColor = TempColors;
 			edges = TempEdges;
 			uv = TempUv;
+			faces = TempFaces;
 			//borra la representacion grafica de la edicion y crea una nueva
 			NewVertexUI();
 		}
