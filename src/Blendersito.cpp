@@ -2601,8 +2601,8 @@ void CBlendersito::SetEscala(){
 	//si no hay objetos
 	if (Objects.Count() < 1){return;}
 	else if (InteractionMode == ObjectMode && Objects[SelectActivo].seleccionado && estado == editNavegacion){
-		guardarEstado();
 		estado = EditScale;
+		guardarEstado();
 		axisSelect = XYZ;	
 	}	
 	else {
