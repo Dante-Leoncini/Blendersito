@@ -358,50 +358,49 @@ class Mesh {
 			//bordes seleccionados
 			for (TInt eg = 0; eg < edgesGroupsCount; eg++) {
 				if (edgesGroups[eg].seleccionado){
-					TInt oldIndexA = -1;
-					TInt oldIndexB = -1;
+					TInt newIndexA = -1;
+					TInt newIndexB = -1;
+					//busca el indice donde estan guardado los indices viejos y nuevos
 					for (TInt nv = 0; nv < newVertexGroup.Count(); nv++){
 						//borde encontrado
 						if (edgesGroups[eg].indicesA == newVertexGroup[nv].oldIndex){
-							oldIndexA = nv;
+							newIndexA = newVertexGroup[nv].newIndex;
 						}
 						else if (edgesGroups[eg].indicesB == newVertexGroup[nv].oldIndex){
-							oldIndexB = nv;
+							newIndexB = newVertexGroup[nv].newIndex;
 						}
 					}
 					//detecta un error
-					if (oldIndexA < 0 || oldIndexB < 0){
+					if (newIndexA < 0 || newIndexB < 0){
 						continue;
 					}
-					newVertexGroup[oldIndexA].newIndex;
-					newVertexGroup[oldIndexB].newIndex;
 					
 					EdgesGroup TempEdgesGroup;
 					TInt indiceNewEG = edgesGroups.Count();
 					edgesGroups.Append(TempEdgesGroup);
-					edgesGroups[indiceNewEG].indicesA = newVertexGroup[oldIndexA].newIndex;
-					edgesGroups[indiceNewEG].indicesB = newVertexGroup[oldIndexB].newIndex;		
+					edgesGroups[indiceNewEG].indicesA = newIndexA;
+					edgesGroups[indiceNewEG].indicesB = newIndexB;		
 									
-					vertexGroups[newVertexGroup[oldIndexA].newIndex].edgeLinks.Append(indiceNewEG);		
-					vertexGroups[newVertexGroup[oldIndexB].newIndex].edgeLinks.Append(indiceNewEG);								
-					TempEdges[edgesDrawnSize]   = newVertexGroup[oldIndexA].newIndex;
-					TempEdges[edgesDrawnSize+1] = newVertexGroup[oldIndexB].newIndex;
+					vertexGroups[newIndexA].edgeLinks.Append(indiceNewEG);		
+					vertexGroups[newIndexB].edgeLinks.Append(indiceNewEG);								
+					TempEdges[edgesDrawnSize]   = newIndexA;
+					TempEdges[edgesDrawnSize+1] = newIndexB;
 					edgesDrawnSize+=2;
 
 					//nuevas caras
-					facesCount += 1;
-					TempFaces[facesCountIndices] = vertexGroups[oldIndexB].indices[0];
-					TempFaces[facesCountIndices+1] = vertexGroups[edgesGroups[indiceNewEG].indicesA].indices[0];
-					TempFaces[facesCountIndices+2] = vertexGroups[edgesGroups[indiceNewEG].indicesB].indices[0];
+					facesCount += 2;
+					TempFaces[facesCountIndices] = vertexGroups[edgesGroups[eg].indicesA].indices[0];
+					TempFaces[facesCountIndices+1] = vertexGroups[newIndexA].indices[0];
+					TempFaces[facesCountIndices+2] = vertexGroups[newIndexB].indices[0];
 					facesCountIndices += 3;
-					/*TempFaces[facesCountIndices] = oldIndexA;
-					TempFaces[facesCountIndices+1] = oldIndexB;
-					TempFaces[facesCountIndices+2] = vertexGroups[edgesGroups[indiceNewEG].indicesB].indices[0];
-					facesCountIndices += 3;*/
+					TempFaces[facesCountIndices] = vertexGroups[edgesGroups[eg].indicesB].indices[0];
+					TempFaces[facesCountIndices+1] = vertexGroups[edgesGroups[eg].indicesA].indices[0];
+					TempFaces[facesCountIndices+2] = vertexGroups[newIndexB].indices[0];
+					facesCountIndices += 3;
 
 					TInt indiceFG = facesGroup.Count()-1;
-					facesGroup[indiceFG].count += 1; 
-					facesGroup[indiceFG].indicesDrawnCount +=3;
+					facesGroup[indiceFG].count += 2; 
+					facesGroup[indiceFG].indicesDrawnCount +=6;
 				}
 			}
 

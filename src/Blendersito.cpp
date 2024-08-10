@@ -2787,17 +2787,30 @@ void CBlendersito::ReestablecerEstado(){
 void CBlendersito::SetTransformPivotPoint(){	
 	Object& obj = Objects[SelectActivo];
 	Mesh& pMesh = Meshes[obj.Id];
-	TransformPivotPoint[0] = TransformPivotPoint[1] = TransformPivotPoint[2] = 0;
 	if (InteractionMode == EditMode){
-		for(int i=0; i < estadoVertices.Count(); i++){
-			TInt primerVertice = pMesh.vertexGroups[estadoVertices[i].indice].indices[0]*3;
-			TransformPivotPoint[0] += pMesh.vertex[primerVertice];
-			TransformPivotPoint[1] += pMesh.vertex[primerVertice+1];	
-			TransformPivotPoint[2] += pMesh.vertex[primerVertice+2];
+		TInt Encontrados = 0;
+		TInt TempTransformPivotPointX = 0;
+		TInt TempTransformPivotPointY = 0;
+		TInt TempTransformPivotPointZ = 0;
+		for(int i=0; i < pMesh.vertexGroups.Count(); i++){
+			if (pMesh.vertexGroups[i].seleccionado){
+				Encontrados++;
+				TInt primerVertice = pMesh.vertexGroups[i].indices[0]*3;
+				TempTransformPivotPointX += pMesh.vertex[primerVertice];
+				TempTransformPivotPointY += pMesh.vertex[primerVertice+1];	
+				TempTransformPivotPointZ += pMesh.vertex[primerVertice+2];
+			}
 		}
-		TransformPivotPoint[0] = TransformPivotPoint[0]/pMesh.SelectCount;
-		TransformPivotPoint[1] = TransformPivotPoint[1]/pMesh.SelectCount;	
-		TransformPivotPoint[2] = TransformPivotPoint[2]/pMesh.SelectCount;
+		if (Encontrados < 1){return;}
+		TransformPivotPoint[0] = TempTransformPivotPointX/Encontrados;
+		TransformPivotPoint[1] = TempTransformPivotPointY/Encontrados;	
+		TransformPivotPoint[2] = TempTransformPivotPointZ/Encontrados;
+	}
+	else if (InteractionMode == ObjectMode){
+		TransformPivotPoint[0] = TransformPivotPoint[1] = TransformPivotPoint[2] = 0;
+		TransformPivotPoint[0] = obj.posX;
+		TransformPivotPoint[1] = obj.posY;
+		TransformPivotPoint[2] = obj.posZ;
 	}
 }
 
@@ -3037,6 +3050,8 @@ void CBlendersito::TecladoNumerico(TInt numero){
 			case 6:
 				SetShading(2);	
 				break;
+			case 0:
+				EnfocarObject();
 			default:
 				break;
 		}	
@@ -3067,6 +3082,8 @@ void CBlendersito::TecladoNumerico(TInt numero){
 			case 8:
 				Duplicate();
 				break;
+			case 0:
+				EnfocarObject();
 			default:
 				break;
 		}	
@@ -3948,10 +3965,19 @@ void CBlendersito::SetEditMode(){
 void CBlendersito::EnfocarObject(){
 	//si no hay objetos
 	if (Objects.Count() < 1){return;}
+	SetTransformPivotPoint();	
+	if (InteractionMode == EditMode){
+		Object& obj = Objects[SelectActivo];
+		PivotX = -TransformPivotPoint[0]*obj.scaleX/65000; 
+		PivotY = -TransformPivotPoint[2]*obj.scaleY/65000;
+		PivotZ = -TransformPivotPoint[1]*obj.scaleZ/65000;
+	}
+	else if (InteractionMode == ObjectMode){
+		PivotX = -TransformPivotPoint[0]; 
+		PivotY = -TransformPivotPoint[1];
+		PivotZ = -TransformPivotPoint[2];
+	}
     redibujar = true;
-	PivotX = -Objects[SelectActivo].posX;
-	PivotY = -Objects[SelectActivo].posY;
-	PivotZ = -Objects[SelectActivo].posZ;
 }
 
 
