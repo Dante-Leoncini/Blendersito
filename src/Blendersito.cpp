@@ -2623,6 +2623,10 @@ void CBlendersito::ChangeEje(){
 		}
 	}
 	else {SetPosicion();}
+	//si esta rotando. redibuja	
+	if (estado == rotacion){
+		SetRotacion(0);
+	}
 	redibujar = true;
 }
 
@@ -2656,8 +2660,8 @@ void CBlendersito::SetPosicion(){
 			estado = editNavegacion;
 			return;
 		}
-		if (axisSelect > 2){axisSelect = X;}
 		guardarEstado();
+		if (axisSelect > 2){axisSelect = X;}
 	}	
 	else {
 		axisSelect = X;
@@ -2798,7 +2802,6 @@ void CBlendersito::SetTransformPivotPoint(){
 }
 
 void CBlendersito::guardarEstado(){	
-	SetTransformPivotPoint();
 	if (InteractionMode == EditMode){
 		Object& obj = Objects[SelectActivo];
 		Mesh& pMesh = Meshes[obj.Id];
@@ -2818,6 +2821,7 @@ void CBlendersito::guardarEstado(){
 				}		
 			}	
 		}	
+		SetTransformPivotPoint();
 		/*HBufC* noteBuf = HBufC::NewLC(180);
 		_LIT(KFormatString, "vertices count: %d\nSelectCount: %d");
 		noteBuf->Des().Format(KFormatString, estadoVertices.Count(), SelectEditCount);
@@ -2844,6 +2848,7 @@ void CBlendersito::guardarEstado(){
 				estadoObjetos.Append(NuevoEstado);
 			}
 		}	
+		SetTransformPivotPoint();
 	}
 };
 
