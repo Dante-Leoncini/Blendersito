@@ -2192,28 +2192,6 @@ void CBlendersito::SetRotacion(TInt valor){
 	}
 }
 
-void CBlendersito::SetEscalaObjetos(TInt valor){
-	for (int o = 0; o < estadoObjetos.Count(); o++) {
-		switch (axisSelect) {
-			case X:
-				Objects[estadoObjetos[o].indice].scaleX += valor;
-				break;
-			case Y:
-				Objects[estadoObjetos[o].indice].scaleY += valor;
-				break;
-			case Z:
-				Objects[estadoObjetos[o].indice].scaleZ += valor;
-				break;
-			case XYZ:
-				Objects[estadoObjetos[o].indice].scaleX += valor;
-				Objects[estadoObjetos[o].indice].scaleY += valor;
-				Objects[estadoObjetos[o].indice].scaleZ += valor;
-				break;
-		}
-	}	
-}
-
-
 void CBlendersito::SetTranslacionVertices(TInt valor){
 	Mesh& pMesh = Meshes[Objects[SelectActivo].Id];	
 	for(int g=0; g < estadoVertices.Count(); g++){
@@ -2299,13 +2277,9 @@ void CBlendersito::SetShrinkFatten(TInt fuerza){
 }
 
 void CBlendersito::CalcScaleVectors(){
-	if (Objects.Count() < 1){return;}
 	Object& obj = Objects[SelectActivo];
-	if (!obj.seleccionado || obj.type != mesh){return;}
 	Mesh& pMesh = Meshes[obj.Id];
-	if (estado != editNavegacion && InteractionMode != EditMode){return;};
-	
-	estado = EditScale;
+
 	VectoresTInt.Close();
 	VectoresTInt.ReserveL(pMesh.SelectCount);
 
@@ -2317,48 +2291,75 @@ void CBlendersito::CalcScaleVectors(){
 			VectorTInt& tempVectorTInt = VectoresTInt[VectoresTInt.Count()-1];
 
 			tempVectorTInt.indice = i;
-			TInt cantidad = pMesh.vertexGroups[i].indices.Count();
 
 			//guarda la posicion original. parecido a estadoVertices
 			TInt primerVertice = pMesh.vertexGroups[i].indices[0]*3;
 			tempVectorTInt.posX = pMesh.vertex[primerVertice];
 			tempVectorTInt.posY = pMesh.vertex[primerVertice+1];	
 			tempVectorTInt.posZ = pMesh.vertex[primerVertice+2];
-			tempVectorTInt.x = 0;		
-			tempVectorTInt.y = 0;	
-			tempVectorTInt.z = 0;
 
-			for(int vg=0; vg < cantidad; vg++){
-				TInt indiceVertice = pMesh.vertexGroups[i].indices[vg]*3;
-				tempVectorTInt.x += pMesh.normals[indiceVertice];		
-				tempVectorTInt.y += pMesh.normals[indiceVertice+1];	
-				tempVectorTInt.z += pMesh.normals[indiceVertice+2];
-			}
-			tempVectorTInt.x = tempVectorTInt.x/cantidad;		
-			tempVectorTInt.y = tempVectorTInt.y/cantidad;	
-			tempVectorTInt.z = tempVectorTInt.z/cantidad;
+			// Calcula el vector de desplazamiento y normaliza
+            TInt vectorX = TransformPivotPoint[0] - pMesh.vertex[primerVertice];        
+            TInt vectorY = TransformPivotPoint[1] - pMesh.vertex[primerVertice+1];    
+            TInt vectorZ = TransformPivotPoint[2] - pMesh.vertex[primerVertice+2];
+
+            // Normaliza el vector
+            TInt magnitude = sqrt(vectorX * vectorX + vectorY * vectorY + vectorZ * vectorZ);
+            if (magnitude > 0) {
+                vectorX = (vectorX * 127) / magnitude;
+                vectorY = (vectorY * 127) / magnitude;
+                vectorZ = (vectorZ * 127) / magnitude;
+            }
+
+            // Guarda los valores normalizados
+            tempVectorTInt.x = vectorX;
+            tempVectorTInt.y = vectorY;
+            tempVectorTInt.z = vectorZ;
 		}		
 	}
 
 	redibujar = true;
 }
 
-void CBlendersito::SetScale(TInt fuerza){
+void CBlendersito::SetScale(TInt valor){
 	Mesh& pMesh = Meshes[Objects[SelectActivo].Id];
-	for(int i=0; i < VectoresTInt.Count(); i++){		
-		//aplica el vector
-		TInt indiceVector = VectoresTInt[i].indice;
+	if (InteractionMode == EditMode){
+		for(int i=0; i < VectoresTInt.Count(); i++){		
+			//aplica el vector
+			TInt indiceVector = VectoresTInt[i].indice;
 
-		TInt resultadoX = VectoresTInt[i].x*fuerza;
-		TInt resultadoY = VectoresTInt[i].y*fuerza;
-		TInt resultadoZ = VectoresTInt[i].z*fuerza;
-		for(int vg=0; vg < pMesh.vertexGroups[indiceVector].indices.Count(); vg++){
-			TInt indiceVertice = pMesh.vertexGroups[indiceVector].indices[vg]*3;
-			pMesh.vertex[indiceVertice] += resultadoX;		
-			pMesh.vertex[indiceVertice+1] += resultadoY;	
-			pMesh.vertex[indiceVertice+2] += resultadoZ;
+			TInt resultadoX = VectoresTInt[i].x*valor;
+			TInt resultadoY = VectoresTInt[i].y*valor;
+			TInt resultadoZ = VectoresTInt[i].z*valor;
+			for(int vg=0; vg < pMesh.vertexGroups[indiceVector].indices.Count(); vg++){
+				TInt indiceVertice = pMesh.vertexGroups[indiceVector].indices[vg]*3;
+				pMesh.vertex[indiceVertice] += resultadoX;		
+				pMesh.vertex[indiceVertice+1] += resultadoY;	
+				pMesh.vertex[indiceVertice+2] += resultadoZ;
+			}
+			pMesh.UpdateVertexUI(indiceVector);
 		}
-		pMesh.UpdateVertexUI(indiceVector);
+	}
+	else if (InteractionMode == ObjectMode){
+		valor = valor*1000;
+		for (int o = 0; o < estadoObjetos.Count(); o++) {
+			switch (axisSelect) {
+				case X:
+					Objects[estadoObjetos[o].indice].scaleX += valor;
+					break;
+				case Y:
+					Objects[estadoObjetos[o].indice].scaleY += valor;
+					break;
+				case Z:
+					Objects[estadoObjetos[o].indice].scaleZ += valor;
+					break;
+				case XYZ:
+					Objects[estadoObjetos[o].indice].scaleX += valor;
+					Objects[estadoObjetos[o].indice].scaleY += valor;
+					Objects[estadoObjetos[o].indice].scaleZ += valor;
+					break;
+			}
+		}	
 	}
 	redibujar = true;
 }
@@ -2458,7 +2459,7 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 			SetRotacion(1);
 		}
 		else if (estado == EditScale){
-			SetEscalaObjetos(-1000);
+			SetScale(-1);
 		}
 		else if (estado == timelineMove){
 			CurrentFrame--;
@@ -2506,7 +2507,7 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 			SetRotacion(-1);
 		}
 		else if (estado == EditScale){
-			SetEscalaObjetos(1000);	
+			SetScale(1);	
 		}
 		else if (estado == timelineMove){
 			CurrentFrame++;
@@ -2538,6 +2539,9 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 		else if (estado == EditShrinkFatten){
 			SetShrinkFatten(1);
 		}
+		else if (estado == EditScale){
+			SetScale(1);	
+		}
 		else if (estado == VertexMove){	
 			SetTranslacionVertices(-30);
 		}
@@ -2567,6 +2571,9 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 		}
 		else if (estado == EditShrinkFatten){
 			SetShrinkFatten(-1);
+		}
+		else if (estado == EditScale){
+			SetScale(-1);	
 		}
 		else if (estado == VertexMove){	
 			SetTranslacionVertices(30);
@@ -2600,7 +2607,7 @@ void CBlendersito::SetEscala(){
 	//XYZ tiene escala
 	//si no hay objetos
 	if (Objects.Count() < 1){return;}
-	else if (InteractionMode == ObjectMode && Objects[SelectActivo].seleccionado && estado == editNavegacion){
+	else if (Objects[SelectActivo].seleccionado && estado == editNavegacion){
 		estado = EditScale;
 		guardarEstado();
 		axisSelect = XYZ;	
@@ -2739,7 +2746,7 @@ void CBlendersito::ReestablecerEstado(){
 
 	if (InteractionMode == EditMode){
 		Mesh& pMesh = Meshes[obj.Id];	
-		if (estado == EditShrinkFatten){
+		if (estado == EditShrinkFatten || estado == EditScale){
 			for(int i=0; i < VectoresTInt.Count(); i++){	
 				TInt indiceVector = VectoresTInt[i].indice;
 				for(int vg=0; vg < pMesh.vertexGroups[indiceVector].indices.Count(); vg++){
@@ -2818,7 +2825,9 @@ void CBlendersito::guardarEstado(){
 	if (InteractionMode == EditMode){
 		Object& obj = Objects[SelectActivo];
 		Mesh& pMesh = Meshes[obj.Id];
-		if (pMesh.SelectCount > 0){
+		if (pMesh.SelectCount < 1){return;}
+
+		if (estado != EditScale){
 			estadoVertices.Close();
 			estadoVertices.ReserveL(pMesh.SelectCount);
 			
@@ -2833,8 +2842,12 @@ void CBlendersito::guardarEstado(){
 					estadoVertices.Append(NuevoEstadoVertice);		
 				}		
 			}	
-		}	
-		SetTransformPivotPoint();
+			SetTransformPivotPoint();
+		}
+		else if (estado = EditScale){
+			SetTransformPivotPoint();
+			CalcScaleVectors();
+		}
 		/*HBufC* noteBuf = HBufC::NewLC(180);
 		_LIT(KFormatString, "vertices count: %d\nSelectCount: %d");
 		noteBuf->Des().Format(KFormatString, estadoVertices.Count(), SelectEditCount);
