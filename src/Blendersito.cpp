@@ -199,7 +199,7 @@ enum{
 
 enum{
 	cubo, esfera, cilindro, plane, vacio, camara,
-    cad, luz, monkey,vertice
+    cad, luz, monkey,vertice, circle
 };
 
 //CPrimitiva Primitivas;
@@ -3500,7 +3500,11 @@ void CBlendersito::AddMesh( int modelo ){
 
 		for (int i = 0; i < pMesh.vertexSize*3; i++) {
 			pMesh.vertex[i] = PlaneVertices[i]*InputSize;
-			pMesh.normals[i] = PlaneNormals[i];
+		}
+		for (int i = 0; i < pMesh.vertexSize; i++) {
+			pMesh.normals[i*3] = 0;
+			pMesh.normals[i*3+1] = 127;
+			pMesh.normals[i*3+2] = 0;
 		}
 		for (int i = 0; i < pMesh.vertexSize*4; i++) {
 			pMesh.vertexColor[i] = 255;
@@ -3522,6 +3526,60 @@ void CBlendersito::AddMesh( int modelo ){
 		for(int a=0; a < PlaneEdgesSize/2; a++){
 			TempEdgesGroups.indicesA = PlaneBordes[a*2];
 			TempEdgesGroups.indicesB = PlaneBordes[a*2+1];
+			pMesh.edgesGroups.Append(TempEdgesGroups);	
+		}
+	}	
+	else if (modelo == circle){ 
+		HBufC* noteBuf = HBufC::NewLC(100);
+		noteBuf->Des().Copy(_L("Add Circle vertices"));
+		pMesh.vertexSize = DialogNumber(8, 3, 512, noteBuf);	
+		noteBuf->Des().Copy(_L("Add Circle radius cm"));
+		TInt Radius = DialogNumber(100, 1, 10000, noteBuf);	
+		CleanupStack::PopAndDestroy(noteBuf);
+		Radius = Radius*20;	
+
+		pMesh.vertex = new GLshort[pMesh.vertexSize*3];
+		pMesh.vertexColor = new GLubyte[pMesh.vertexSize*4];
+		pMesh.normals = new GLbyte[pMesh.vertexSize*3];
+		pMesh.uv = new GLfloat[pMesh.vertexSize*2];
+
+		for (int i = 0; i < pMesh.vertexSize*3; i++) {
+			pMesh.vertex[i] = Radius;
+		}
+
+		for (int i = 0; i < pMesh.vertexSize; i++) {
+        	GLfloat angle = 2.0f * M_PI * i / pMesh.vertexSize;
+			pMesh.vertex[i*3] = -Radius * cos(angle);
+			pMesh.vertex[i*3+1] = 0;
+			pMesh.vertex[i*3+2] = -Radius * sin(angle);
+			pMesh.normals[i*3] = 0;
+			pMesh.normals[i*3+1] = 127;
+			pMesh.normals[i*3+2] = 0;
+			//pMesh.uv[i * 2] = (cos(angle) + 1.0f) * 0.5f;  // UV map
+			//pMesh.uv[i * 2 + 1] = (sin(angle) + 1.0f) * 0.5f;
+			pMesh.uv[i * 2] = static_cast<GLfloat>(cos(angle) * 127);
+			pMesh.uv[i * 2 + 1] = static_cast<GLfloat>(sin(angle) * 127);
+		}
+
+		for (int i = 0; i < pMesh.vertexSize*4; i++) {
+			pMesh.vertexColor[i] = 255;
+		}
+
+		pMesh.facesCount = tempFaceGroup.count = pMesh.vertexSize - 2;
+		pMesh.facesCountIndices = tempFaceGroup.indicesDrawnCount = (pMesh.vertexSize - 2) * 3;
+
+		pMesh.faces = new GLushort[tempFaceGroup.indicesDrawnCount];
+		for (int i = 0; i < pMesh.vertexSize - 2; i++) {
+			pMesh.faces[i * 3] = 0;  // Primer vértice
+			pMesh.faces[i * 3 + 1] = i + 2;  // Segundo vértice
+			pMesh.faces[i * 3 + 2] = i + 1;  // Tercer vértice
+		}
+
+		// Bordes
+		pMesh.edgesGroups.ReserveL(pMesh.vertexSize);
+		for (int a = 0; a < pMesh.vertexSize; a++) {
+			TempEdgesGroups.indicesA = a;
+        	TempEdgesGroups.indicesB = (a + 1) % pMesh.vertexSize;
 			pMesh.edgesGroups.Append(TempEdgesGroups);	
 		}
 	}
@@ -4015,10 +4073,10 @@ void CBlendersito::DuplicatedObject(){
 		SelectCount = 1;
 
 		//los punteros apuntan a la misma memoria que el mesh original. hay que cambiarlo
-		tempMesh2.vertex = new GLshort[tempMesh.vertexSize*3];
+		/*tempMesh2.vertex = new GLshort[tempMesh.vertexSize*3];
 		tempMesh2.normals = new GLbyte[tempMesh.vertexSize*3];
 		tempMesh2.vertexColor = new GLubyte[tempMesh.vertexSize*4];
-		tempMesh2.uv = new GLfloat[tempMesh.vertexSize*2];		
+		tempMesh2.uv = new GLfloat[tempMesh.vertexSize*2];	*/	
 
 		/*for(int m=0; m < tempMesh.facesGroup.Count(); m++){	
 			
@@ -4037,7 +4095,7 @@ void CBlendersito::DuplicatedObject(){
 			}
 		}*/
 		
-		for(TInt a=0; a < tempMesh2.vertexSize*3; a++){
+		/*for(TInt a=0; a < tempMesh2.vertexSize*3; a++){
 			tempMesh2.vertex[a] = tempMesh.vertex[a];
 			tempMesh2.normals[a] = tempMesh.normals[a];
 		}		
@@ -4046,7 +4104,7 @@ void CBlendersito::DuplicatedObject(){
 		}
 		for(TInt a=0; a < tempMesh2.vertexSize*2; a++){
 			tempMesh2.uv[a] = tempMesh.uv[a];
-		}
+		}*/
 	}
 	else {
 		Objects.Append(obj);			

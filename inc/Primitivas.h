@@ -35,13 +35,6 @@ static const GLushort PlaneBordes[PlaneEdgesSize] = {
 	3, 0
 };
 
-static const GLbyte PlaneNormals[PlaneVertexSize] = {
-    0,127,0,
-    0,127,0,
-    0,127,0,
-    0,127,0
-};
-
 /* Define normals for the cube */
 static const GLbyte CuboNormals[CuboVertexSize] = {
     /* top */

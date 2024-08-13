@@ -104,6 +104,7 @@ enum TBlendersitoMenuCommands
     EViewportAdd,
     EPlane,
     ECube,
+    ECircle,
     ECamera,
     ELight,
     EMonkey,

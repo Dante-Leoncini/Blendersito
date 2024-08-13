@@ -379,7 +379,7 @@ TKeyResponse CBlendersitoAppUi::HandleKeyEventL(const TKeyEvent& aKeyEvent, TEve
 
 enum{
 	cubo, esfera, cilindro, plane, vacio, camara,
-    cad, luz, monkey,vertice
+    cad, luz, monkey,vertice, circle
 };
 
 enum{
@@ -491,6 +491,9 @@ void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
             break;
         case ECube:            
             iAppContainer->iBlendersito->AddMesh(cubo);
+            break;  
+        case ECircle:            
+            iAppContainer->iBlendersito->AddMesh(circle);
             break;  
         case EPlane:            
             iAppContainer->iBlendersito->AddMesh(plane);

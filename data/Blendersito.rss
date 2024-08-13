@@ -319,6 +319,10 @@ RESOURCE MENU_PANE r_viewport_add_menu{
             txt = STRING_r_Cube;
         },
         MENU_ITEM {
+            command = ECircle;
+            txt = STRING_r_Circle;
+        },        
+        MENU_ITEM {
             command = EVertex;
             txt = STRING_r_Vertex;
         },
