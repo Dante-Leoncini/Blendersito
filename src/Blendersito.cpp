@@ -2328,9 +2328,9 @@ void CBlendersito::SetScale(TInt valor){
 			//aplica el vector
 			TInt indiceVector = VectoresTInt[i].indice;
 
-			TInt resultadoX = VectoresTInt[i].x*valor;
-			TInt resultadoY = VectoresTInt[i].y*valor;
-			TInt resultadoZ = VectoresTInt[i].z*valor;
+			TInt resultadoX = VectoresTInt[i].x*valor/4;
+			TInt resultadoY = VectoresTInt[i].y*valor/4;
+			TInt resultadoZ = VectoresTInt[i].z*valor/4;
 			for(int vg=0; vg < pMesh.vertexGroups[indiceVector].indices.Count(); vg++){
 				TInt indiceVertice = pMesh.vertexGroups[indiceVector].indices[vg]*3;
 				pMesh.vertex[indiceVertice] += resultadoX;		
@@ -3455,6 +3455,49 @@ void CBlendersito::DeseleccionarTodo(){
 	}
 }
 
+void CBlendersito::UVmapping(TInt valor){
+    Object& obj = Objects[SelectActivo];
+    if (obj.type != mesh) { return; }
+    Mesh& pMesh = Meshes[obj.Id];
+
+    // Variables para almacenar las posiciones mínimas y máximas en el eje Y (altura)
+    GLshort minY = pMesh.vertex[1], maxY = pMesh.vertex[1];
+    
+    // Encontrar los valores mínimos y máximos de Y
+    for (int i = 0; i < pMesh.vertexSize; i++) {
+        GLshort y = pMesh.vertex[i * 3 + 1];
+        if (y < minY) { minY = y; }
+        if (y > maxY) { maxY = y; }
+    }
+
+    // Recorrer los vértices para calcular las coordenadas UV
+    for (int i = 0; i < pMesh.vertexSize; i++) {
+        GLshort x = pMesh.vertex[i * 3];
+        GLshort y = pMesh.vertex[i * 3 + 1];
+        GLshort z = pMesh.vertex[i * 3 + 2];
+
+        // Calcular el ángulo en torno al eje Y (cilindro alrededor del eje Y)
+        float angle = atan2(z, x);  // Ángulo en radianes
+
+        // Ajustar U para que sea continuo entre el primer y último vértice
+        /*float U;
+        if (angle < 0) {
+            U = ((angle + 2.0f * M_PI) / (2.0f * M_PI)) * 255;  // Mapear U al rango [0, 255]
+        } else {
+            U = (angle / (2.0f * M_PI)) * 255;
+        }*/
+        float U = (angle / (2.0f * M_PI)) * 255;  // Mapear U al rango [0, 255]
+
+        // Calcular V basado en la altura relativa del vértice en el eje Y
+        float V = ((y - minY) / float(maxY - minY)) * 255;  // Mapear V al rango [0, 255]
+
+        // Asignar las coordenadas UV (ajustando a -128 a 127)
+        pMesh.uv[i * 2] = static_cast<GLfloat>(U - 128);
+        pMesh.uv[i * 2 + 1] = static_cast<GLfloat>(V - 128);
+    }
+	redibujar = true;
+}
+
 void CBlendersito::AddMesh( int modelo ){
 	//Cancelar();
 	//creamos la mesh primero
@@ -3532,7 +3575,8 @@ void CBlendersito::AddMesh( int modelo ){
 	else if (modelo == circle){ 
 		HBufC* noteBuf = HBufC::NewLC(100);
 		noteBuf->Des().Copy(_L("Add Circle vertices"));
-		pMesh.vertexSize = DialogNumber(8, 3, 512, noteBuf);	
+		TInt originalVertexSize  = DialogNumber(8, 3, 512, noteBuf);	
+		pMesh.vertexSize = originalVertexSize + 1;  // Agregar un vértice adicional
 		noteBuf->Des().Copy(_L("Add Circle radius cm"));
 		TInt Radius = DialogNumber(100, 1, 10000, noteBuf);	
 		CleanupStack::PopAndDestroy(noteBuf);
@@ -3548,15 +3592,14 @@ void CBlendersito::AddMesh( int modelo ){
 		}
 
 		for (int i = 0; i < pMesh.vertexSize; i++) {
-        	GLfloat angle = 2.0f * M_PI * i / pMesh.vertexSize;
+			GLfloat angle = 2.0f * M_PI * (i % originalVertexSize) / originalVertexSize;  // Ángulo para los vértices
+
 			pMesh.vertex[i*3] = -Radius * cos(angle);
 			pMesh.vertex[i*3+1] = 0;
 			pMesh.vertex[i*3+2] = -Radius * sin(angle);
 			pMesh.normals[i*3] = 0;
 			pMesh.normals[i*3+1] = 127;
 			pMesh.normals[i*3+2] = 0;
-			//pMesh.uv[i * 2] = (cos(angle) + 1.0f) * 0.5f;  // UV map
-			//pMesh.uv[i * 2 + 1] = (sin(angle) + 1.0f) * 0.5f;
 			pMesh.uv[i * 2] = static_cast<GLfloat>(cos(angle) * 127);
 			pMesh.uv[i * 2 + 1] = static_cast<GLfloat>(sin(angle) * 127);
 		}
@@ -3569,18 +3612,18 @@ void CBlendersito::AddMesh( int modelo ){
 		pMesh.facesCountIndices = tempFaceGroup.indicesDrawnCount = (pMesh.vertexSize - 2) * 3;
 
 		pMesh.faces = new GLushort[tempFaceGroup.indicesDrawnCount];
-		for (int i = 0; i < pMesh.vertexSize - 2; i++) {
-			pMesh.faces[i * 3] = 0;  // Primer vértice
+		for (TInt i = 0; i < originalVertexSize - 1; i++) {
+			pMesh.faces[i * 3] = 0;          // Primer vértice
 			pMesh.faces[i * 3 + 1] = i + 2;  // Segundo vértice
 			pMesh.faces[i * 3 + 2] = i + 1;  // Tercer vértice
 		}
 
 		// Bordes
 		pMesh.edgesGroups.ReserveL(pMesh.vertexSize);
-		for (int a = 0; a < pMesh.vertexSize; a++) {
+		for (TInt a = 0; a < originalVertexSize; a++) {
 			TempEdgesGroups.indicesA = a;
-        	TempEdgesGroups.indicesB = (a + 1) % pMesh.vertexSize;
-			pMesh.edgesGroups.Append(TempEdgesGroups);	
+			TempEdgesGroups.indicesB = (a + 1) % originalVertexSize;
+			pMesh.edgesGroups.Append(TempEdgesGroups);    
 		}
 	}
 	else if (modelo == cubo){ 

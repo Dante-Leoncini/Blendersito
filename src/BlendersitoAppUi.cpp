@@ -98,14 +98,15 @@ void CBlendersitoAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
         if (BL.InteractionMode == edicion) {
 	        if (BL.Objects.Count() > 0){
                 aMenuPane->SetItemDimmed(EViewportObject, EFalse);
+                aMenuPane->SetItemDimmed(EUvMappingMenu, EFalse);                
             }
             else {
                 aMenuPane->SetItemDimmed(EViewportObject, ETrue);
+                aMenuPane->SetItemDimmed(EUvMappingMenu, ETrue);
             }
             aMenuPane->SetItemDimmed(EBlendersitoOrigenSetOrigen, EFalse);
             aMenuPane->SetItemDimmed(EBlendersitoSeleccionar, EFalse);
-            aMenuPane->SetItemDimmed(EViewportAdd, ETrue);
-            
+            aMenuPane->SetItemDimmed(EViewportAdd, ETrue);            
         } 
         else {
             aMenuPane->SetItemDimmed(EBlendersitoOrigenSetOrigen, ETrue);
@@ -512,7 +513,10 @@ void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
             break;   
         case EBlendersitoEditarMesh:
             iAppContainer->iBlendersito->SetEditMode();
-            break;  
+            break; 
+        case ECylinderProjection:            
+            iAppContainer->iBlendersito->UVmapping(0);
+            break;   
         case EBlendersitoSetEscala:
             iAppContainer->iBlendersito->SetEscala();
             break;   

@@ -111,6 +111,9 @@ enum TBlendersitoMenuCommands
     EVertex,
     EEmpty,
 
+    EUvMappingMenu,
+    ECylinderProjection,
+
     EDuplicatedObject,
     EDuplicatedLinked,               
 

@@ -30,6 +30,9 @@ rls_string STRING_r_Light     "Light"
 rls_string STRING_r_Camera    "Camera"
 rls_string STRING_r_Empty     "Empty"
 
+rls_string STRING_r_UVMapping    "UV Mapping"
+rls_string STRING_r_CylinderProjection    "Cylinder Projection"
+
 rls_string STRING_r_blendersito_topView        "Top View"
 rls_string STRING_r_blendersito_frontView      "Front View"
 rls_string STRING_r_blendersito_rightView      "Right View"

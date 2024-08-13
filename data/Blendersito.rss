@@ -81,12 +81,18 @@ RESOURCE MENU_PANE r_blendersito_menu
 				command = ETransformMenu;
 				cascade = r_transform_menu;
 				txt = STRING_r_Transform;
-			},	
+			},	            
 			MENU_ITEM
 			{
 				command = EBlendersitoSeleccionar;
 				cascade = r_blendersito_seleccionar_menu;
 				txt = STRING_r_blendersito_Seleccionar;
+			},	
+			MENU_ITEM
+			{
+				command = EUvMappingMenu;
+				cascade = r_uv_mapping_menu;
+				txt = STRING_r_UVMapping;
 			},	
 			MENU_ITEM
 			{
@@ -150,6 +156,22 @@ RESOURCE MENU_PANE r_blendersito_menu
                 txt = STRING_r_Render;
             }
         };
+}
+
+//----------------------------------------------------
+//
+//    r_uv_mapping_menu
+//
+//----------------------------------------------------
+//
+
+RESOURCE MENU_PANE r_uv_mapping_menu {
+    items = { 		        
+		MENU_ITEM {
+			command = ECylinderProjection;
+			txt = STRING_r_CylinderProjection;
+		}
+    };
 }
 
 //----------------------------------------------------
