@@ -3470,7 +3470,7 @@ void CBlendersito::UVmapping(TInt valor){
         if (y > maxY) { maxY = y; }
     }
 
-    // Recorrer los vértices para calcular las coordenadas UV
+    // Recorrer todos los vértices
     for (int i = 0; i < pMesh.vertexSize; i++) {
         GLshort x = pMesh.vertex[i * 3];
         GLshort y = pMesh.vertex[i * 3 + 1];
@@ -3478,23 +3478,16 @@ void CBlendersito::UVmapping(TInt valor){
 
         // Calcular el ángulo en torno al eje Y (cilindro alrededor del eje Y)
         float angle = atan2(z, x);  // Ángulo en radianes
-
-        // Ajustar U para que sea continuo entre el primer y último vértice
-        /*float U;
-        if (angle < 0) {
-            U = ((angle + 2.0f * M_PI) / (2.0f * M_PI)) * 255;  // Mapear U al rango [0, 255]
-        } else {
-            U = (angle / (2.0f * M_PI)) * 255;
-        }*/
-        float U = (angle / (2.0f * M_PI)) * 255;  // Mapear U al rango [0, 255]
+        float U = (angle / (2.0f * M_PI)) * 255 - 128;  // Ajustar U al rango [-128, 127]
 
         // Calcular V basado en la altura relativa del vértice en el eje Y
-        float V = ((y - minY) / float(maxY - minY)) * 255;  // Mapear V al rango [0, 255]
+        float V = ((y - minY) / float(maxY - minY)) * 255 - 128;  // Ajustar V al rango [-128, 127]
 
-        // Asignar las coordenadas UV (ajustando a -128 a 127)
-        pMesh.uv[i * 2] = static_cast<GLfloat>(U - 128);
-        pMesh.uv[i * 2 + 1] = static_cast<GLfloat>(V - 128);
+        // Invertir las coordenadas UV
+        pMesh.uv[i * 2] = -U;
+        pMesh.uv[i * 2 + 1] = -V;
     }
+
 	redibujar = true;
 }
 
