@@ -27,16 +27,17 @@ enum {
     EJoystickDown,
     EJoystickLeft,
     EJoystickRight,
+    EEscape,
+    EVolumenUp,
+    EVolumenDown,
     //EJoystickFire,
     //EDelete,
     //EShift,
     //EMenu,
-    EVolumenUp,
-    EVolumenDown,
 };
 
 /** Size of the keycode map. */
-static const TUint KKeyCodeMapSize = 6 * 2;
+static const TUint KKeyCodeMapSize = 7 * 2;
 
 /**
  * The keycode map defines which scancode is mapped to which input signal.
@@ -52,6 +53,7 @@ static const TUint KKeyCodeMap[] = {
     //EKeyLeftShift,     EShift,
     EKeyIncVolume,     EVolumenUp,                
     EKeyDecVolume,     EVolumenDown,
+    EStdKeyEscape,     EEscape
     //EKeyMenu,          EMenu
 };
 

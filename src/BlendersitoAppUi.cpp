@@ -250,11 +250,16 @@ TKeyResponse CBlendersitoAppUi::HandleKeyEventL(const TKeyEvent& aKeyEvent, TEve
                 case(17): //abajo
                     //iAppContainer->iBlendersito->NextPos(8,1);
                     iAppContainer->iBlendersito->Tab();
-                    return EKeyWasConsumed;*/                    
-                case(22): //Shift
+                    return EKeyWasConsumed;*/     
                 case(18): //left Shift
                 case(19): //rigth Shift
                     iAppContainer->iBlendersito->iShiftPressed = ETrue;
+                    return EKeyWasConsumed;
+                case(22): //left Ctrl
+                    iAppContainer->iBlendersito->iCtrlPressed = ETrue;
+                    return EKeyWasConsumed;
+                case(20): //left  Alt
+                    iAppContainer->iBlendersito->iAltPressed = ETrue;
                     return EKeyWasConsumed;
                 case(1): //Delete
                     iAppContainer->iBlendersito->Borrar();
@@ -334,6 +339,9 @@ TKeyResponse CBlendersitoAppUi::HandleKeyEventL(const TKeyEvent& aKeyEvent, TEve
                 case(2): //Tab
                     iAppContainer->iBlendersito->PressTab();
                     return EKeyWasNotConsumed;
+                case EStdKeyEscape: // Código estándar para la tecla ESC
+                    iAppContainer->iBlendersito->Cancelar(); // Llama a tu función Cancelar
+                    return EKeyWasConsumed;
                 /*case(14): //izquierda
                     iAppContainer->iBlendersito->Tab();
                     return EKeyWasNotConsumed;
@@ -367,12 +375,15 @@ TKeyResponse CBlendersitoAppUi::HandleKeyEventL(const TKeyEvent& aKeyEvent, TEve
                 case(17): //abajo
                     iAppContainer->iBlendersito->Tab();
                     return EKeyWasNotConsumed;*/
-                case 22: // Shift
                 case 18: // Left Shift
                 case 19: // Right Shift
-                    if (iAppContainer->iBlendersito->iShiftPressed) {
-                        iAppContainer->iBlendersito->iShiftPressed = EFalse;
-                    }
+                    iAppContainer->iBlendersito->iShiftPressed = EFalse;
+                    return EKeyWasConsumed;                    
+                case(22): //left Ctrl
+                    iAppContainer->iBlendersito->iCtrlPressed = EFalse;
+                    return EKeyWasConsumed;
+                case(20): //left  Alt
+                    iAppContainer->iBlendersito->iAltPressed = EFalse;
                     return EKeyWasConsumed;
                 default:
                     return EKeyWasNotConsumed;

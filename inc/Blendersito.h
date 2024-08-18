@@ -296,6 +296,8 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         TBool ShowTimeline;
         TBool PlayAnimation;    
         TBool iShiftPressed; 
+        TBool iAltPressed;
+        TBool iCtrlPressed;
         RArray<Object> Objects;
         TInt SelectActivo;
 

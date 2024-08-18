@@ -448,6 +448,7 @@ enum{
 	FlechaAbajo,
 	FlechaIzquierda
 };
+
 void CBlendersito::ConstructL( void ){
 	InteractionMode = ObjectMode;
 	estado = editNavegacion;
@@ -462,6 +463,8 @@ void CBlendersito::ConstructL( void ){
 	PlayAnimation = false;
 	ShowTimeline = true;
 	iShiftPressed = false;
+	iAltPressed = false;
+	iCtrlPressed = false;
 	SelectActivo = 0;
 
 	flechasEstados = new FlechaEstado[4];
@@ -2361,6 +2364,10 @@ void CBlendersito::SetScale(TInt valor){
 
 TInt ShiftCount = 0;
 void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
+	if (iInputHandler->IsInputPressed( EEscape )){
+		Cancelar();
+		return;
+	}
 	//revisa las 4 direcciones
 	for(int f=0; f < 4; f++){
 		if (iInputHandler->IsInputPressed( flechasEstados[f].cual )){
@@ -2676,10 +2683,26 @@ void CBlendersito::SetPosicion(){
 
 void CBlendersito::EventKeyDown(TInt scan){
 	switch(scan){               
-		case(4): //ESC no anda...
-			Cancelar();    
-		case(69): //ESC
+		/*case(4): //ESC no anda...
+			Cancelar(); */   
+		case(68): //D
+			if (iShiftPressed){
+				ShiftCount = 40;
+				DuplicatedObject();				
+			}
+			else if (iAltPressed){
+				DuplicatedLinked();
+			}
+			break;
+		case(69): //E
 			Extrude();
+			break;
+		case(78): //N
+			if (iShiftPressed){
+				ShiftCount = 40;
+				FlipNormals();			
+			}
+			break;
 		case(88): //X
 			if (estado != editNavegacion){
 				SetEje(0);
@@ -2687,8 +2710,10 @@ void CBlendersito::EventKeyDown(TInt scan){
 			else {
 				Borrar();
 			}
+			break;
 		case(77)://M
 			VerOpciones();
+			break;
 	}
 };
 
@@ -4167,29 +4192,33 @@ void CBlendersito::DuplicatedObject(){
 		SelectCount = 1;
 
 		//los punteros apuntan a la misma memoria que el mesh original. hay que cambiarlo
-		/*tempMesh2.vertex = new GLshort[tempMesh.vertexSize*3];
+		tempMesh2.vertex = new GLshort[tempMesh.vertexSize*3];
 		tempMesh2.normals = new GLbyte[tempMesh.vertexSize*3];
 		tempMesh2.vertexColor = new GLubyte[tempMesh.vertexSize*4];
-		tempMesh2.uv = new GLfloat[tempMesh.vertexSize*2];	*/	
+		tempMesh2.uv = new GLfloat[tempMesh.vertexSize*2];	
+		tempMesh2.faces = new GLushort[tempMesh.facesCountIndices];
+   		tempMesh2.edges = new GLushort[tempMesh.edgesDrawnSize];
 
-		/*for(int m=0; m < tempMesh.facesGroup.Count(); m++){	
-			
+		tempMesh2.vertexGroupUI = new GLshort[tempMesh.vertexGroups.Count()*3];			
+		tempMesh2.vertexGroupUIcolor = new GLubyte[tempMesh.vertexGroups.Count()*4];
+
+		for(int f=0; f < tempMesh.vertexGroups.Count()*3; f++){
+			tempMesh2.vertexGroupUI[f] = tempMesh.vertexGroupUI[f];		
+		}
+
+		for(int f=0; f < tempMesh.vertexGroups.Count()*4; f++){
+			tempMesh2.vertexGroupUIcolor[f] = tempMesh.vertexGroupUIcolor[f];		
+		}
+
+		for(int f=0; f < tempMesh.facesCountIndices; f++){
+			tempMesh2.faces[f] = tempMesh.faces[f];			
+		}
+
+		for(int e=0; e < tempMesh.edgesDrawnSize; e++){
+			tempMesh2.edges[e] = tempMesh.edges[e];			
 		}
 		
-		tempMesh2.faceGrops.Append() = new TInt[tempMesh.materialsSize];
-		tempMesh2.faces = new GLushort[tempMesh.materialsSize];
-		
-		tempMesh2.facesGroupsSize = new TInt[tempMesh2.materialsSize];
-		for(int m=0; m < tempMesh2.materialsSize; m++){		
-			tempMesh2.materials[m] = tempMesh.materials[m];
-			tempMesh2.facesGroupsSize[m] = tempMesh.facesGroupsSize[m];   
-			tempMesh2.faces[m] = new GLushort[tempMesh2.facesGroupsSize[m]*3];
-			for(int f=0; f < tempMesh2.facesGroupsSize[m]*3; f++){		
-				tempMesh2.faces[m][f] = tempMesh.faces[m][f];	
-			}
-		}*/
-		
-		/*for(TInt a=0; a < tempMesh2.vertexSize*3; a++){
+		for(TInt a=0; a < tempMesh2.vertexSize*3; a++){
 			tempMesh2.vertex[a] = tempMesh.vertex[a];
 			tempMesh2.normals[a] = tempMesh.normals[a];
 		}		
@@ -4198,7 +4227,7 @@ void CBlendersito::DuplicatedObject(){
 		}
 		for(TInt a=0; a < tempMesh2.vertexSize*2; a++){
 			tempMesh2.uv[a] = tempMesh.uv[a];
-		}*/
+		}
 	}
 	else {
 		Objects.Append(obj);			
@@ -4213,16 +4242,18 @@ void CBlendersito::DuplicatedObject(){
 }
 
 void CBlendersito::DuplicatedLinked(){
-	//si no hay objetos
-	if (Objects.Count() < 1){return;}	
-	Object& obj = Objects[SelectActivo];
-	Objects.Append(obj);	
-	DeseleccionarTodo();
-	SelectActivo = Objects.Count()-1;
-	Objects[SelectActivo].seleccionado = true;
-	Objects[SelectActivo].Id = Meshes.Count()-1;
-	Collection.Append(SelectActivo);
-	SelectCount = 1;
+	TInt cantObjetosOriginal = Objects.Count();
+	for(TInt a=0; a < cantObjetosOriginal; a++){
+		Object& obj = Objects[a];
+		if (!obj.seleccionado){continue;};
+		Objects.Append(obj);	
+		obj.seleccionado = false;	
+		TInt nuevoindice = Objects.Count()-1;
+		if (SelectActivo == a){
+			SelectActivo = nuevoindice;
+		}
+		Collection.Append(nuevoindice);
+	}
     redibujar = true;
 }
 
