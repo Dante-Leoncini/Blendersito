@@ -114,6 +114,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void Aceptar( void );
         void SetTransformPivotPoint(void);
         void UVmapping(TInt valor);
+        void PressTab( void );
 
         void SetTranslacionVertices(TInt valor);
         void SetTranslacionObjetos(TInt valor);
@@ -209,6 +210,8 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void RemoveMaterial();
 		void RemoveTexture();
         void RenderMesh( Object& obj, TInt indice );
+        void EventKeyDown(TInt scan);
+        void VerOpciones();
 
         void calculateReflectionUVs(Mesh& pMesh);
         void createRotationMatrix(GLfloat pitch, GLfloat yaw, GLfloat* matrix);

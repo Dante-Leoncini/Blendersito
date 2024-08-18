@@ -738,7 +738,7 @@ void CBlendersito::AppExit( void ){
 // -----------------------------------------------------------------------------
 //
 
-// Función para calcular las coordenadas de textura esféricas
+// Funcion para calcular las coordenadas de textura esféricas
 void CBlendersito::calculateReflectionUVs(Mesh& pMesh) {
     for (int i = 0; i < pMesh.vertexSize; ++i) {
         // Obtener la normal del vértice
@@ -1030,21 +1030,21 @@ void CBlendersito::RenderMesh( Object& obj, TInt indice ){
 	};*/
 }
 
-// Función recursiva para renderizar un objeto y sus hijos
+// Funcion recursiva para renderizar un objeto y sus hijos
 void CBlendersito::RenderMeshAndChildren(Object& obj, TInt indice){
     // Guardar la matriz actual
     glPushMatrix();
     
     // Aplicar las transformaciones del objeto
     glTranslatef(obj.posX, obj.posZ, obj.posY);
-    glRotatef(obj.rotX, 1, 0, 0); // ángulo, X Y Z
-    glRotatef(obj.rotZ, 0, 1, 0); // ángulo, X Y Z
-    glRotatef(obj.rotY, 0, 0, 1); // ángulo, X Y Z
+    glRotatef(obj.rotX, 1, 0, 0); // angulo, X Y Z
+    glRotatef(obj.rotZ, 0, 1, 0); // angulo, X Y Z
+    glRotatef(obj.rotY, 0, 0, 1); // angulo, X Y Z
     glScalex(obj.scaleX, obj.scaleZ, obj.scaleY);	
 
     // Si es visible y es un mesh, lo dibuja
     if (obj.visible && obj.type == mesh) {
-        RenderMesh(obj, indice); // Ajusta el segundo parámetro si es necesario
+        RenderMesh(obj, indice); // Ajusta el segundo parametro si es necesario
     }
     
     // Procesar cada hijo
@@ -1057,7 +1057,7 @@ void CBlendersito::RenderMeshAndChildren(Object& obj, TInt indice){
     glPopMatrix();
 }
 
-// Función recursiva para renderizar un objeto y sus hijos
+// Funcion recursiva para renderizar un objeto y sus hijos
 void CBlendersito::RenderObjectAndChildrens(TInt objId){
 	Object& obj = Objects[objId];
     // Guardar la matriz actual
@@ -1065,14 +1065,14 @@ void CBlendersito::RenderObjectAndChildrens(TInt objId){
     
     // Aplicar las transformaciones del objeto
     glTranslatef(obj.posX, obj.posZ, obj.posY);
-    glRotatef(obj.rotX, 1, 0, 0); // ángulo, X Y Z
-    glRotatef(obj.rotZ, 0, 1, 0); // ángulo, X Y Z
-    glRotatef(obj.rotY, 0, 0, 1); // ángulo, X Y Z
+    glRotatef(obj.rotX, 1, 0, 0); // angulo, X Y Z
+    glRotatef(obj.rotZ, 0, 1, 0); // angulo, X Y Z
+    glRotatef(obj.rotY, 0, 0, 1); // angulo, X Y Z
     glScalex(obj.scaleX, obj.scaleZ, obj.scaleY);	
 
     // Si es visible y no es un mesh, lo dibuja
     if (obj.visible && obj.type != mesh) {
-        RenderObject(objId); // Ajusta el segundo parámetro si es necesario
+        RenderObject(objId); // Ajusta el segundo parametro si es necesario
     }
     
     // Procesar cada hijo
@@ -1145,12 +1145,12 @@ void CBlendersito::InsertKeyframe(TInt propertySelect){
     // Crear una lista de opciones
     //CDesCArrayFlat* options = new (ELeave) CDesCArrayFlat(3);
     /*CleanupStack::PushL(options);
-    options->AppendL(_L("Opción 1"));
-    options->AppendL(_L("Opción 2"));
-    options->AppendL(_L("Opción 3"));
+    options->AppendL(_L("Opcion 1"));
+    options->AppendL(_L("Opcion 2"));
+    options->AppendL(_L("Opcion 3"));
 
-    // Mostrar el diálogo de selección de opciones
-    TInt selectedIndex = DialogSelectOption(_L("Selecciona una opción:"), *options);
+    // Mostrar el dialogo de seleccion de opciones
+    TInt selectedIndex = DialogSelectOption(_L("Selecciona una opcion:"), *options);
     CleanupStack::PopAndDestroy(options);
 
 	//si no se selecciono nada
@@ -1307,7 +1307,7 @@ void CBlendersito::ReloadAnimation(){
 					}
 				}
 
-				// Si el CurrentFrame está fuera de los límites de los keyframes, usar el valor del primer o último frame
+				// Si el CurrentFrame esta fuera de los limites de los keyframes, usar el valor del primer o último frame
 				if (CurrentFrame <= anim.keyframes[firstFrameIndex].frame) {
 					valueX = anim.keyframes[firstFrameIndex].valueX;
 					valueY = anim.keyframes[firstFrameIndex].valueY;
@@ -1318,9 +1318,9 @@ void CBlendersito::ReloadAnimation(){
 					valueY = anim.keyframes[anim.keyframes.Count() - 1].valueY;
 					valueZ = anim.keyframes[anim.keyframes.Count() - 1].valueZ;
 				} 
-				// Interpolación entre keyframes
+				// Interpolacion entre keyframes
 				else {		
-					// Interpolación entre keyframes
+					// Interpolacion entre keyframes
 					TInt frame1 = anim.keyframes[firstFrameIndex].frame;
 					GLfloat valueX1 = anim.keyframes[firstFrameIndex].valueX;
 					GLfloat valueY1 = anim.keyframes[firstFrameIndex].valueY;
@@ -1358,7 +1358,7 @@ void CBlendersito::ReloadAnimation(){
 						break;
 					// Otros casos según las propiedades
 					default:
-						// Manejar cualquier otro caso aquí si es necesario
+						// Manejar cualquier otro caso aqui si es necesario
 						break;
 				}
 			}
@@ -1483,7 +1483,7 @@ void CBlendersito::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	
 	//bucle que dibuja cada objeto en orden
 	if(Meshes.Count() > 0){
-		// Función principal para iterar sobre la colección
+		// Funcion principal para iterar sobre la coleccion
 		for (int o = 0; o < Collection.Count(); o++) {
 			Object& obj = Objects[Collection[o]];
 			RenderMeshAndChildren(obj, Collection[o]);
@@ -1572,7 +1572,7 @@ void CBlendersito::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 					TBool found = false;
 					Object& obj = Objects[Collection[o]];
 					SearchSelectObj(obj, Collection[o], found);
-					if (found) break;  // Si ya encontró el objeto, salir del bucle
+					if (found) break;  // Si ya encontro el objeto, salir del bucle
 				}
 			}
 
@@ -1653,7 +1653,7 @@ void CBlendersito::SearchSelectObj(Object& obj, TInt objIndex, TBool& found) {
 		glRotatef(obj.rotY, 0, 0, 1); //angulo, X Y Z
 		glScalex(obj.scaleX, obj.scaleZ, obj.scaleY);	
         for (int c = 0; c < obj.Childrens.Count(); c++) {
-            if (found) break;  // Si ya lo encontró, salir del bucle
+            if (found) break;  // Si ya lo encontro, salir del bucle
             Object& objChild = Objects[obj.Childrens[c]];
             SearchSelectObj(objChild, obj.Childrens[c], found);
         }
@@ -1665,17 +1665,12 @@ void CBlendersito::DrawTransformAxis(Object& obj) {
 	glPushMatrix();    
 	glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
 	glLineWidth(2);	
-	if (estado != editNavegacion){
-		Mesh& pMesh = Meshes[obj.Id];
+	//if (estado != editNavegacion){
 		glTranslatef(TransformPivotPoint[0]*obj.scaleX/65000, 
 					 TransformPivotPoint[1]*obj.scaleY/65000, 
 					 TransformPivotPoint[2]*obj.scaleZ/65000
-		);		
-		/*glTranslatef(pMesh.vertex[pMesh.vertexGroups[pMesh.SelectActivo].indices[0]*3]     *obj.scaleX/65000, 
-						pMesh.vertex[pMesh.vertexGroups[pMesh.SelectActivo].indices[0]*3+1]*obj.scaleY/65000, 
-						pMesh.vertex[pMesh.vertexGroups[pMesh.SelectActivo].indices[0]*3+2]*obj.scaleZ/65000
-		);*/		
-	}
+		);			
+	//}
 	if (axisSelect == X){
 		glColor4f(ColorTransformX[0],ColorTransformX[1],ColorTransformX[2],ColorTransformX[3]);
 		glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeRojo );				
@@ -2434,10 +2429,10 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 				rotX-= 0.5;		
 			}
 			else if (navegacionMode == Fly){
-				// Convertir el ángulo de rotX a radianes
+				// Convertir el angulo de rotX a radianes
 				GLfloat radRotX = rotX * PI / 180.0;
 
-				// Calcular el vector de dirección hacia la izquierda (90 grados a la izquierda del ángulo actual)
+				// Calcular el vector de direccion hacia la izquierda (90 grados a la izquierda del angulo actual)
 				GLfloat leftX = cos(radRotX);
 				GLfloat leftY = sin(radRotX);
 
@@ -2482,10 +2477,10 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 				rotX+= 0.5;			
 			}
 			else if (navegacionMode == Fly){
-				// Convertir el ángulo de rotX a radianes
+				// Convertir el angulo de rotX a radianes
 				GLfloat radRotX = rotX * PI / 180.0;
 
-				// Calcular el vector de dirección hacia la izquierda (90 grados a la izquierda del ángulo actual)
+				// Calcular el vector de direccion hacia la izquierda (90 grados a la izquierda del angulo actual)
 				GLfloat leftX = cos(radRotX);
 				GLfloat leftY = sin(radRotX);
 
@@ -2529,7 +2524,7 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 				rotY-= 0.5;		
 			}
 			else if (navegacionMode == Fly){
-				// Convertir el ángulo de rotX a radianes
+				// Convertir el angulo de rotX a radianes
 				float radRotX = rotX * PI / 180.0;
 
 				PivotY+= 30 * cos(radRotX);
@@ -2562,7 +2557,7 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 				rotY+= 0.5;		
 			}
 			else if (navegacionMode == Fly){
-				// Convertir el ángulo de rotX a radianes
+				// Convertir el angulo de rotX a radianes
 				float radRotX = rotX * PI / 180.0;
 
 				PivotY-= 30 * cos(radRotX);
@@ -2660,7 +2655,7 @@ void CBlendersito::SetPosicion(){
 				estado = FaceMove;
 				break;
 			default:
-				// Manejar cualquier otro caso aquí si es necesario
+				// Manejar cualquier otro caso aqui si es necesario
 				break;
 		}
 		if (estado == VertexMove && pMesh.SelectCount < 1){
@@ -2679,8 +2674,55 @@ void CBlendersito::SetPosicion(){
     redibujar = true;	
 };
 
-void CBlendersito::SetEje(int eje){
-	if (InteractionMode != ObjectMode){
+void CBlendersito::EventKeyDown(TInt scan){
+	switch(scan){               
+		case(4): //ESC no anda...
+			Cancelar();    
+		case(69): //ESC
+			Extrude();
+		case(88): //X
+			if (estado != editNavegacion){
+				SetEje(0);
+			}
+			else {
+				Borrar();
+			}
+		case(77)://M
+			VerOpciones();
+	}
+};
+
+// Funcion para abrir el popup con las opciones
+void CBlendersito::VerOpciones(){
+    // Declarar el indice seleccionado
+    /*TInt iSelectedIndex = 0;
+
+    // Crear un array de cadenas con las opciones
+    CDesCArrayFlat* items = new (ELeave) CDesCArrayFlat(3);
+    CleanupStack::PushL(items);
+
+    // Agregar opciones al array
+    items->AppendL(_L("Item 1"));
+    items->AppendL(_L("Item 2"));
+    items->AppendL(_L("Item 3"));
+
+    // Crear el dialogo de lista y pasar el array de opciones
+    CAknListQueryDialog* dlg = new (ELeave) CAknListQueryDialog(&iSelectedIndex);
+    //dlg->PrepareLC(R_AVKON_DIALOG_EMPTY_MENUPANE);
+    dlg->SetItemTextArray(items);
+    dlg->SetOwnershipType(ELbmOwnsItemArray);
+
+    // Mostrar el dialogo y capturar la opcion seleccionada
+    if (dlg->RunLD())
+    {
+        // Aqui puedes manejar la opcion seleccionada en iSelectedIndex
+    }
+
+    CleanupStack::Pop(items); // Limpia el array de la pila*/
+}
+
+void CBlendersito::SetEje(TInt eje){
+	if (estado != editNavegacion){
 		axisSelect = eje;
 	}	
     redibujar = true;	
@@ -2724,6 +2766,22 @@ void CBlendersito::Aceptar(){
 	};*/
     redibujar = true;
 };
+
+void CBlendersito::PressTab(){
+	if (estado == editNavegacion){
+		if (InteractionMode == EditMode){
+			InteractionMode = ObjectMode;
+		}
+		else if (InteractionMode == ObjectMode){
+			if (Objects.Count() < 1){return;}
+			Object& obj = Objects[SelectActivo];
+			if (obj.type != mesh || !obj.seleccionado){return;}
+			InteractionMode = EditMode;
+		}
+
+	}
+    redibujar = true;
+}
 
 void CBlendersito::Tab(){
 	if (estado != editNavegacion){ //} estado == translacion || estado == rotacion || estado == EditScale || estado == VertexMove){
@@ -3310,7 +3368,7 @@ void CBlendersito::BorrarAnimaciones(TInt indice){
 			Animations[a].Propertys.Close();
 			Animations.Remove(a);
 		}
-		// Hace falta cambiar los índices
+		// Hace falta cambiar los indices
 		else if (Animations[a].Id > indice) {
 			Animations[a].Id--;
 		}			
@@ -3327,12 +3385,12 @@ void CBlendersito::BorrarObjeto(TInt indice){
 	//si existe animaciones para ese objeto. las borra		
 	BorrarAnimaciones(indice);
 
-	// Borrar de la colección
+	// Borrar de la coleccion
 	for (int c = Collection.Count() - 1; c >= 0; c--) {
 		if (Collection[c] == indice) {
 			Collection.Remove(c);
 		}
-		// Hace falta cambiar los índices
+		// Hace falta cambiar los indices
 		else if (Collection[c] > indice) {
 			Collection[c]--;
 		}
@@ -3351,7 +3409,7 @@ void CBlendersito::BorrarObjeto(TInt indice){
 		SelectActivo = 0;
 	}*/
 	
-	// Actualizar índices en los objetos
+	// Actualizar indices en los objetos
 	for (int o = 0; o < Objects.Count(); o++) {
 		for (int c = Objects[o].Childrens.Count() - 1; c >= 0; c--) {
 			if (Objects[o].Childrens[c] == indice) {
@@ -3460,10 +3518,10 @@ void CBlendersito::UVmapping(TInt valor){
     if (obj.type != mesh) { return; }
     Mesh& pMesh = Meshes[obj.Id];
 
-    // Variables para almacenar las posiciones mínimas y máximas en el eje Y (altura)
+    // Variables para almacenar las posiciones minimas y maximas en el eje Y (altura)
     GLshort minY = pMesh.vertex[1], maxY = pMesh.vertex[1];
     
-    // Encontrar los valores mínimos y máximos de Y
+    // Encontrar los valores minimos y maximos de Y
     for (int i = 0; i < pMesh.vertexSize; i++) {
         GLshort y = pMesh.vertex[i * 3 + 1];
         if (y < minY) { minY = y; }
@@ -3476,8 +3534,8 @@ void CBlendersito::UVmapping(TInt valor){
         GLshort y = pMesh.vertex[i * 3 + 1];
         GLshort z = pMesh.vertex[i * 3 + 2];
 
-        // Calcular el ángulo en torno al eje Y (cilindro alrededor del eje Y)
-        float angle = atan2(z, x);  // Ángulo en radianes
+        // Calcular el angulo en torno al eje Y (cilindro alrededor del eje Y)
+        float angle = atan2(z, x);  // angulo en radianes
         float U = (angle / (2.0f * M_PI)) * 255 - 128;  // Ajustar U al rango [-128, 127]
 
         // Calcular V basado en la altura relativa del vértice en el eje Y
@@ -3585,7 +3643,7 @@ void CBlendersito::AddMesh( int modelo ){
 		}
 
 		for (int i = 0; i < pMesh.vertexSize; i++) {
-			GLfloat angle = 2.0f * M_PI * (i % originalVertexSize) / originalVertexSize;  // Ángulo para los vértices
+			GLfloat angle = 2.0f * M_PI * (i % originalVertexSize) / originalVertexSize;  // angulo para los vértices
 
 			pMesh.vertex[i*3] = -Radius * cos(angle);
 			pMesh.vertex[i*3+1] = 0;
@@ -4591,7 +4649,7 @@ void CBlendersito::CloseWaitDialog(){
 void CBlendersito::DialogWait(HBufC* noteBuf){
     ShowWaitDialogL(); // Mostrar el cuadro de espera
 
-    // Aquí puedes agregar el código que necesita tiempo para ejecutarse.
+    // Aqui puedes agregar el codigo que necesita tiempo para ejecutarse.
     /*User::After(2000000); // Simular una espera de 2 segundos.
 
     CloseWaitDialog(); // Cerrar el cuadro de espera*/
@@ -4695,7 +4753,7 @@ void CBlendersito::SetScreenSize( TUint aWidth, TUint aHeight ){
 	redibujar = true;
 }
 
-// Función para obtener el directorio raíz de un filePath
+// Funcion para obtener el directorio raiz de un filePath
 TFileName CBlendersito::GetRootDirectory(const TDesC& aFilePath)
 {
     TParse parse;
@@ -4814,12 +4872,12 @@ void CBlendersito::ImportOBJ(){
 		TBool continuarLeyendo = ETrue; // Variable para controlar la lectura del archivo
 		TBuf8<2048> buffer;
 		TInt pos = 0;
-		TInt64 startPos = 0; // Variable para mantener la posición de lectura en el archivo
+		TInt64 startPos = 0; // Variable para mantener la posicion de lectura en el archivo
 		TInt fileSize;
 		rFile.Size(fileSize);
  
 		while (startPos < fileSize) {
-			// Leer una línea del archivo desde la posición actual
+			// Leer una linea del archivo desde la posicion actual
 			err = rFile.Read(startPos, buffer, buffer.MaxLength());
 			if (err != KErrNone) {
 				//tarde o temprano va a fallar la lectura y va a parar
@@ -4831,7 +4889,7 @@ void CBlendersito::ImportOBJ(){
 				continuarLeyendo = EFalse; // Salir del bucle
 				break;
 			}
-			// Procesar la línea hasta que no haya más caracteres en buffer
+			// Procesar la linea hasta que no haya mas caracteres en buffer
 			while ((pos = buffer.Locate('\n')) != KErrNotFound || (pos = buffer.Locate('\r')) != KErrNotFound) {
 				TPtrC8 line = buffer.Left(pos);
 			
@@ -4843,8 +4901,8 @@ void CBlendersito::ImportOBJ(){
 						ListVertices.ReserveL(ListVertices.Count() +3); // Reservar espacio para los elementos
 						ListColors.ReserveL(ListColors.Count() +3); // Reservar espacio para los elementos
 
-						TLex8 lex(line.Mid(2));  // Inicializa TLex con la subcadena a partir del tercer carácter
-						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
+						TLex8 lex(line.Mid(2));  // Inicializa TLex con la subcadena a partir del tercer caracter
+						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el limite de 8 strings
 						while (!lex.Eos() && contador < 6) {		
 							TPtrC8 currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador					
 							TLex8 testLex(currentString);// Crear un nuevo objeto TLex para la prueba
@@ -4854,7 +4912,7 @@ void CBlendersito::ImportOBJ(){
 							TInt err = testLex.Val(number, '.');
 							if (err == KErrNone && contador < 3) {
 								number = number*2000;								
-								GLshort glNumber = static_cast<GLshort>(number); // Conversión a GLbyte
+								GLshort glNumber = static_cast<GLshort>(number); // Conversion a GLbyte
 								ListVertices.Append(glNumber);
 							}
 							else if (contador < 3){
@@ -4863,7 +4921,7 @@ void CBlendersito::ImportOBJ(){
 							else if (contador < 6){
 								number = number*255.0;	
 								if (number > 255.0){number = 255.0;}	
-								GLshort glNumber = static_cast<GLubyte>(number); // Conversión a GLbyte
+								GLshort glNumber = static_cast<GLubyte>(number); // Conversion a GLbyte
 								ListColors.Append(glNumber);
 							}
 
@@ -4887,8 +4945,8 @@ void CBlendersito::ImportOBJ(){
 						contador = 0;
 						ListNormals.ReserveL(ListNormals.Count() +3); // Reservar espacio para los elementos
 
-						TLex8 lex(line.Mid(3));  // Inicializa TLex con la subcadena a partir del tercer carácter
-						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
+						TLex8 lex(line.Mid(3));  // Inicializa TLex con la subcadena a partir del tercer caracter
+						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el limite de 8 strings
 						while (!lex.Eos() && contador < 3) {							
 							TPtrC8 currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador
 							TLex8 testLex(currentString); // Crear un nuevo objeto TLex para la prueba
@@ -4899,7 +4957,7 @@ void CBlendersito::ImportOBJ(){
 								number = ((number +1)/2)* 255.0 - 128.0;
 								if (number > 127.0){number = 127.0;}
 								else if (number < -128.0){number = -128.0;}
-								GLbyte glNumber = static_cast<GLbyte>(number); // Conversión a GLbyte
+								GLbyte glNumber = static_cast<GLbyte>(number); // Conversion a GLbyte
 								ListNormals.Append(glNumber);
 							}
 							else if (contador < 3){
@@ -4913,8 +4971,8 @@ void CBlendersito::ImportOBJ(){
 						contador = 0;
 						ListUVs.ReserveL(ListUVs.Count() +2); // Reservar espacio para los elementos
 
-						TLex8 lex(line.Mid(3));  // Inicializa TLex con la subcadena a partir del tercer carácter
-						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
+						TLex8 lex(line.Mid(3));  // Inicializa TLex con la subcadena a partir del tercer caracter
+						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el limite de 8 strings
 						while (!lex.Eos() && contador < 2) {							
 							TPtrC8 currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador
 							TLex8 testLex(currentString); // Crear un nuevo objeto TLex para la prueba
@@ -4928,8 +4986,8 @@ void CBlendersito::ImportOBJ(){
 								number = number * 255.0 - 128.0;
 								/*if (number > 127.0){number = 127.0;}
 								else if (number < -128.0){number = -128.0;}*/
-								//GLbyte glNumber = static_cast<GLbyte>(number); // Conversión a GLbyte
-								GLfloat glNumber = static_cast<GLfloat>(number); // Conversión a GLbyte
+								//GLbyte glNumber = static_cast<GLbyte>(number); // Conversion a GLbyte
+								GLfloat glNumber = static_cast<GLfloat>(number); // Conversion a GLbyte
 								ListUVs.Append(glNumber);	
 							}
 							else if (contador < 2){
@@ -4944,19 +5002,19 @@ void CBlendersito::ImportOBJ(){
 						ListCaras.ReserveL(ListCaras.Count() +9); // Reservar espacio para los elementos
 						TInt conTBarras = 0;
 
-						TLex8 lex(line.Mid(2));  // Inicializa TLex con la subcadena a partir del tercer carácter
+						TLex8 lex(line.Mid(2));  // Inicializa TLex con la subcadena a partir del tercer caracter
 
-						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
+						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el limite de 8 strings
 						while (!lex.Eos() && contador < 3) {				
 							TPtrC8 currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador
 
-							TInt startPos = 0; // Posición inicial
+							TInt startPos = 0; // Posicion inicial
 							TInt tokenLength = 0; // Longitud del token
 							conTBarras = 0;
 
 							// Recorre la cadena hasta encontrar el final
 							while (startPos < currentString.Length()) {
-								// Busca la posición de la siguiente barra diagonal
+								// Busca la posicion de la siguiente barra diagonal
 								TInt nextSlashPos = currentString.Mid(startPos).Locate('/');
 
 								// Si no se encuentra una barra diagonal, asume que es el último token
@@ -4966,7 +5024,7 @@ void CBlendersito::ImportOBJ(){
 									tokenLength = nextSlashPos; // Longitud del token hasta la barra diagonal
 								}
 
-								// Extrae el token utilizando la posición y longitud calculadas
+								// Extrae el token utilizando la posicion y longitud calculadas
 								TPtrC8 token = currentString.Mid(startPos, tokenLength);
 								TLex8 testLex(token); // Crear un nuevo objeto TLex para la prueba
 
@@ -4977,7 +5035,7 @@ void CBlendersito::ImportOBJ(){
 									ListCaras.Append(number-1);
 								}
 
-								// Actualiza la posición inicial para el próximo token
+								// Actualiza la posicion inicial para el proximo token
 								startPos += tokenLength + 1; // Suma 1 para omitir la barra diagonal
 								conTBarras++;
 							}	
@@ -5027,10 +5085,10 @@ void CBlendersito::ImportOBJ(){
 					}
 				}
 
-				// Actualizar la posición de inicio para la próxima lectura
+				// Actualizar la posicion de inicio para la proxima lectura
 				startPos += pos + 1;
 
-				// Eliminar la parte de la línea ya procesada y el carácter de salto de línea
+				// Eliminar la parte de la linea ya procesada y el caracter de salto de linea
 				buffer.Delete(0, pos + 1);
 				buffer.TrimLeft(); // Eliminar espacios en blanco iniciales
 			}
@@ -5089,7 +5147,7 @@ void CBlendersito::ImportOBJ(){
 					TInt normalIndex = ListCaras[indiceCara + 2];
 					TInt uvIndex = ListCaras[indiceCara + 1];
 
-					// Detecta que el vértice del triángulo tiene errores
+					// Detecta que el vértice del triangulo tiene errores
 					if (positionIndex != normalIndex || positionIndex != uvIndex) {
 						// Comprobar si ya existe un vértice con estas propiedades
 						TInt foundIndex = -1;
@@ -5111,7 +5169,7 @@ void CBlendersito::ImportOBJ(){
 							NewListNormals.ReserveL(NewListNormals.Count() +3);
 							NewListColors.ReserveL(NewListColors.Count() +3);
 							NewListUVs.ReserveL(NewListUVs.Count() +2);
-							// Añadir nueva posición, normal y color
+							// Añadir nueva posicion, normal y color
 							for (TInt v = 0; v < 3; v++) {
 								NewListVertices.Append(ListVertices[positionIndex*3+v]);
 								NewListNormals.Append(ListNormals[normalIndex*3+v]);
@@ -5279,7 +5337,7 @@ void CBlendersito::LeerMTL(const TFileName& aFile) {
 
 	TBuf8<2048> buffer;
 	TInt pos = 0;
-	TInt64 startPos = 0; // Variable para mantener la posición de lectura en el archivo
+	TInt64 startPos = 0; // Variable para mantener la posicion de lectura en el archivo
 	TInt fileSize;
 	rFile.Size(fileSize);
 
@@ -5292,7 +5350,7 @@ void CBlendersito::LeerMTL(const TFileName& aFile) {
 	TBool encontrado = false;
 
 	while (startPos < fileSize) {
-		// Leer una línea del archivo desde la posición actual
+		// Leer una linea del archivo desde la posicion actual
 		err = rFile.Read(startPos, buffer, buffer.MaxLength());
 		if (err != KErrNone) {
 			_LIT(KFormatString, "Error al leer linea");
@@ -5352,7 +5410,7 @@ void CBlendersito::LeerMTL(const TFileName& aFile) {
 						noteBuf3->Des().Format(KFormatString3, materialName16, resultado);
 						DialogAlert(noteBuf3);*/
 					} 
-					//difusso, Aquí manejas el color ambiental Ka (kaR, kaG, kaB)			
+					//difusso, Aqui manejas el color ambiental Ka (kaR, kaG, kaB)			
 					else if (line.Left(3) == _L8("Kd ")) {
 						TLex8 lex(line.Mid(3));
 						TReal kdR, kdG, kdB;
@@ -5374,9 +5432,9 @@ void CBlendersito::LeerMTL(const TFileName& aFile) {
 						lex.Val(ksG, '.');
 						lex.SkipSpace();
 						lex.Val(ksB, '.');
-						// Aquí manejas el color especular Ks (ksR, ksG, ksB)
+						// Aqui manejas el color especular Ks (ksR, ksG, ksB)
 					}*/
-					// Aquí manejas el color de emisión Ke (keR, keG, keB)
+					// Aqui manejas el color de emision Ke (keR, keG, keB)
 					else if (line.Left(3) == _L8("Ke ")) {
 						TLex8 lex(line.Mid(3));
 						TReal keR, keG, keB;
@@ -5393,7 +5451,7 @@ void CBlendersito::LeerMTL(const TFileName& aFile) {
 						TLex8 lex(line.Mid(3));
 						TReal niValue;
 						lex.Val(niValue, '.');
-						// Aquí manejas el índice de refracción Ni
+						// Aqui manejas el indice de refraccion Ni
 					}*/
 					//opacidad 
 					else if (line.Left(2) == _L8("d ")) {
@@ -5409,9 +5467,9 @@ void CBlendersito::LeerMTL(const TFileName& aFile) {
 						TLex8 lex(line.Mid(6));
 						TInt illumValue;
 						lex.Val(illumValue);
-						// Aquí manejas el modelo de iluminación illum
+						// Aqui manejas el modelo de iluminacion illum
 					}*/
-					// Aquí manejas la textura difusa map_Kd
+					// Aqui manejas la textura difusa map_Kd
 					else if (line.Left(18) == _L8("BackfaceCullingOff")){
 						mat->culling = false;
 					}
@@ -5484,10 +5542,10 @@ void CBlendersito::OldImportOBJ(){
     	User::LeaveIfError(fsSession.Connect());
     	CleanupClosePushL(fsSession);
 
-		// Revisar la extensión del archivo
+		// Revisar la extension del archivo
 		TPtrC extension = file.Right(4);  // Obtiene las últimas 4 letras del nombre del archivo
 		if (extension.CompareF(_L(".obj")) != 0) {
-			_LIT(KExtensionError, "Error: El archivo seleccionado no tiene la extensión .obj");
+			_LIT(KExtensionError, "Error: El archivo seleccionado no tiene la extension .obj");
 			HBufC* noteBuf = HBufC::NewLC(180);
 			noteBuf->Des().Format(KExtensionError);
 			MensajeError(noteBuf);
@@ -5520,7 +5578,7 @@ void CBlendersito::OldImportOBJ(){
 		//crea el objeto
 		Cancelar();
 
-		TInt64 startPos = 0; // Variable para mantener la posición de lectura en el archivo
+		TInt64 startPos = 0; // Variable para mantener la posicion de lectura en el archivo
 		//esto se hace para no cerrar el archivo y por cada nuevo obj encontrado simplemente volvemos a usar leerOBJ con el archivo donde quedo
 		//TBool hayMasObjetos;
 		TInt objetosCargados = 0;		
@@ -5615,7 +5673,7 @@ TBool CBlendersito::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 	rFile->Size(fileSize);
 
 	while (continuarLeyendo && *startPos < fileSize ) {
-		// Leer una línea del archivo desde la posición actual
+		// Leer una linea del archivo desde la posicion actual
 		err = rFile->Read(*startPos, buffer, buffer.MaxLength());
 		if (err != KErrNone) {
 			//tarde o temprano va a fallar la lectura y va a parar
@@ -5627,7 +5685,7 @@ TBool CBlendersito::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 			continuarLeyendo = false; // Salir del bucle
 			break;
 		}
-		// Procesar la línea hasta que no haya más caracteres en buffer
+		// Procesar la linea hasta que no haya mas caracteres en buffer
 		while (continuarLeyendo && (pos = buffer.Locate('\n')) != KErrNotFound || (pos = buffer.Locate('\r')) != KErrNotFound) {
 			TPtrC8 line = buffer.Left(pos);
 		
@@ -5666,8 +5724,8 @@ TBool CBlendersito::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 						ListVertices.ReserveL(ListVertices.Count() +3); // Reservar espacio para los elementos
 						ListVertices.ReserveL(ListVertices.Count() +3); // Reservar espacio para los elementos
 
-						TLex8 lex(line.Mid(2));  // Inicializa TLex con la subcadena a partir del tercer carácter
-						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
+						TLex8 lex(line.Mid(2));  // Inicializa TLex con la subcadena a partir del tercer caracter
+						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el limite de 8 strings
 						while (!lex.Eos() && contador < 6) {		
 							TPtrC8 currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador					
 							TLex8 testLex(currentString);// Crear un nuevo objeto TLex para la prueba
@@ -5677,7 +5735,7 @@ TBool CBlendersito::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 							TInt err = testLex.Val(number, '.');
 							if (err == KErrNone && contador < 3) {
 								number = number*2000;								
-								GLshort glNumber = static_cast<GLshort>(number); // Conversión a GLbyte
+								GLshort glNumber = static_cast<GLshort>(number); // Conversion a GLbyte
 								ListVertices.Append(glNumber);
 							}
 							else if (contador < 3){
@@ -5686,7 +5744,7 @@ TBool CBlendersito::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 							else if (contador < 6){
 								number = number*255.0;	
 								if (number > 255.0){number = 255.0;}	
-								GLshort glNumber = static_cast<GLubyte>(number); // Conversión a GLbyte
+								GLshort glNumber = static_cast<GLubyte>(number); // Conversion a GLbyte
 								ListColors.Append(glNumber);
 								tieneVertexColor = true;
 							}
@@ -5711,8 +5769,8 @@ TBool CBlendersito::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 						contador = 0;
 						ListNormals.ReserveL(ListNormals.Count() +3); // Reservar espacio para los elementos
 
-						TLex8 lex(line.Mid(3));  // Inicializa TLex con la subcadena a partir del tercer carácter
-						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
+						TLex8 lex(line.Mid(3));  // Inicializa TLex con la subcadena a partir del tercer caracter
+						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el limite de 8 strings
 						while (!lex.Eos() && contador < 3) {							
 							TPtrC8 currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador
 							TLex8 testLex(currentString); // Crear un nuevo objeto TLex para la prueba
@@ -5723,7 +5781,7 @@ TBool CBlendersito::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 								number = ((number +1)/2)* 255.0 - 128.0;
 								if (number > 127.0){number = 127.0;}
 								else if (number < -128.0){number = -128.0;}
-								GLbyte glNumber = static_cast<GLbyte>(number); // Conversión a GLbyte
+								GLbyte glNumber = static_cast<GLbyte>(number); // Conversion a GLbyte
 								ListNormals.Append(glNumber);
 							}
 							else if (contador < 3){
@@ -5737,8 +5795,8 @@ TBool CBlendersito::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 						contador = 0;
 						ListUVs.ReserveL(ListUVs.Count() +2); // Reservar espacio para los elementos
 
-						TLex8 lex(line.Mid(3));  // Inicializa TLex con la subcadena a partir del tercer carácter
-						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el límite de 8 strings
+						TLex8 lex(line.Mid(3));  // Inicializa TLex con la subcadena a partir del tercer caracter
+						// Iterar mientras no se llegue al final del descriptor y se haya alcanzado el limite de 8 strings
 						while (!lex.Eos() && contador < 2) {							
 							TPtrC8 currentString = lex.NextToken(); // Mostrar el mensaje con el valor actual del "string" y el contador
 							TLex8 testLex(currentString); // Crear un nuevo objeto TLex para la prueba
@@ -5752,8 +5810,8 @@ TBool CBlendersito::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 								number = number * 255.0 - 128.0;
 								/*if (number > 127.0){number = 127.0;}
 								else if (number < -128.0){number = -128.0;}*/
-								//GLbyte glNumber = static_cast<GLbyte>(number); // Conversión a GLbyte
-								GLfloat glNumber = static_cast<GLfloat>(number); // Conversión a GLbyte
+								//GLbyte glNumber = static_cast<GLbyte>(number); // Conversion a GLbyte
+								GLfloat glNumber = static_cast<GLfloat>(number); // Conversion a GLbyte
 								ListUVs.Append(glNumber);	
 							}
 							else if (contador < 2){
@@ -5767,22 +5825,22 @@ TBool CBlendersito::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 						contador = 0;
 						TInt conTBarras = 0;
 
-						TLex8 lex(line.Mid(2));  // Inicializa TLex con la subcadena a partir del tercer carácter
+						TLex8 lex(line.Mid(2));  // Inicializa TLex con la subcadena a partir del tercer caracter
 
-						// Lista temporal para almacenar los índices de los vértices
+						// Lista temporal para almacenar los indices de los vértices
     					RArray<TInt> tempIndices;	
 						tempIndices.ReserveL(9);				
 								
 						while (!lex.Eos()) {		
 							TPtrC8 currentString = lex.NextToken();
 
-							TInt startPos2 = 0; // Posición inicial
+							TInt startPos2 = 0; // Posicion inicial
 							TInt tokenLength = 0; // Longitud del token
 							conTBarras = 0;
 
 							// Recorre la cadena hasta encontrar el final
 							while (startPos2 < currentString.Length()) {
-								// Busca la posición de la siguiente barra diagonal
+								// Busca la posicion de la siguiente barra diagonal
 								TInt nextSlashPos = currentString.Mid(startPos2).Locate('/');
 
 								// Si no se encuentra una barra diagonal, asume que es el último token
@@ -5792,7 +5850,7 @@ TBool CBlendersito::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 									tokenLength = nextSlashPos; // Longitud del token hasta la barra diagonal
 								}
 
-								// Extrae el token utilizando la posición y longitud calculadas
+								// Extrae el token utilizando la posicion y longitud calculadas
 								TPtrC8 token = currentString.Mid(startPos2, tokenLength);
 								TLex8 testLex(token); // Crear un nuevo objeto TLex para la prueba
 
@@ -5803,7 +5861,7 @@ TBool CBlendersito::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
                 					tempIndices.Append(number-1);
 								}
 
-								// Actualiza la posición inicial para el próximo token
+								// Actualiza la posicion inicial para el proximo token
 								startPos2 += tokenLength + 1; // Suma 1 para omitir la barra diagonal
 								conTBarras++;
 							}	
@@ -5812,7 +5870,7 @@ TBool CBlendersito::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 							contador++;				
 						}
 
-						// Crear triángulos de la lista temporal de índices
+						// Crear triangulos de la lista temporal de indices
 						//TInt numIndices = tempIndices.Count();
 
 						/*_LIT(KFormatString4, "Num. indices: %d\nCaras: %d");
@@ -5845,7 +5903,7 @@ TBool CBlendersito::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 						DialogAlert(noteBuf3);
 						CleanupStack::PopAndDestroy(noteBuf3);*/
 
-						// Limpiar la lista temporal de índices
+						// Limpiar la lista temporal de indices
 						tempIndices.Close();
 
 						// Actualizar el contador de caras en el último grupo de mallas
@@ -5932,10 +5990,10 @@ TBool CBlendersito::LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt6
 				}
 			}
 			if (continuarLeyendo){
-				// Actualizar la posición de inicio para la próxima lectura
+				// Actualizar la posicion de inicio para la proxima lectura
 				*startPos += pos + 1;
 
-				// Eliminar la parte de la línea ya procesada y el carácter de salto de línea
+				// Eliminar la parte de la linea ya procesada y el caracter de salto de linea
 				buffer.Delete(0, pos + 1);
 				buffer.TrimLeft(); // Eliminar espacios en blanco iniciales
 			}
@@ -6242,7 +6300,7 @@ void CBlendersito::SaveCanvasToImage(TBool secuencia, TBool showUi)  {
 
     SetScreenSize(ScreenWidth, ScreenHeight, false);*/
 
-    // Captura los píxeles de la pantalla
+    // Captura los pixeles de la pantalla
     GLubyte* pixels = new GLubyte[iScreenWidth * iScreenHeight * 4]; // 4 para RGBA
 
     _LIT(KFileName, "E:\\blendersito\\render_%04d.bmp");
@@ -6298,21 +6356,21 @@ void CBlendersito::SaveCanvasToImage(TBool secuencia, TBool showUi)  {
 }
 
 void CBlendersito::applyBlur(GLubyte* pixels, int width, int height, int radius) {
-    // Calcula el tamaño del área del kernel
+    // Calcula el tamaño del area del kernel
     int kernelSize = 2 * radius + 1;
     
-    // Itera sobre cada píxel de la imagen
+    // Itera sobre cada pixel de la imagen
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             float r = 0.0f, g = 0.0f, b = 0.0f;
             
-            // Itera sobre cada píxel en el área del kernel
+            // Itera sobre cada pixel en el area del kernel
             for (int ky = -radius; ky <= radius; ++ky) {
                 for (int kx = -radius; kx <= radius; ++kx) {
                     int pixelX = clamp(x + kx, 0, width - 1);
                     int pixelY = clamp(y + ky, 0, height - 1);
                     
-                    // Obtiene el valor del píxel original
+                    // Obtiene el valor del pixel original
                     int index = (pixelY * width + pixelX) * 4;
                     r += pixels[index];
                     g += pixels[index + 1];
@@ -6320,7 +6378,7 @@ void CBlendersito::applyBlur(GLubyte* pixels, int width, int height, int radius)
                 }
             }
             
-            // Calcula el promedio de los valores RGB en el área del kernel
+            // Calcula el promedio de los valores RGB en el area del kernel
             int index = (y * width + x) * 4;
             pixels[index] = static_cast<GLubyte>(r / (kernelSize * kernelSize));
             pixels[index + 1] = static_cast<GLubyte>(g / (kernelSize * kernelSize));

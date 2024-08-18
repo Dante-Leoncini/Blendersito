@@ -49,11 +49,8 @@ CBlendersitoAppUi::~CBlendersitoAppUi(){
 // ------------------------------------------------------------------------------
 //
 enum{
-	navegacion,
-	rotacion,
-	escala,
-	translacion,
-	edicion
+	ObjectMode,
+	EditMode
 };
 
 enum {Solid, MaterialPreview, Wireframe, Rendered};
@@ -95,7 +92,7 @@ void CBlendersitoAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
     }*/
 	//oculta el SetOrigen si no esta en modo edicion
     if (aResourceId == R_BLENDERSITO_MENU ) {
-        if (BL.InteractionMode == edicion) {
+        if (BL.InteractionMode == EditMode) {
 	        if (BL.Objects.Count() > 0){
                 aMenuPane->SetItemDimmed(EViewportObject, EFalse);
                 aMenuPane->SetItemDimmed(EUvMappingMenu, EFalse);                
@@ -304,6 +301,9 @@ TKeyResponse CBlendersitoAppUi::HandleKeyEventL(const TKeyEvent& aKeyEvent, TEve
                 case(196): //llamada
                     iAppContainer->iBlendersito->ChangeEje();
                     return EKeyWasConsumed;
+                case(65): //A
+                    iAppContainer->iBlendersito->SeleccionarTodo();
+                    return EKeyWasConsumed;
                 case(71): //G
                     iAppContainer->iBlendersito->SetPosicion();
                     return EKeyWasConsumed;
@@ -316,14 +316,14 @@ TKeyResponse CBlendersitoAppUi::HandleKeyEventL(const TKeyEvent& aKeyEvent, TEve
                 case(81): //Q
                     iAppContainer->iBlendersito->Cancelar();
                     return EKeyWasConsumed;
+                case(88): //X
+                    iAppContainer->iBlendersito->EventKeyDown(scan);
+                    return EKeyWasConsumed;
                 case(3): //Enter
                     iAppContainer->iBlendersito->Aceptar();
                     return EKeyWasConsumed;
                 case(167): //OK
                     iAppContainer->iBlendersito->Aceptar();
-                    return EKeyWasConsumed;
-                case(88): //X
-                    iAppContainer->iBlendersito->SetEje(0);
                     return EKeyWasConsumed;
                 case(89): //Y
                     iAppContainer->iBlendersito->SetEje(1);
@@ -331,6 +331,9 @@ TKeyResponse CBlendersitoAppUi::HandleKeyEventL(const TKeyEvent& aKeyEvent, TEve
                 case(90): //Z
                     iAppContainer->iBlendersito->SetEje(2);
                     return EKeyWasConsumed;
+                case(2): //Tab
+                    iAppContainer->iBlendersito->PressTab();
+                    return EKeyWasNotConsumed;
                 /*case(14): //izquierda
                     iAppContainer->iBlendersito->Tab();
                     return EKeyWasNotConsumed;
@@ -344,6 +347,7 @@ TKeyResponse CBlendersitoAppUi::HandleKeyEventL(const TKeyEvent& aKeyEvent, TEve
                     iAppContainer->iBlendersito->Tab();
                     return EKeyWasNotConsumed;*/
                 default:
+                    iAppContainer->iBlendersito->EventKeyDown(scan);
                     return EKeyWasNotConsumed;
 			}
 		}

@@ -48,6 +48,7 @@ class CBlendersitoAppUi : public CAknAppUi
          * off in the example.
          */
         void DynInitMenuPaneL(TInt aResourceId,CEikMenuPane* aMenuPane);
+        
 
         /**
          * CEikAppUi method that is used to handle user commands.
