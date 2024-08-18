@@ -862,7 +862,7 @@ void CBlendersito::RenderMesh( Object& obj, TInt indice ){
 	
 	//se usa el GL_POLYGON_OFFSET_FILL para el modo solido, render o material si no esta en modo edicion
 	//esto dibuja el contorno con una linea mas gruesa
-	if (view != Wireframe && InteractionMode != EditMode && showOutlineSelect){
+	if (view != Wireframe && InteractionMode != EditMode && showOutlineSelect && showOverlays){
 		glPolygonOffset(1.0, 40.0);
 		glLineWidth(4);	 
 		glDisable(GL_COLOR_MATERIAL);
