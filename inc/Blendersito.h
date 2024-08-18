@@ -131,7 +131,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void SeleccionarTodo();
         void SetEje( TInt eje );     
         void AddMesh( TInt modelo );
-        void NewMaterial();
+        void NewMaterial(TBool reemplazar);
         void AddObject( TInt tipo );
         void SetTexture(); //int textureID 
         void SetMaterial();

@@ -480,7 +480,7 @@ void CBlendersito::ConstructL( void ){
 	flechasEstados[FlechaIzquierda].cual = EJoystickLeft;
 
 	//tiene que haber un material por defecto siempre
-	NewMaterial();
+	NewMaterial(false);
 
 	//debuger
 	//console = Console::NewL(_L("Consola"),TSize(KConsFullScreen, KConsFullScreen));
@@ -525,49 +525,6 @@ void CBlendersito::ConstructL( void ){
 	key.value = 10000;
 	prop.keyframes.Append(key);*/
 }
-
-void CBlendersito::NewMaterial(){
-	/*HBufC* inicialBuf = HBufC::NewLC(100);
-	_LIT(Kinicial, "Material.%03d");
-	inicialBuf->Des().Format(Kinicial, Materials.Count()+1);
-	
-	HBufC* tituloBuf = HBufC::NewLC(100);
-	_LIT(Ktitulo, "Ingrese el nombre del Material");
-	tituloBuf->Des().Copy(Ktitulo);
-	TPtr nombre = DialogText(inicialBuf, tituloBuf);
-	
-	HBufC* noteBuf = HBufC::NewLC(100);//textoingresado.AllocLC();
-	noteBuf->Des().Copy(textoingresado);
-	DialogAlert(noteBuf);
-	CleanupStack::PopAndDestroy(noteBuf);	
-	CleanupStack::PopAndDestroy(tituloBuf);	
-	CleanupStack::PopAndDestroy(inicialBuf);	*/
-	
-	Material mat;	
-	mat.specular[0] = mat.specular[1] = mat.specular[2] = mat.specular[3] = 0.3;
-	mat.diffuse[0] = mat.diffuse[1] = mat.diffuse[2] = mat.diffuse[3] = 1.0;
-	mat.emission[0] = mat.emission[1] = mat.emission[2] = mat.emission[3] = 0.0;
-	mat.textura = false;
-	mat.vertexColor = false;
-	mat.repeat = true;
-	mat.lighting = true;
-	mat.culling = true;
-	mat.transparent = false;
-	mat.interpolacion = lineal;
-	mat.textureID = 0;
-	if (Materials.Count() < 1){
-		mat.name = HBufC::NewL(15);
-		_LIT(KMatNameDefault, "DefaultMaterial");
-		mat.name->Des().Format(KMatNameDefault, Materials.Count()+1);
-	}
-	else {
-		mat.name = HBufC::NewL(12);
-		_LIT(KMatName, "Material.%03d");
-		mat.name->Des().Format(KMatName, Materials.Count()+1);
-	}
-	Materials.Append(mat);
-}
-
 
 void CBlendersito::RemoveMaterial(){
 	//si no hay objetos
@@ -3745,7 +3702,6 @@ void CBlendersito::AddMesh( int modelo ){
 		}
 	}
 	else if (modelo == cubo){ 
-		Meshes.Append(pMesh);
     	pMesh.vertexSize = 24;
 		pMesh.vertex = new GLshort[pMesh.vertexSize*3];
 		pMesh.vertexColor = new GLubyte[pMesh.vertexSize*4];
@@ -3780,7 +3736,6 @@ void CBlendersito::AddMesh( int modelo ){
 		}
 	}	
 	else if (modelo == monkey){  
-		Meshes.Append(pMesh);
 		obj.rotZ = 180;
     	pMesh.vertexSize = MonkeyVertexSize;
 
@@ -3810,7 +3765,6 @@ void CBlendersito::AddMesh( int modelo ){
 		}
 	}
 	else if (modelo == vertice){
-		Meshes.Append(pMesh);
     	pMesh.vertexSize = 1;
 		pMesh.vertex = new GLshort[3];
 		pMesh.normals = new GLbyte[3];	
@@ -4141,6 +4095,68 @@ void CBlendersito::SetTexture(){
     redibujar = true;
 }
 
+void CBlendersito::NewMaterial(TBool reemplazar){
+	/*HBufC* inicialBuf = HBufC::NewLC(100);
+	_LIT(Kinicial, "Material.%03d");
+	inicialBuf->Des().Format(Kinicial, Materials.Count()+1);
+	
+	HBufC* tituloBuf = HBufC::NewLC(100);
+	_LIT(Ktitulo, "Ingrese el nombre del Material");
+	tituloBuf->Des().Copy(Ktitulo);
+	TPtr nombre = DialogText(inicialBuf, tituloBuf);
+	
+	HBufC* noteBuf = HBufC::NewLC(100);//textoingresado.AllocLC();
+	noteBuf->Des().Copy(textoingresado);
+	DialogAlert(noteBuf);
+	CleanupStack::PopAndDestroy(noteBuf);	
+	CleanupStack::PopAndDestroy(tituloBuf);	
+	CleanupStack::PopAndDestroy(inicialBuf);	*/
+	
+	Material mat;	
+	mat.specular[0] = mat.specular[1] = mat.specular[2] = mat.specular[3] = 0.3;
+	mat.diffuse[0] = mat.diffuse[1] = mat.diffuse[2] = mat.diffuse[3] = 1.0;
+	mat.emission[0] = mat.emission[1] = mat.emission[2] = mat.emission[3] = 0.0;
+	mat.textura = false;
+	mat.vertexColor = false;
+	mat.repeat = true;
+	mat.lighting = true;
+	mat.culling = true;
+	mat.transparent = false;
+	mat.interpolacion = lineal;
+	mat.textureID = 0;
+	if (Materials.Count() < 1){
+		mat.name = HBufC::NewL(15);
+		_LIT(KMatNameDefault, "DefaultMaterial");
+		mat.name->Des().Format(KMatNameDefault, Materials.Count()+1);
+	}
+	else {
+		mat.name = HBufC::NewL(12);
+		_LIT(KMatName, "Material.%03d");
+		mat.name->Des().Format(KMatName, Materials.Count()+1);
+	}
+	Materials.Append(mat);
+
+	
+	//si no hay objetos
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[SelectActivo];
+	//si no es un mesh
+	if (obj.type != mesh || !obj.seleccionado){return;}		
+	Mesh& pMesh = Meshes[obj.Id];
+
+	if (reemplazar){
+		HBufC* noteBuf = HBufC::NewLC(100);
+		_LIT(KFormatString, "Old Material 1 to %d");
+		noteBuf->Des().Format(KFormatString, pMesh.facesGroup.Count());
+		TInt OldMaterialID = 1;
+		if (pMesh.facesGroup.Count() > 1){
+			OldMaterialID = DialogNumber(1, 1, pMesh.facesGroup.Count(), noteBuf);
+		}
+		pMesh.facesGroup[OldMaterialID-1].material = Materials.Count()-1;
+	}
+	redibujar = true;
+}
+
 void CBlendersito::SetMaterial(){
 	//si no hay objetos
 	if (Objects.Count() < 1){return;}	
@@ -4153,7 +4169,10 @@ void CBlendersito::SetMaterial(){
 	HBufC* noteBuf = HBufC::NewLC(100);
 	_LIT(KFormatString, "Old Material 1 to %d");
 	noteBuf->Des().Format(KFormatString, pMesh.facesGroup.Count());
-	TInt OldMaterialID = DialogNumber(1, 1, pMesh.facesGroup.Count(), noteBuf);
+	TInt OldMaterialID = 1;
+	if (pMesh.facesGroup.Count() > 1){
+		OldMaterialID = DialogNumber(1, 1, pMesh.facesGroup.Count(), noteBuf);
+	}
 	
 	if (OldMaterialID > pMesh.facesGroup.Count() || 1 > OldMaterialID){		
 		noteBuf->Des().Copy(_L("Indice invalido"));	
@@ -4227,8 +4246,66 @@ void CBlendersito::DuplicatedObject(){
 		}
 		Collection.Append(nuevoindice);
 		//si es un mesh
-		if (obj.type == mesh){
-			Mesh& originalMesh = Meshes[obj.Id];
+		if (obj.type == mesh){			
+			Mesh tempMesh;	
+			EdgesGroup TempEdgesGroups;
+			TempEdgesGroups.faces.ReserveL(0);
+			TempEdgesGroups.seleccionado = false;
+			FacesGroup tempFaceGroup;
+			tempFaceGroup.startDrawn = 0;
+			tempMesh.edgesDrawnSize = 0;
+			tempFaceGroup.material = 0;
+			tempMesh.edges = NULL;	
+			tempMesh.smooth = true;
+			tempMesh.vertexGroupUI = NULL;
+			tempMesh.vertexGroupUIcolor = NULL;
+			tempMesh.SelectActivo = 0;
+			tempMesh.SelectCount = 0;
+			tempMesh.SelectEdgesCount = 0;
+			Meshes.Append(tempMesh);
+			obj.Id = Meshes.Count()-1;
+			Mesh& pMesh = Meshes[obj.Id];
+			
+			Meshes.Append(pMesh);
+			pMesh.vertexSize = 24;
+			pMesh.vertex = new GLshort[pMesh.vertexSize*3];
+			pMesh.vertexColor = new GLubyte[pMesh.vertexSize*4];
+			pMesh.normals = new GLbyte[pMesh.vertexSize*3];
+			pMesh.uv = new GLfloat[pMesh.vertexSize*2];
+
+			for (int i = 0; i < pMesh.vertexSize*3; i++) {
+				pMesh.vertex[i] = CuboVertices[i];
+				pMesh.normals[i] = CuboNormals[i];
+			}
+			for (int i = 0; i < pMesh.vertexSize*4; i++) {
+				pMesh.vertexColor[i] = 255;
+			}
+			for (int i = 0; i < pMesh.vertexSize*2; i++) {
+				//pMesh.uv[i] = (GLfloat)((CuboUV[i]+128)/255)*1280;
+				pMesh.uv[i] = (GLfloat)CuboUV[i];
+			}
+
+			pMesh.facesCount = tempFaceGroup.count = 12;
+			pMesh.facesCountIndices = tempFaceGroup.indicesDrawnCount = 36;
+
+			pMesh.faces = new GLushort[tempFaceGroup.indicesDrawnCount];
+			for (int i = 0; i < tempFaceGroup.indicesDrawnCount; i++) {
+				pMesh.faces[i] = CuboTriangles[i];
+			}
+			//bordes
+			pMesh.edgesGroups.ReserveL(CuboEdgesSize/2);
+			for(int a=0; a < CuboEdgesSize/2; a++){
+				TempEdgesGroups.indicesA = CuboBordes[a*2];
+				TempEdgesGroups.indicesB = CuboBordes[a*2+1];	
+				pMesh.edgesGroups.Append(TempEdgesGroups);		
+			}			
+
+			//creamos el objeto y le asignamos la mesh	
+			Meshes[obj.Id].facesGroup.Append(tempFaceGroup);
+			Meshes[obj.Id].AgruparVertices();
+			Meshes[obj.Id].RecalcularBordes();
+
+			/*Mesh& originalMesh = Meshes[obj.Id];
 			Meshes.Append(originalMesh);
 			Objects[nuevoindice].Id = Meshes.Count()-1;
 			Mesh& NewMesh = Meshes[Objects[nuevoindice].Id];
@@ -4241,6 +4318,20 @@ void CBlendersito::DuplicatedObject(){
 			NewMesh.edges = new GLushort[originalMesh.edgesDrawnSize];
 			NewMesh.vertexGroupUI = new GLshort[originalMesh.vertexGroups.Count()*3];			
 			NewMesh.vertexGroupUIcolor = new GLubyte[originalMesh.vertexGroups.Count()*4];
+
+			TInt facesGroupCount = originalMesh.facesGroup.Count();
+			NewMesh.facesGroup.Close();
+			NewMesh.facesGroup.ReserveL(facesGroupCount);
+			FacesGroup NewFacesGroup;	
+			for(TInt fg=0; fg < facesGroupCount; fg++){
+				NewMesh.facesGroup.Append(NewFacesGroup);	
+				FacesGroup& NewMeshTest = NewMesh.facesGroup[fg];
+				NewMeshTest.start = originalMesh.facesGroup[fg].start;
+				NewMeshTest.count = originalMesh.facesGroup[fg].count;
+				NewMeshTest.startDrawn = originalMesh.facesGroup[fg].startDrawn;
+				NewMeshTest.indicesDrawnCount = originalMesh.facesGroup[fg].indicesDrawnCount;
+				NewMeshTest.material = originalMesh.facesGroup[fg].material;	
+			}
 
 			TInt vertexGroupsCount = originalMesh.vertexGroups.Count();
 
@@ -4269,7 +4360,7 @@ void CBlendersito::DuplicatedObject(){
 			}
 			for(TInt a=0; a < NewMesh.vertexSize*2; a++){
 				NewMesh.uv[a] = originalMesh.uv[a];
-			}
+			}*/
 		}
 	}
 	SetPosicion();

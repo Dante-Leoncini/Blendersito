@@ -668,7 +668,7 @@ void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
             iAppContainer->iBlendersito->AddModificador(screw);
             break;             
         case ENewMaterial:
-            iAppContainer->iBlendersito->NewMaterial();
+            iAppContainer->iBlendersito->NewMaterial(true);
             break;
         case ENewTexture:
             iAppContainer->iBlendersito->NewTexture();
