@@ -206,7 +206,11 @@ RESOURCE MENU_PANE r_transform_menu {
         MENU_ITEM {
             command = EDuplicate;
             txt = STRING_r_Duplicate;
-        }
+        },
+        MENU_ITEM {
+            command = ESelectInvert;
+            txt = STRING_r_ESelectInvert;
+        }        
     };
 }
 

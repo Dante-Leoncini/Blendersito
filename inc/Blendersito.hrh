@@ -19,6 +19,8 @@ enum TBlendersitoMenuCommands
     EBlendersitoCambiarObject,
     EBlendersitoNavegacion,
     EBlendersitoBorrar,
+
+    ESelectInvert,
     
     EMaterial,
     ESetMaterial,

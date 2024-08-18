@@ -658,6 +658,9 @@ void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
         case EBlendersitoCambiarObject:
             iAppContainer->iBlendersito->changeSelect();
             break; 
+        case ESelectInvert:
+            iAppContainer->iBlendersito->InvertirSeleccion();
+            break; 
         case EBlendersitoModificadorArray:
             iAppContainer->iBlendersito->AddModificador(array);
             break; 

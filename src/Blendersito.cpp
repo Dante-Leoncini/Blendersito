@@ -2076,6 +2076,7 @@ void CBlendersito::InvertirSeleccion(){
 		for(int vg=0; vg < pMesh.vertexGroups.Count(); vg++){
 			pMesh.VertexSelect(vg, !pMesh.vertexGroups[vg].seleccionado);
 		}	
+		pMesh.SelectActivo = -1;
 		pMesh.UpdateVertexColorsUI();	
 	}
 	redibujar = true;
