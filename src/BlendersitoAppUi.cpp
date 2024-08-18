@@ -315,9 +315,6 @@ TKeyResponse CBlendersitoAppUi::HandleKeyEventL(const TKeyEvent& aKeyEvent, TEve
                 case(82): //R
                     iAppContainer->iBlendersito->SetRotacion();
                     return EKeyWasConsumed;
-                case(83): //S
-                    iAppContainer->iBlendersito->SetEscala();
-                    return EKeyWasConsumed;
                 case(81): //Q
                     iAppContainer->iBlendersito->Cancelar();
                     return EKeyWasConsumed;

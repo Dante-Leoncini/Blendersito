@@ -2729,6 +2729,14 @@ void CBlendersito::EventKeyDown(TInt scan){
 				ShiftCount = 40;
 				FlipNormals();			
 			}
+			break;			
+		case(83): //S
+			if (iAltPressed && InteractionMode == EditMode){
+				CalcShrinkFattenVectors();
+			}
+			else {
+				SetEscala();
+			}
 			break;
 		case(88): //X
 			if (estado != editNavegacion){
