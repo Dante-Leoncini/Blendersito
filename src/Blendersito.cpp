@@ -101,6 +101,8 @@ enum{
 };
 
 //Piso
+
+GLfloat ClearColor[3] = {0.23f, 0.23f, 0.23f};
 static const GLfloat LineaPiso[4]  =      { MATERIALCOLOR(0.29, 0.29, 0.29, 1.0) };
 static const GLfloat LineaPisoRoja[4]  =  { MATERIALCOLOR(0.56, 0.23, 0.28, 1.0) };
 static const GLfloat LineaPisoVerde[4]  = { MATERIALCOLOR(0.38, 0.53, 0.15, 1.0) };
@@ -583,7 +585,7 @@ void CBlendersito::AppInit( void ){
 	SetScreenSize( iScreenWidth, iScreenHeight );
 
     // Set the screen background color.
-	glClearColor( 0.23f, 0.23f, 0.23f, 1.f );
+	glClearColor( ClearColor[0], ClearColor[1], ClearColor[2], 1.f );
 
     // Enable depth testing, texturing, back face culling, and lighting.
     glEnable( GL_DEPTH_TEST );
@@ -860,7 +862,7 @@ void CBlendersito::RenderMesh( Object& obj, TInt indice ){
 	
 	//se usa el GL_POLYGON_OFFSET_FILL para el modo solido, render o material si no esta en modo edicion
 	//esto dibuja el contorno con una linea mas gruesa
-	if (view != Wireframe && InteractionMode != EditMode){
+	if (view != Wireframe && InteractionMode != EditMode && showOutlineSelect){
 		glPolygonOffset(1.0, 40.0);
 		glLineWidth(4);	 
 		glDisable(GL_COLOR_MATERIAL);
@@ -1628,9 +1630,13 @@ void CBlendersito::DrawTransformAxis(Object& obj) {
 	glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
 	glLineWidth(2);	
 	//if (estado != editNavegacion){
-		glTranslatef(TransformPivotPoint[0]*obj.scaleX/65000, 
+		/*glTranslatef(TransformPivotPoint[0]*obj.scaleX/65000, 
 					 TransformPivotPoint[1]*obj.scaleY/65000, 
 					 TransformPivotPoint[2]*obj.scaleZ/65000
+		);	*/	
+		glTranslatef(TransformPivotPoint[0]/65000, 
+					 TransformPivotPoint[1]/65000, 
+					 TransformPivotPoint[2]/65000
 		);			
 	//}
 	if (axisSelect == X){
@@ -4312,63 +4318,6 @@ void CBlendersito::DuplicatedObject(){
 
 			pMesh.AgruparVertices();
 			pMesh.RecalcularBordes();
-
-			/*Mesh& originalMesh = Meshes[obj.Id];
-			Meshes.Append(originalMesh);
-			Objects[nuevoindice].Id = Meshes.Count()-1;
-			Mesh& NewMesh = Meshes[Objects[nuevoindice].Id];
-
-			NewMesh.vertex = new GLshort[originalMesh.vertexSize*3];
-			NewMesh.normals = new GLbyte[originalMesh.vertexSize*3];
-			NewMesh.vertexColor = new GLubyte[originalMesh.vertexSize*4];
-			NewMesh.uv = new GLfloat[originalMesh.vertexSize*2];	
-			NewMesh.faces = new GLushort[originalMesh.facesCountIndices];
-			NewMesh.edges = new GLushort[originalMesh.edgesDrawnSize];
-			NewMesh.vertexGroupUI = new GLshort[originalMesh.vertexGroups.Count()*3];			
-			NewMesh.vertexGroupUIcolor = new GLubyte[originalMesh.vertexGroups.Count()*4];
-
-			TInt facesGroupCount = originalMesh.facesGroup.Count();
-			NewMesh.facesGroup.Close();
-			NewMesh.facesGroup.ReserveL(facesGroupCount);
-			FacesGroup NewFacesGroup;	
-			for(TInt fg=0; fg < facesGroupCount; fg++){
-				NewMesh.facesGroup.Append(NewFacesGroup);	
-				FacesGroup& NewMeshTest = NewMesh.facesGroup[fg];
-				NewMeshTest.start = originalMesh.facesGroup[fg].start;
-				NewMeshTest.count = originalMesh.facesGroup[fg].count;
-				NewMeshTest.startDrawn = originalMesh.facesGroup[fg].startDrawn;
-				NewMeshTest.indicesDrawnCount = originalMesh.facesGroup[fg].indicesDrawnCount;
-				NewMeshTest.material = originalMesh.facesGroup[fg].material;	
-			}
-
-			TInt vertexGroupsCount = originalMesh.vertexGroups.Count();
-
-			for(TInt f=0; f < vertexGroupsCount*3; f++){
-				NewMesh.vertexGroupUI[f] = originalMesh.vertexGroupUI[f];		
-			}
-
-			for(TInt f=0; f < vertexGroupsCount*4; f++){
-				NewMesh.vertexGroupUIcolor[f] = originalMesh.vertexGroupUIcolor[f];		
-			}
-
-			for(TInt f=0; f < originalMesh.facesCountIndices; f++){
-				NewMesh.faces[f] = originalMesh.faces[f];			
-			}
-
-			for(TInt e=0; e < originalMesh.edgesDrawnSize; e++){
-				NewMesh.edges[e] = originalMesh.edges[e];			
-			}
-			
-			for(TInt a=0; a < NewMesh.vertexSize*3; a++){
-				NewMesh.vertex[a] = originalMesh.vertex[a];
-				NewMesh.normals[a] = originalMesh.normals[a];
-			}		
-			for(TInt a=0; a < NewMesh.vertexSize*4; a++){
-				NewMesh.vertexColor[a] = originalMesh.vertexColor[a];
-			}
-			for(TInt a=0; a < NewMesh.vertexSize*2; a++){
-				NewMesh.uv[a] = originalMesh.uv[a];
-			}*/
 		}
 	}
 	SetPosicion();
@@ -4476,6 +4425,23 @@ void CBlendersito::SetAmbientLight(){
 		glLightModelfv( GL_LIGHT_MODEL_AMBIENT, AmbientRender );
 	}
     redibujar = true;
+}
+
+void CBlendersito::SetViewportBackgroudColor(){
+	HBufC* noteBuf = HBufC::NewLC(100);
+	noteBuf->Des().Copy(_L("Red (0 - 100)"));
+	TInt valor = DialogNumber((TInt)(ClearColor[0]*100.f), 0, 100, noteBuf);
+	ClearColor[0] = (GLfloat)valor/100.0f;
+    redibujar = true;	
+	noteBuf->Des().Copy(_L("Green (0 - 100)"));
+	valor = DialogNumber((TInt)(ClearColor[1]*100.f), 0, 100, noteBuf);
+	ClearColor[1] = (GLfloat)valor/100.0f;
+    redibujar = true;	
+	noteBuf->Des().Copy(_L("Blue (0 - 100)"));
+	valor = DialogNumber((TInt)(ClearColor[2]*100.f), 0, 100, noteBuf);
+	ClearColor[2] = (GLfloat)valor/100.0f;
+	CleanupStack::PopAndDestroy(noteBuf);
+    redibujar = true;		
 }
 
 void CBlendersito::SetDiffuse(){

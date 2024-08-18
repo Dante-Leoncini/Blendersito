@@ -566,6 +566,11 @@ RESOURCE MENU_PANE r_viewport_overley_menu{
         {
             command = EBlendersitoWidescreen;
             txt = STRING_r_blendersito_widescreen_on;
+        },        
+        MENU_ITEM
+        {
+            command = EViewportBackgroudColor;
+            txt = STRING_r_ViewportBackgroudColor;
         }	  
     };
 }

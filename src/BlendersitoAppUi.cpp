@@ -487,6 +487,9 @@ void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
         case EBlendersitoWidescreen:
             iAppContainer->SetWidescreen();
             break;    
+        case EViewportBackgroudColor:
+            iAppContainer->iBlendersito->SetViewportBackgroudColor();
+            break;    
         case EViewportCursorToSelect:
             iAppContainer->iBlendersito->CursorToSelect();
             break;

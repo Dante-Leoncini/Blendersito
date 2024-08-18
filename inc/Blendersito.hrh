@@ -86,6 +86,7 @@ enum TBlendersitoMenuCommands
     EBlendersitoModificadorMirror,
     EBlendersitoModificadorScrew,
 
+    EViewportBackgroudColor,
     EBlendersitoWidescreen,
     EImportOBJ,
     EOldImportOBJ,

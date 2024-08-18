@@ -112,6 +112,7 @@ rls_string STRING_r_blendersito_OrigenToCursor   "Origen al cursor 3D"
 
 rls_string STRING_r_blendersito_widescreen_on    "Pantalla Ancha on"
 rls_string STRING_r_blendersito_widescreen_off   "Pantalla Ancha off"
+rls_string STRING_r_ViewportBackgroudColor       "Backgroud Color"
 
 rls_string STRING_r_ImportOBJ     "Import Wavefront (.obj)"
 rls_string STRING_r_OldImportOBJ  "Old Import Wavefront (.obj)"

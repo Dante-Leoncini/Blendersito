@@ -124,6 +124,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void BorrarAnimaciones(TInt indice);
         void SeleccionarAnterior();
         void SeleccionarProximo();
+        void SetViewportBackgroudColor();
         
         void dibujarUI();
         void guardarEstado();
