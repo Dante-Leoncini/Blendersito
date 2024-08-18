@@ -4171,73 +4171,64 @@ void CBlendersito::EnfocarObject(){
 }
 
 
-void CBlendersito::DuplicatedObject(){	
-	//si no hay objetos
-	if (Objects.Count() < 1){return;}	
-	Object& obj = Objects[SelectActivo];
-	if (!obj.seleccionado){return;}
-	//si no es un mesh
-	if (obj.type == mesh){
-		Mesh& tempMesh = Meshes[obj.Id];
-		Meshes.Append(tempMesh);
-		Mesh& tempMesh2 = Meshes[Meshes.Count()-1];
-
-		Objects.Append(obj);
-
-		DeseleccionarTodo();
-		SelectActivo = Objects.Count()-1;
-		Objects[SelectActivo].seleccionado = true;
-		Objects[SelectActivo].Id = Meshes.Count()-1;
-		Collection.Append(SelectActivo);
-		SelectCount = 1;
-
-		//los punteros apuntan a la misma memoria que el mesh original. hay que cambiarlo
-		tempMesh2.vertex = new GLshort[tempMesh.vertexSize*3];
-		tempMesh2.normals = new GLbyte[tempMesh.vertexSize*3];
-		tempMesh2.vertexColor = new GLubyte[tempMesh.vertexSize*4];
-		tempMesh2.uv = new GLfloat[tempMesh.vertexSize*2];	
-		tempMesh2.faces = new GLushort[tempMesh.facesCountIndices];
-   		tempMesh2.edges = new GLushort[tempMesh.edgesDrawnSize];
-
-		tempMesh2.vertexGroupUI = new GLshort[tempMesh.vertexGroups.Count()*3];			
-		tempMesh2.vertexGroupUIcolor = new GLubyte[tempMesh.vertexGroups.Count()*4];
-
-		for(int f=0; f < tempMesh.vertexGroups.Count()*3; f++){
-			tempMesh2.vertexGroupUI[f] = tempMesh.vertexGroupUI[f];		
+void CBlendersito::DuplicatedObject(){		
+	TInt cantObjetosOriginal = Objects.Count();
+	for(TInt a=0; a < cantObjetosOriginal; a++){
+		Object& obj = Objects[a];
+		if (!obj.seleccionado){continue;};
+		Objects.Append(obj);	
+		obj.seleccionado = false;	
+		TInt nuevoindice = Objects.Count()-1;
+		if (SelectActivo == a){
+			SelectActivo = nuevoindice;
 		}
+		Collection.Append(nuevoindice);
+		//si es un mesh
+		if (obj.type == mesh){
+			Mesh& originalMesh = Meshes[obj.Id];
+			Meshes.Append(originalMesh);
+			Objects[nuevoindice].Id = Meshes.Count()-1;
+			Mesh& NewMesh = Meshes[Objects[nuevoindice].Id];
 
-		for(int f=0; f < tempMesh.vertexGroups.Count()*4; f++){
-			tempMesh2.vertexGroupUIcolor[f] = tempMesh.vertexGroupUIcolor[f];		
-		}
+			NewMesh.vertex = new GLshort[originalMesh.vertexSize*3];
+			NewMesh.normals = new GLbyte[originalMesh.vertexSize*3];
+			NewMesh.vertexColor = new GLubyte[originalMesh.vertexSize*4];
+			NewMesh.uv = new GLfloat[originalMesh.vertexSize*2];	
+			NewMesh.faces = new GLushort[originalMesh.facesCountIndices];
+			NewMesh.edges = new GLushort[originalMesh.edgesDrawnSize];
+			NewMesh.vertexGroupUI = new GLshort[originalMesh.vertexGroups.Count()*3];			
+			NewMesh.vertexGroupUIcolor = new GLubyte[originalMesh.vertexGroups.Count()*4];
 
-		for(int f=0; f < tempMesh.facesCountIndices; f++){
-			tempMesh2.faces[f] = tempMesh.faces[f];			
-		}
+			TInt vertexGroupsCount = originalMesh.vertexGroups.Count();
 
-		for(int e=0; e < tempMesh.edgesDrawnSize; e++){
-			tempMesh2.edges[e] = tempMesh.edges[e];			
-		}
-		
-		for(TInt a=0; a < tempMesh2.vertexSize*3; a++){
-			tempMesh2.vertex[a] = tempMesh.vertex[a];
-			tempMesh2.normals[a] = tempMesh.normals[a];
-		}		
-		for(TInt a=0; a < tempMesh2.vertexSize*4; a++){
-			tempMesh2.vertexColor[a] = tempMesh.vertexColor[a];
-		}
-		for(TInt a=0; a < tempMesh2.vertexSize*2; a++){
-			tempMesh2.uv[a] = tempMesh.uv[a];
+			for(TInt f=0; f < vertexGroupsCount*3; f++){
+				NewMesh.vertexGroupUI[f] = originalMesh.vertexGroupUI[f];		
+			}
+
+			for(TInt f=0; f < vertexGroupsCount*4; f++){
+				NewMesh.vertexGroupUIcolor[f] = originalMesh.vertexGroupUIcolor[f];		
+			}
+
+			for(TInt f=0; f < originalMesh.facesCountIndices; f++){
+				NewMesh.faces[f] = originalMesh.faces[f];			
+			}
+
+			for(TInt e=0; e < originalMesh.edgesDrawnSize; e++){
+				NewMesh.edges[e] = originalMesh.edges[e];			
+			}
+			
+			for(TInt a=0; a < NewMesh.vertexSize*3; a++){
+				NewMesh.vertex[a] = originalMesh.vertex[a];
+				NewMesh.normals[a] = originalMesh.normals[a];
+			}		
+			for(TInt a=0; a < NewMesh.vertexSize*4; a++){
+				NewMesh.vertexColor[a] = originalMesh.vertexColor[a];
+			}
+			for(TInt a=0; a < NewMesh.vertexSize*2; a++){
+				NewMesh.uv[a] = originalMesh.uv[a];
+			}
 		}
 	}
-	else {
-		Objects.Append(obj);			
-		DeseleccionarTodo();
-		SelectActivo = Objects.Count()-1;
-		Objects[SelectActivo].seleccionado = true;
-		SelectCount = 1;
-		Collection.Append(SelectActivo);
-	}
-
     redibujar = true;
 }
 
