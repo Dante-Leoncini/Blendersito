@@ -885,7 +885,7 @@ void CBlendersito::RenderMesh( Object& obj, TInt indice ){
 
 		glDrawElements( GL_LINES, pMesh.edgesDrawnSize, GL_UNSIGNED_SHORT, pMesh.edges );
 	}
-	else if (obj.seleccionado && InteractionMode == EditMode && tipoSelect == vertexSelect && SelectActivo == indice){		
+	else if (obj.seleccionado && InteractionMode == EditMode && tipoSelect == vertexSelect && SelectActivo == indice && showOutlineSelect && showOverlays){		
 		glPolygonOffset(1.0, -1.0);
 		glEnableClientState( GL_COLOR_ARRAY );
 		glEnable(GL_COLOR_MATERIAL);
@@ -903,7 +903,7 @@ void CBlendersito::RenderMesh( Object& obj, TInt indice ){
 			glDrawArrays( GL_POINTS, pMesh.SelectActivo, 1 );	
 		}	
 	}
-	else {	
+	else if (view == Wireframe || showOutlineSelect && showOverlays) {	
 		glPolygonOffset(1.0, -1.0);
 		glDisable(GL_COLOR_MATERIAL);
 		glDisableClientState( GL_COLOR_ARRAY );
@@ -1409,7 +1409,7 @@ void CBlendersito::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 	}
 	else {
 		glDisable(GL_FOG);
-		glClearColor( 0.23f, 0.23f, 0.23f, 1.f );
+		glClearColor( ClearColor[0], ClearColor[1], ClearColor[2], 1.f );
 	}
 	
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
