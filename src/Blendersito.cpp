@@ -4251,10 +4251,8 @@ void CBlendersito::DuplicatedObject(){
 			EdgesGroup TempEdgesGroups;
 			TempEdgesGroups.faces.ReserveL(0);
 			TempEdgesGroups.seleccionado = false;
-			FacesGroup tempFaceGroup;
-			tempFaceGroup.startDrawn = 0;
+
 			tempMesh.edgesDrawnSize = 0;
-			tempFaceGroup.material = 0;
 			tempMesh.edges = NULL;	
 			tempMesh.smooth = true;
 			tempMesh.vertexGroupUI = NULL;
@@ -4263,47 +4261,57 @@ void CBlendersito::DuplicatedObject(){
 			tempMesh.SelectCount = 0;
 			tempMesh.SelectEdgesCount = 0;
 			Meshes.Append(tempMesh);
+			Mesh& originaMesh = Meshes[obj.Id];
 			obj.Id = Meshes.Count()-1;
 			Mesh& pMesh = Meshes[obj.Id];
 			
-			Meshes.Append(pMesh);
-			pMesh.vertexSize = 24;
+			pMesh.vertexSize = originaMesh.vertexSize;
 			pMesh.vertex = new GLshort[pMesh.vertexSize*3];
 			pMesh.vertexColor = new GLubyte[pMesh.vertexSize*4];
 			pMesh.normals = new GLbyte[pMesh.vertexSize*3];
 			pMesh.uv = new GLfloat[pMesh.vertexSize*2];
 
 			for (int i = 0; i < pMesh.vertexSize*3; i++) {
-				pMesh.vertex[i] = CuboVertices[i];
-				pMesh.normals[i] = CuboNormals[i];
+				pMesh.vertex[i] = originaMesh.vertex[i];
+				pMesh.normals[i] = originaMesh.normals[i];
 			}
 			for (int i = 0; i < pMesh.vertexSize*4; i++) {
-				pMesh.vertexColor[i] = 255;
+				pMesh.vertexColor[i] = originaMesh.vertexColor[i];
 			}
 			for (int i = 0; i < pMesh.vertexSize*2; i++) {
-				//pMesh.uv[i] = (GLfloat)((CuboUV[i]+128)/255)*1280;
-				pMesh.uv[i] = (GLfloat)CuboUV[i];
+				pMesh.uv[i] = originaMesh.uv[i];
 			}
 
-			pMesh.facesCount = tempFaceGroup.count = 12;
-			pMesh.facesCountIndices = tempFaceGroup.indicesDrawnCount = 36;
+			pMesh.facesCount = originaMesh.facesCount;
+			pMesh.facesCountIndices = originaMesh.facesCountIndices;
 
-			pMesh.faces = new GLushort[tempFaceGroup.indicesDrawnCount];
-			for (int i = 0; i < tempFaceGroup.indicesDrawnCount; i++) {
-				pMesh.faces[i] = CuboTriangles[i];
+			pMesh.faces = new GLushort[pMesh.facesCountIndices];
+			for (int i = 0; i < pMesh.facesCountIndices; i++) {
+				pMesh.faces[i] = originaMesh.faces[i];
 			}
 			//bordes
-			pMesh.edgesGroups.ReserveL(CuboEdgesSize/2);
-			for(int a=0; a < CuboEdgesSize/2; a++){
-				TempEdgesGroups.indicesA = CuboBordes[a*2];
-				TempEdgesGroups.indicesB = CuboBordes[a*2+1];	
+			pMesh.edgesGroups.Close();
+			pMesh.edgesGroups.ReserveL(originaMesh.edgesGroups.Count());
+			for(TInt i=0; i < originaMesh.edgesGroups.Count(); i++){
+				TempEdgesGroups.indicesA = originaMesh.edgesGroups[i].indicesA;
+				TempEdgesGroups.indicesB = originaMesh.edgesGroups[i].indicesB;	
 				pMesh.edgesGroups.Append(TempEdgesGroups);		
 			}			
 
 			//creamos el objeto y le asignamos la mesh	
-			Meshes[obj.Id].facesGroup.Append(tempFaceGroup);
-			Meshes[obj.Id].AgruparVertices();
-			Meshes[obj.Id].RecalcularBordes();
+			FacesGroup tempFaceGroup;
+			pMesh.facesGroup.Close();
+			pMesh.facesGroup.ReserveL(originaMesh.facesGroup.Count());
+			for (TInt i = 0; i < originaMesh.facesGroup.Count(); i++) {
+				tempFaceGroup.startDrawn = originaMesh.facesGroup[i].startDrawn;
+				tempFaceGroup.material = originaMesh.facesGroup[i].material;
+				tempFaceGroup.count = originaMesh.facesGroup[i].count;
+				tempFaceGroup.indicesDrawnCount = originaMesh.facesGroup[i].indicesDrawnCount;
+				pMesh.facesGroup.Append(tempFaceGroup);
+			}
+
+			pMesh.AgruparVertices();
+			pMesh.RecalcularBordes();
 
 			/*Mesh& originalMesh = Meshes[obj.Id];
 			Meshes.Append(originalMesh);
