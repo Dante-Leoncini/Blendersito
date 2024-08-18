@@ -212,6 +212,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void RenderMesh( Object& obj, TInt indice );
         void EventKeyDown(TInt scan);
         void VerOpciones();
+        void InvertirSeleccion();
 
         void calculateReflectionUVs(Mesh& pMesh);
         void createRotationMatrix(GLfloat pitch, GLfloat yaw, GLfloat* matrix);

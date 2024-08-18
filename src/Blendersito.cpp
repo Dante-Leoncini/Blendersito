@@ -2062,6 +2062,25 @@ void CBlendersito::SeleccionarProximo(){
 	redibujar = true;
 }
 
+void CBlendersito::InvertirSeleccion(){
+	if (InteractionMode == ObjectMode){
+		for(int o=0; o < Objects.Count(); o++){
+			Objects[o].seleccionado = !Objects[o].seleccionado;
+		}
+	}
+	else if (InteractionMode == EditMode){
+		Object& obj = Objects[SelectActivo];
+		if (obj.type != mesh){return;}
+		Mesh& pMesh = Meshes[obj.Id];	
+
+		for(int vg=0; vg < pMesh.vertexGroups.Count(); vg++){
+			pMesh.VertexSelect(vg, !pMesh.vertexGroups[vg].seleccionado);
+		}	
+		pMesh.UpdateVertexColorsUI();	
+	}
+	redibujar = true;
+}
+
 void CBlendersito::SeleccionarTodo(){
 	TBool TodoSeleccionado = true;
 	if (InteractionMode == ObjectMode){
@@ -2696,6 +2715,11 @@ void CBlendersito::EventKeyDown(TInt scan){
 			break;
 		case(69): //E
 			Extrude();
+			break;
+		case(73): //I
+			if (iCtrlPressed){
+				InvertirSeleccion();	
+			}
 			break;
 		case(78): //N
 			if (iShiftPressed){
@@ -4171,7 +4195,8 @@ void CBlendersito::EnfocarObject(){
 }
 
 
-void CBlendersito::DuplicatedObject(){		
+void CBlendersito::DuplicatedObject(){	
+	if (estado != editNavegacion || InteractionMode != ObjectMode){return;};	
 	TInt cantObjetosOriginal = Objects.Count();
 	for(TInt a=0; a < cantObjetosOriginal; a++){
 		Object& obj = Objects[a];
@@ -4229,10 +4254,12 @@ void CBlendersito::DuplicatedObject(){
 			}
 		}
 	}
+	SetPosicion();
     redibujar = true;
 }
 
 void CBlendersito::DuplicatedLinked(){
+	if (estado != editNavegacion || InteractionMode != ObjectMode){return;};
 	TInt cantObjetosOriginal = Objects.Count();
 	for(TInt a=0; a < cantObjetosOriginal; a++){
 		Object& obj = Objects[a];
@@ -4245,6 +4272,7 @@ void CBlendersito::DuplicatedLinked(){
 		}
 		Collection.Append(nuevoindice);
 	}
+	SetPosicion();
     redibujar = true;
 }
 
