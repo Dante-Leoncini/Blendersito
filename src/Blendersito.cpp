@@ -309,8 +309,10 @@ void CBlendersito::changeSelect(){
 		}
 		else {*/
 		//deselecciona solo el que estaba seleccionado
-		pMesh.VertexSelect(pMesh.SelectActivo, false);
-		pMesh.UpdateVertexColorUI(pMesh.SelectActivo);
+		if (pMesh.SelectActivo > -1){
+			pMesh.VertexSelect(pMesh.SelectActivo, false);
+			pMesh.UpdateVertexColorUI(pMesh.SelectActivo);			
+		}
 		//}
 
 		pMesh.SelectActivo++;
