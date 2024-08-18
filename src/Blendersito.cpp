@@ -3319,7 +3319,14 @@ void CBlendersito::Borrar(){
 		if (Objects.Count() < 1){return;}
 
 		//si no hay nada seleccionado. no borra
-		if (!Objects[SelectActivo].seleccionado){return;}
+		TBool algoSeleccionado = false;
+		for (TInt o = Objects.Count() - 1; o >= 0; o--) {
+			if (Objects[o].seleccionado){
+				algoSeleccionado = true;
+				break;	
+			}		
+		}
+		if (!algoSeleccionado){return;}
 		//pregunta de confirmacion
 		HBufC* noteBuf = HBufC::NewLC(100);
 		_LIT(KStaticErrorMessage, "Delete?");
