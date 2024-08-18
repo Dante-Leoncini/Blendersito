@@ -1628,17 +1628,20 @@ void CBlendersito::SearchSelectObj(Object& obj, TInt objIndex, TBool& found) {
 void CBlendersito::DrawTransformAxis(Object& obj) {
 	glPushMatrix();    
 	glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
-	glLineWidth(2);	
-	//if (estado != editNavegacion){
-		/*glTranslatef(TransformPivotPoint[0]*obj.scaleX/65000, 
+	glLineWidth(2);
+		
+	if (InteractionMode == EditMode){
+		glTranslatef(TransformPivotPoint[0]*obj.scaleX/65000, 
 					 TransformPivotPoint[1]*obj.scaleY/65000, 
 					 TransformPivotPoint[2]*obj.scaleZ/65000
-		);	*/	
+		);
+	}
+	else {	
 		glTranslatef(TransformPivotPoint[0]/65000, 
-					 TransformPivotPoint[1]/65000, 
-					 TransformPivotPoint[2]/65000
-		);			
-	//}
+						TransformPivotPoint[1]/65000, 
+						TransformPivotPoint[2]/65000
+		);	
+	}
 	if (axisSelect == X){
 		glColor4f(ColorTransformX[0],ColorTransformX[1],ColorTransformX[2],ColorTransformX[3]);
 		glDrawElements( GL_LINES, 2, GL_UNSIGNED_SHORT, EjeRojo );				
