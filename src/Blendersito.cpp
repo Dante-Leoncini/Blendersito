@@ -272,7 +272,8 @@ RArray<Animation> Animations;
 TInt tipoSelect = vertexSelect;
 TInt SelectActivo = 0;
 TInt SelectCount = 0;
-TInt TransformPivotPoint[3] = {0,0,0};
+GLshort TransformPivotPoint[3] = {0,0,0};
+GLfloat TransformPivotPointFloat[3] = {0.0f,0.0f,0.0f};
 FlechaEstado* flechasEstados;
 
 void CBlendersito::changeSelect(){
@@ -1639,9 +1640,9 @@ void CBlendersito::DrawTransformAxis(Object& obj) {
 		);
 	}
 	else {	
-		glTranslatef(TransformPivotPoint[0]/65000, 
-						TransformPivotPoint[1]/65000, 
-						TransformPivotPoint[2]/65000
+		glTranslatef(TransformPivotPointFloat[0]/65000, 
+					 TransformPivotPointFloat[1]/65000, 
+					 TransformPivotPointFloat[2]/65000
 		);	
 	}
 	if (axisSelect == X){
@@ -2880,13 +2881,13 @@ void CBlendersito::ReestablecerEstado(){
 
 
 void CBlendersito::SetTransformPivotPoint(){	
-	Object& obj = Objects[SelectActivo];
-	Mesh& pMesh = Meshes[obj.Id];
 	if (InteractionMode == EditMode){
+		Object& obj = Objects[SelectActivo];
+		Mesh& pMesh = Meshes[obj.Id];
 		TInt Encontrados = 0;
-		TInt TempTransformPivotPointX = 0;
-		TInt TempTransformPivotPointY = 0;
-		TInt TempTransformPivotPointZ = 0;
+		GLshort TempTransformPivotPointX = 0;
+		GLshort TempTransformPivotPointY = 0;
+		GLshort TempTransformPivotPointZ = 0;
 		for(int i=0; i < pMesh.vertexGroups.Count(); i++){
 			if (pMesh.vertexGroups[i].seleccionado){
 				Encontrados++;
@@ -2902,10 +2903,23 @@ void CBlendersito::SetTransformPivotPoint(){
 		TransformPivotPoint[2] = TempTransformPivotPointZ/Encontrados;
 	}
 	else if (InteractionMode == ObjectMode){
-		TransformPivotPoint[0] = TransformPivotPoint[1] = TransformPivotPoint[2] = 0;
-		TransformPivotPoint[0] = obj.posX;
-		TransformPivotPoint[1] = obj.posY;
-		TransformPivotPoint[2] = obj.posZ;
+		TransformPivotPointFloat[0] = 0.0f;
+		TransformPivotPointFloat[1] = 0.0f;
+		TransformPivotPointFloat[2] = 0.0f;
+			
+		Object& obj = Objects[SelectActivo];	
+		TransformPivotPointFloat[0] += obj.posX;///65000;
+		TransformPivotPointFloat[1] += obj.posY;///65000;
+		TransformPivotPointFloat[2] += obj.posZ;///65000;	
+
+		TInt ParentID = obj.Parent;
+		while (ParentID  > -1) {		
+    		Object& parentObj = Objects[ParentID];
+			TransformPivotPointFloat[0] += parentObj.posX;
+			TransformPivotPointFloat[1] += parentObj.posY;
+			TransformPivotPointFloat[2] += parentObj.posZ;	
+    		ParentID = parentObj.Parent;		
+		}
 	}
 }
 
@@ -4259,16 +4273,22 @@ void CBlendersito::EnfocarObject(){
 	//si no hay objetos
 	if (Objects.Count() < 1){return;}
 	SetTransformPivotPoint();	
+	PivotX = 0.0f; 
+	PivotY = 0.0f;
+	PivotZ = 0.0f;
 	if (InteractionMode == EditMode){
 		Object& obj = Objects[SelectActivo];
 		PivotX = -TransformPivotPoint[0]*obj.scaleX/65000; 
 		PivotY = -TransformPivotPoint[2]*obj.scaleY/65000;
 		PivotZ = -TransformPivotPoint[1]*obj.scaleZ/65000;
+		PivotX -= obj.posX;
+		PivotY -= obj.posY;
+		PivotZ -= obj.posZ;
 	}
 	else if (InteractionMode == ObjectMode){
-		PivotX = -TransformPivotPoint[0]; 
-		PivotY = -TransformPivotPoint[1];
-		PivotZ = -TransformPivotPoint[2];
+		PivotX = PivotX-TransformPivotPointFloat[0]; 
+		PivotY = PivotY-TransformPivotPointFloat[1];
+		PivotZ = PivotZ-TransformPivotPointFloat[2];
 	}
     redibujar = true;
 }
