@@ -14,6 +14,11 @@ static GLshort LineaLinkChild[LineaLightVertexSize] = {
     0, 30000, 0,
 };
 
+static GLfloat lineUV[4] = {
+    0.0f,  0.0f,
+    0.0f,  0.0f
+};
+
 static const GLshort LineaTimeline[6] = {    
     0, 0, 0,
     0, 16, 0,

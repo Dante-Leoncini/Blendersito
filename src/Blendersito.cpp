@@ -467,6 +467,7 @@ void CBlendersito::ConstructL( void ){
 	showOrigins = true;
 	PlayAnimation = false;
 	ShowTimeline = true;
+	ShowRelantionshipsLines = true;
 	iShiftPressed = false;
 	iAltPressed = false;
 	iCtrlPressed = false;
@@ -665,8 +666,9 @@ void CBlendersito::AppInit( void ){
 	_LIT( KLampTexture, "lamp.png" );		
 	_LIT( KCursor3dTextura, "cursor3d.png" );	
 	_LIT( KkeyframeTextura, "keyframe.png" );	
+	_LIT( KRelationshipLineTextura, "relationshipLine.png" );	
 	
-	NumTexturasBlendersito = 5;
+	NumTexturasBlendersito = 6;
 	Textures.ReserveL(NumTexturasBlendersito); // Reservar espacio para las texturas
 	for (TInt i = 0; i < NumTexturasBlendersito; ++i) {
 	    TTexture texture;
@@ -681,6 +683,7 @@ void CBlendersito::AppInit( void ){
 	iTextureManager->RequestToLoad( KLampTexture, fullFilePath, &Textures[2], false );
 	iTextureManager->RequestToLoad( KCursor3dTextura, fullFilePath, &Textures[3], false );
 	iTextureManager->RequestToLoad( KkeyframeTextura, fullFilePath, &Textures[4], false );
+	iTextureManager->RequestToLoad( KRelationshipLineTextura, fullFilePath, &Textures[5], false );
 	
 	//Start to load the textures.
 	iTextureManager->DoLoadL();
@@ -1050,6 +1053,7 @@ void CBlendersito::RenderObjectAndChildrens(TInt objId){
     glPopMatrix();
 }
 
+//Relantionshipslines
 void CBlendersito::RenderLinkLines(TInt objId){
 	Object& obj = Objects[objId];
     // Guardar la matriz actual
@@ -1067,6 +1071,15 @@ void CBlendersito::RenderLinkLines(TInt objId){
 		LineaLinkChild[3] = (GLshort)objChild.posX;
 		LineaLinkChild[4] = (GLshort)objChild.posZ;
 		LineaLinkChild[5] = (GLshort)objChild.posY;
+
+		// Calcular la distancia en 3D entre obj y objChild
+		GLfloat diffX = objChild.posX - obj.posX;
+        GLfloat diffY = objChild.posY - obj.posY;
+        GLfloat diffZ = objChild.posZ - obj.posZ;
+        GLfloat distancia = sqrt(diffX * diffX + diffY * diffY + diffZ * diffZ);
+        
+        // Usar la distancia escalada para modificar las coordenadas UV
+        lineUV[3] = distancia/8;
 		glVertexPointer( 3, GL_SHORT, 0, LineaLinkChild );
 		glDrawElements( GL_LINES, LineaEdgeSize, GL_UNSIGNED_SHORT, LineaEdge );
 				
@@ -1520,8 +1533,9 @@ void CBlendersito::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 			glFogf(GL_FOG_MODE, GL_LINEAR); // Tipo de niebla lineal
 			glFogf(GL_FOG_START, FRUSTUM_NEAR);  // Distancia inicial de la niebla
 			glFogf(GL_FOG_END, FRUSTUM_FAR);     // Distancia final de la niebla
-			GLfloat fogColor[] = {0.23f, 0.23f, 0.23f, 1.f};
-			glFogfv(GL_FOG_COLOR, fogColor); // Color de la niebla
+			//GLfloat fogColor[] = {0.23f, 0.23f, 0.23f, 1.f};
+			//glClearColor( ClearColor[0], ClearColor[1], ClearColor[2], 1.f );
+			glFogfv(GL_FOG_COLOR, ClearColor); // Color de la niebla
 			glLineWidth(1);	 
 
 			glVertexPointer( 3, GL_SHORT, 0, objVertexdataFloor );
@@ -1564,17 +1578,29 @@ void CBlendersito::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 				RenderObjectAndChildrens(Collection[o]);
 			}	 
 			//dibujar lineas parent		
-			glDisable( GL_DEPTH_TEST );	
-			glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);	
-			glLineWidth(3);	 	
-			for (int o = 0; o < Collection.Count(); o++) {
-				Object& obj = Objects[Collection[o]];
-				if (obj.Childrens.Count() > 0){
-					RenderLinkLines(Collection[o]);
+			if (ShowRelantionshipsLines){
+				glEnable( GL_TEXTURE_2D );
+				glEnable( GL_BLEND );
+				glDepthMask(GL_FALSE); // Desactiva la escritura en el Z-buffer				
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+				glTexCoordPointer( 2, GL_FLOAT, 0, lineUV ); //SpriteUvSize
+				glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);	
+				glBindTexture( GL_TEXTURE_2D, Textures[5].iID ); //selecciona la de linea punteada	
+				for (int o = 0; o < Collection.Count(); o++) {
+					Object& obj = Objects[Collection[o]];
+					if (obj.Childrens.Count() > 0){
+						RenderLinkLines(Collection[o]);
+					}
 				}
+				glDepthMask(GL_TRUE); // Reactiva la escritura en el Z-buffer		
 			}
-			glLineWidth(1);	 
 
+			glDisable( GL_DEPTH_TEST );	
+			glDisable( GL_BLEND );
+			glDisable( GL_TEXTURE_2D );
 			//dibuja los ejes de transformacion
 			if (estado == translacion || estado == VertexMove || estado == rotacion || estado == EditScale) {
 				for (TInt o = 0; o < Collection.Count(); o++) {
@@ -3525,14 +3551,22 @@ void CBlendersito::BorrarObjeto(TInt indice){
 	}*/
 	
 	// Actualizar indices en los objetos
-	for (int o = 0; o < Objects.Count(); o++) {
-		for (int c = Objects[o].Childrens.Count() - 1; c >= 0; c--) {
+	for (TInt o = 0; o < Objects.Count(); o++) {
+		for (TInt c = Objects[o].Childrens.Count() - 1; c >= 0; c--) {
 			if (Objects[o].Childrens[c].Id == indice) {
 				Objects[o].Childrens.Remove(c);
 			} 
 			else if (Objects[o].Childrens[c].Id > indice) {
 				Objects[o].Childrens[c].Id--;
 			}
+		}
+		//borra y actualiza los padres
+		if (Objects[o].Parent == indice){				
+			Objects[o].Parent = -1;
+			Collection.Append(o);
+		} 
+		else if (Objects[o].Parent > indice) {
+			Objects[o].Parent--;
 		}
 	}
 }
