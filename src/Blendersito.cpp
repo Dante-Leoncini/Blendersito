@@ -720,7 +720,9 @@ void CBlendersito::calculateReflectionUVs(Mesh& pMesh) {
 }
 
 void CBlendersito::RenderMesh( Object& obj, TInt indice ){
-	Mesh& pMesh = Meshes[obj.Id];
+	Mesh& pMesh = Meshes[obj.Id];	
+    glPushMatrix();
+    glScalex(obj.scaleX, obj.scaleZ, obj.scaleY);	
 		
 	glColor4f(ListaColores[blanco][0],ListaColores[blanco][1],ListaColores[blanco][2],ListaColores[blanco][3]);
 	glDisable(GL_COLOR_MATERIAL);
@@ -992,6 +994,7 @@ void CBlendersito::RenderMesh( Object& obj, TInt indice ){
 			//glDrawElements( GL_LINES, obj.edgesSize, GL_UNSIGNED_SHORT, obj.edges );	
 		}
 	};*/
+    glPopMatrix();
 }
 
 // Funcion recursiva para renderizar un objeto y sus hijos
@@ -1004,7 +1007,6 @@ void CBlendersito::RenderMeshAndChildren(Object& obj, TInt indice){
     glRotatef(obj.rotX, 1, 0, 0); // angulo, X Y Z
     glRotatef(obj.rotZ, 0, 1, 0); // angulo, X Y Z
     glRotatef(obj.rotY, 0, 0, 1); // angulo, X Y Z
-    glScalex(obj.scaleX, obj.scaleZ, obj.scaleY);	
 
     // Si es visible y es un mesh, lo dibuja
     if (obj.visible && obj.type == mesh) {
@@ -1013,7 +1015,7 @@ void CBlendersito::RenderMeshAndChildren(Object& obj, TInt indice){
     
     // Procesar cada hijo
     for (int c = 0; c < obj.Childrens.Count(); c++) {
-        Object& objChild = Objects[obj.Childrens[c]];
+        Object& objChild = Objects[obj.Childrens[c].Id];
         RenderMeshAndChildren(objChild, indice);
     }
 
@@ -1041,7 +1043,7 @@ void CBlendersito::RenderObjectAndChildrens(TInt objId){
     
     // Procesar cada hijo
     for (int c = 0; c < obj.Childrens.Count(); c++) {
-        RenderObjectAndChildrens(obj.Childrens[c]);
+        RenderObjectAndChildrens(obj.Childrens[c].Id);
     }
 
     // Restaurar la matriz previa
@@ -1618,8 +1620,8 @@ void CBlendersito::SearchSelectObj(Object& obj, TInt objIndex, TBool& found) {
 		glScalex(obj.scaleX, obj.scaleZ, obj.scaleY);	
         for (int c = 0; c < obj.Childrens.Count(); c++) {
             if (found) break;  // Si ya lo encontro, salir del bucle
-            Object& objChild = Objects[obj.Childrens[c]];
-            SearchSelectObj(objChild, obj.Childrens[c], found);
+            Object& objChild = Objects[obj.Childrens[c].Id];
+            SearchSelectObj(objChild, obj.Childrens[c].Id, found);
         }
     }
     glPopMatrix();
@@ -1679,17 +1681,19 @@ void CBlendersito::DibujarOrigen(Object& obj, TInt objIndex){
 		}
 		glVertexPointer( 3, GL_SHORT, 0, pointVertex );
 		glBindTexture( GL_TEXTURE_2D, Textures[0].iID ); //selecciona la textura
-		glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE );
+		glTexEnvi( GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE );    	
+		glPushMatrix();    		
+		glScalex(obj.scaleX, obj.scaleZ, obj.scaleY);	
 		glDrawArrays( GL_POINTS, 0, 1 );	
+    	glPopMatrix();
     } 
 	else if (obj.Childrens.Count() > 0){	
 		glRotatef(obj.rotX, 1, 0, 0); //angulo, X Y Z
 		glRotatef(obj.rotZ, 0, 1, 0); //angulo, X Y Z
 		glRotatef(obj.rotY, 0, 0, 1); //angulo, X Y Z
-		glScalex(obj.scaleX, obj.scaleZ, obj.scaleY);	
         for (int c = 0; c < obj.Childrens.Count(); c++) {
-            Object& objChild = Objects[obj.Childrens[c]];
-            DibujarOrigen(objChild, obj.Childrens[c]);
+            Object& objChild = Objects[obj.Childrens[c].Id];
+            DibujarOrigen(objChild, obj.Childrens[c].Id);
         }
     }
     glPopMatrix();
@@ -3198,23 +3202,53 @@ void CBlendersito::SetParent(){
 	ParentID = DialogNumber(1, 1, Objects.Count(), noteBuf);	
 	ParentID --;
 
-	//si se emparento a si mismo. falla
-	if (ParentID == SelectActivo){
-		noteBuf->Des().Copy(_L("El hijo y el padre son el mismo"));	
+	//si se emparento a si mismo. o hay un loopParent falla	
+	TBool error = false;
+	TInt ParentIDtest = ParentID;
+	while (ParentIDtest > -1) {
+		//_LIT(KFormatString2, "activo: %d\nParentID: %d");
+		//noteBuf->Des().Format(KFormatString2, SelectActivo, ParentIDtest);
+		//DialogAlert(noteBuf);
+		if (ParentIDtest == SelectActivo){
+			ParentIDtest = -1;
+			error = true;
+		}
+		else {
+			ParentIDtest = Objects[ParentIDtest].Parent;
+		}
+	}
+
+	if (error){
+		noteBuf->Des().Copy(_L("loop in parent"));	
 		MensajeError(noteBuf);
 		CleanupStack::PopAndDestroy(noteBuf);
 		return;
+	};
+
+	//si esta emparentado a algo. primero quita el parent
+	if (Objects[SelectActivo].Parent > -1){
+		ClearParent();
 	}
-	Objects[ParentID].Childrens.Append(SelectActivo);
-	/*Objects[SelectActivo].posX = Objects[SelectActivo].posX - Objects[ParentID].posX* 65000;
-	Objects[SelectActivo].posY = Objects[SelectActivo].posY - Objects[ParentID].posY* 65000;
-	Objects[SelectActivo].posZ = Objects[SelectActivo].posZ - Objects[ParentID].posZ* 65000;*/
-	/*Objects[SelectActivo].rotX = Objects[SelectActivo].rotX - Objects[ParentID].rotX;
-	Objects[SelectActivo].rotY = Objects[SelectActivo].rotY - Objects[ParentID].rotY;
-	Objects[SelectActivo].rotZ = Objects[SelectActivo].rotZ - Objects[ParentID].rotZ;*/
-	/*Objects[SelectActivo].scaleX = Objects[ParentID].scaleX / Objects[SelectActivo].scaleX * 65000;
-    Objects[SelectActivo].scaleY = Objects[ParentID].scaleY / Objects[SelectActivo].scaleY * 65000;
-    Objects[SelectActivo].scaleZ = Objects[ParentID].scaleZ / Objects[SelectActivo].scaleZ * 65000;*/
+	Objects[SelectActivo].Parent = ParentID;
+	
+	Children NewChildren;
+	NewChildren.Id = SelectActivo;
+	NewChildren.OriginalScaleX = Objects[SelectActivo].scaleX;
+	NewChildren.OriginalScaleY = Objects[SelectActivo].scaleY; 
+	NewChildren.OriginalScaleZ = Objects[SelectActivo].scaleZ;		
+	Objects[ParentID].Childrens.Append(NewChildren);
+
+	ParentIDtest = ParentID;
+	while (ParentIDtest > -1) {
+		Objects[SelectActivo].posX -= Objects[ParentIDtest].posX;
+		Objects[SelectActivo].posY -= Objects[ParentIDtest].posY;
+		Objects[SelectActivo].posZ -= Objects[ParentIDtest].posZ;
+
+		Objects[SelectActivo].rotX -= Objects[ParentIDtest].rotX;
+		Objects[SelectActivo].rotY -= Objects[ParentIDtest].rotY;
+		Objects[SelectActivo].rotZ -= Objects[ParentIDtest].rotZ;
+		ParentIDtest = Objects[ParentIDtest].Parent;
+	}
 
 	//si esta en la coleccion. lo borra
 	for(int c=0; c < Collection.Count(); c++){
@@ -3223,12 +3257,9 @@ void CBlendersito::SetParent(){
 			break;			
 		}
 	}
-	/*_LIT(KFormatString2, "coleccion %d");
-	noteBuf->Des().Format(KFormatString2, Collection.Count());
-	MensajeError(noteBuf);*/
 	CleanupStack::PopAndDestroy(noteBuf);
 	redibujar = true;
-};
+}
 
 void CBlendersito::ClearParent(){
 	if (Objects.Count() < 1){return;}
@@ -3244,7 +3275,7 @@ void CBlendersito::ClearParent(){
 	for(int o=0; o < Objects.Count(); o++){
 		TBool salirBucle = false;
 		for(int c=0; c < Objects[o].Childrens.Count(); c++){
-			if (Objects[o].Childrens[c] == SelectActivo){
+			if (Objects[o].Childrens[c].Id == SelectActivo){
 				Objects[o].Childrens.Remove(c);	
 				salirBucle = true;
 				break;
@@ -3445,11 +3476,11 @@ void CBlendersito::BorrarObjeto(TInt indice){
 	// Actualizar indices en los objetos
 	for (int o = 0; o < Objects.Count(); o++) {
 		for (int c = Objects[o].Childrens.Count() - 1; c >= 0; c--) {
-			if (Objects[o].Childrens[c] == indice) {
+			if (Objects[o].Childrens[c].Id == indice) {
 				Objects[o].Childrens.Remove(c);
 			} 
-			else if (Objects[o].Childrens[c] > indice) {
-				Objects[o].Childrens[c]--;
+			else if (Objects[o].Childrens[c].Id > indice) {
+				Objects[o].Childrens[c].Id--;
 			}
 		}
 	}
@@ -3480,6 +3511,7 @@ void CBlendersito::AddObject( TInt tipo ){
 	obj.posZ = Cursor3DposZ;
 	obj.rotX = obj.rotY = obj.rotZ = 0;
 	obj.scaleX = obj.scaleY = obj.scaleZ = 45000;
+	obj.Parent = -1;	
 	obj.Id = -0;
 	Objects.Append(obj);
 	Collection.Append(Objects.Count()-1);
@@ -3594,6 +3626,7 @@ void CBlendersito::AddMesh( int modelo ){
 	obj.rotX = obj.rotY = obj.rotZ = 0;
 	obj.scaleX = obj.scaleY = obj.scaleZ = 45000;
 	obj.Id = 0;
+	obj.Parent = -1;
 	
 	Mesh tempMesh;	
 	EdgesGroup TempEdgesGroups;
