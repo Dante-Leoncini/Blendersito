@@ -1035,7 +1035,6 @@ void CBlendersito::RenderObjectAndChildrens(TInt objId){
     glRotatef(obj.rotX, 1, 0, 0); // angulo, X Y Z
     glRotatef(obj.rotZ, 0, 1, 0); // angulo, X Y Z
     glRotatef(obj.rotY, 0, 0, 1); // angulo, X Y Z
-    glScalex(obj.scaleX, obj.scaleZ, obj.scaleY);	
 
     // Si es visible y no es un mesh, lo dibuja
     if (obj.visible && obj.type != mesh) {
@@ -1051,8 +1050,40 @@ void CBlendersito::RenderObjectAndChildrens(TInt objId){
     glPopMatrix();
 }
 
+void CBlendersito::RenderLinkLines(TInt objId){
+	Object& obj = Objects[objId];
+    // Guardar la matriz actual
+    glPushMatrix();
+    
+    // Aplicar las transformaciones del objeto
+    glTranslatef(obj.posX, obj.posZ, obj.posY);
+    glRotatef(obj.rotX, 1, 0, 0); // angulo, X Y Z
+    glRotatef(obj.rotZ, 0, 1, 0); // angulo, X Y Z
+    glRotatef(obj.rotY, 0, 0, 1); // angulo, X Y Z
+    
+    // Procesar cada hijo
+    for (TInt c = 0; c < obj.Childrens.Count(); c++) {
+		Object& objChild = Objects[obj.Childrens[c].Id];
+		LineaLinkChild[3] = (GLshort)objChild.posX;
+		LineaLinkChild[4] = (GLshort)objChild.posZ;
+		LineaLinkChild[5] = (GLshort)objChild.posY;
+		glVertexPointer( 3, GL_SHORT, 0, LineaLinkChild );
+		glDrawElements( GL_LINES, LineaEdgeSize, GL_UNSIGNED_SHORT, LineaEdge );
+				
+		DrawnLines(1, 1, LineaTimeline, LineaEdge);
+		if (obj.Childrens.Count() > 0){
+			RenderLinkLines(obj.Childrens[c].Id);
+		}
+    }
+
+    // Restaurar la matriz previa
+    glPopMatrix();
+}
+
 void CBlendersito::RenderObject( TInt objId ){
 	Object& obj = Objects[objId];
+	glPushMatrix();
+	glScalex(obj.scaleX, obj.scaleZ, obj.scaleY);	
 
 	glDisable( GL_TEXTURE_2D );
 
@@ -1104,6 +1135,7 @@ void CBlendersito::RenderObject( TInt objId ){
 		glDisable( GL_BLEND );
 		glDepthMask(GL_TRUE); // Reactiva la escritura en el Z-buffer
 	}
+	glPopMatrix();
 }
 
 
@@ -1530,9 +1562,19 @@ void CBlendersito::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
 			glLineWidth(1);	 
 			for (int o = 0; o < Collection.Count(); o++) {
 				RenderObjectAndChildrens(Collection[o]);
+			}	 
+			//dibujar lineas parent		
+			glDisable( GL_DEPTH_TEST );	
+			glColor4f(ListaColores[negro][0],ListaColores[negro][1],ListaColores[negro][2],ListaColores[negro][3]);	
+			glLineWidth(3);	 	
+			for (int o = 0; o < Collection.Count(); o++) {
+				Object& obj = Objects[Collection[o]];
+				if (obj.Childrens.Count() > 0){
+					RenderLinkLines(Collection[o]);
+				}
 			}
+			glLineWidth(1);	 
 
-			glDisable( GL_DEPTH_TEST );
 			//dibuja los ejes de transformacion
 			if (estado == translacion || estado == VertexMove || estado == rotacion || estado == EditScale) {
 				for (TInt o = 0; o < Collection.Count(); o++) {
@@ -1618,7 +1660,6 @@ void CBlendersito::SearchSelectObj(Object& obj, TInt objIndex, TBool& found) {
 		glRotatef(obj.rotX, 1, 0, 0); //angulo, X Y Z
 		glRotatef(obj.rotZ, 0, 1, 0); //angulo, X Y Z
 		glRotatef(obj.rotY, 0, 0, 1); //angulo, X Y Z
-		glScalex(obj.scaleX, obj.scaleZ, obj.scaleY);	
         for (int c = 0; c < obj.Childrens.Count(); c++) {
             if (found) break;  // Si ya lo encontro, salir del bucle
             Object& objChild = Objects[obj.Childrens[c].Id];
@@ -2902,15 +2943,11 @@ void CBlendersito::SetTransformPivotPoint(){
 		TransformPivotPoint[1] = TempTransformPivotPointY/Encontrados;	
 		TransformPivotPoint[2] = TempTransformPivotPointZ/Encontrados;
 	}
-	else if (InteractionMode == ObjectMode){
-		TransformPivotPointFloat[0] = 0.0f;
-		TransformPivotPointFloat[1] = 0.0f;
-		TransformPivotPointFloat[2] = 0.0f;
-			
+	else if (InteractionMode == ObjectMode){			
 		Object& obj = Objects[SelectActivo];	
-		TransformPivotPointFloat[0] += obj.posX;///65000;
-		TransformPivotPointFloat[1] += obj.posY;///65000;
-		TransformPivotPointFloat[2] += obj.posZ;///65000;	
+		TransformPivotPointFloat[0] = obj.posX;///65000;
+		TransformPivotPointFloat[1] = obj.posY;///65000;
+		TransformPivotPointFloat[2] = obj.posZ;///65000;	
 
 		TInt ParentID = obj.Parent;
 		while (ParentID  > -1) {		

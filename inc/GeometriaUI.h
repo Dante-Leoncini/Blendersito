@@ -9,6 +9,11 @@ static GLshort LineaLightVertex[LineaLightVertexSize] = {
     0, -30000, 0,
 };
 
+static GLshort LineaLinkChild[LineaLightVertexSize] = {    
+    0, 0, 0,
+    0, 30000, 0,
+};
+
 static const GLshort LineaTimeline[6] = {    
     0, 0, 0,
     0, 16, 0,

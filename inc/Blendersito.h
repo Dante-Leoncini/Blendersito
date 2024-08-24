@@ -197,6 +197,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void AddModificador(TInt opcion);
         void RenderMeshAndChildren(Object& obj, TInt indice);
         void RenderObjectAndChildrens(TInt objId);
+        void RenderLinkLines(TInt objId);
         void TecladoNumerico(TInt numero);
         void InsertarValor();
         void ImportOBJ();
