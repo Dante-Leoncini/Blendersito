@@ -70,11 +70,6 @@ enum TBlendersitoMenuCommands
     EBlendersitoSetTipoEdge,
     EBlendersitoSetTipoFace,
     
-    EBlendersitoOrigenSetOrigen,
-    EBlendersitoOrigenToGeometry,
-    EBlendersitoOrigenToSelect,
-    EBlendersitoOrigenToCursor,
-    
     EBlendersitoVista3D,
     EBlendersitoViewSolid,
     EBlendersitoViewMaterial,
@@ -124,6 +119,9 @@ enum TBlendersitoMenuCommands
     EViewportCursorToSelect,
     EViewportSelectToCursor,
 
+    
+    EBlendersitoOrigenSetOrigen,
+    EBlendersitoOrigenToGeometry,
     ESetOriginTo3DCursor,
     ECursorToWorldOrigin,
 

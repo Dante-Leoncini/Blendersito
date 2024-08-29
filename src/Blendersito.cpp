@@ -3655,8 +3655,8 @@ void CBlendersito::SetOriginTo3DCursor(){
 		pMesh.vertex[i*3+2] -= NewPosZ;
 	}
 	obj.posX = obj.posX + Cursor3DposX;
-	obj.posY = obj.posY + Cursor3DposZ;
-	obj.posZ = obj.posZ + Cursor3DposY;
+	obj.posY = obj.posY + Cursor3DposY;
+	obj.posZ = obj.posZ + Cursor3DposZ;
 	pMesh.UpdateVertexUI();
 	redibujar = true;
 }

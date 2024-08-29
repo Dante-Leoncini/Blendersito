@@ -101,12 +101,12 @@ void CBlendersitoAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
                 aMenuPane->SetItemDimmed(EViewportObject, ETrue);
                 aMenuPane->SetItemDimmed(EUvMappingMenu, ETrue);
             }
-            aMenuPane->SetItemDimmed(EBlendersitoOrigenSetOrigen, EFalse);
+            aMenuPane->SetItemDimmed(EBlendersitoOrigenSetOrigen, ETrue);
             aMenuPane->SetItemDimmed(EBlendersitoSeleccionar, EFalse);
             aMenuPane->SetItemDimmed(EViewportAdd, ETrue);            
         } 
         else {
-            aMenuPane->SetItemDimmed(EBlendersitoOrigenSetOrigen, ETrue);
+            aMenuPane->SetItemDimmed(EBlendersitoOrigenSetOrigen, EFalse);
             aMenuPane->SetItemDimmed(EBlendersitoSeleccionar, ETrue);
             aMenuPane->SetItemDimmed(EViewportAdd, EFalse);
 
@@ -496,9 +496,6 @@ void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
         case EViewportSelectToCursor:
             iAppContainer->iBlendersito->SelectToCursor();
             break;     
-        case ESetOriginTo3DCursor:    
-            iAppContainer->iBlendersito->SetOriginTo3DCursor();
-            break;   
         case ECursorToWorldOrigin:    
             iAppContainer->iBlendersito->CursorToWorldOrigin();
             break;        
@@ -655,11 +652,8 @@ void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
         case EBlendersitoOrigenToGeometry:
             iAppContainer->iBlendersito->SetOrigen(0);
             break; 
-        case EBlendersitoOrigenToSelect:
-            iAppContainer->iBlendersito->SetOrigen(1);
-            break; 
-        case EBlendersitoOrigenToCursor:
-            iAppContainer->iBlendersito->SetOrigen(2);
+        case ESetOriginTo3DCursor:
+            iAppContainer->iBlendersito->SetOriginTo3DCursor();
             break; 
         case EBlendersitoCambiarObject:
             iAppContainer->iBlendersito->changeSelect();

@@ -619,12 +619,7 @@ RESOURCE MENU_PANE r_viewport_object_menu{
         {
             command = ECursorToWorldOrigin;
             txt = STRING_r_CursorToWorldOrigin;
-        },          
-        MENU_ITEM
-        {
-            command = ESetOriginTo3DCursor;
-            txt = STRING_r_SetOriginTo3DCursor;
-        },
+        },     
 		MENU_ITEM
 		{
 			command = EDuplicatedObject;
@@ -700,18 +695,15 @@ RESOURCE MENU_PANE r_blendersito_seleccionar_menu{
 //
 RESOURCE MENU_PANE r_blendersito_editarOrigen_menu{
 	items = {
-		MENU_ITEM {
-			command = EBlendersitoOrigenToGeometry;
-			txt = STRING_r_blendersito_OrigenToGeometry;
-		},
-		MENU_ITEM {
-			command = EBlendersitoOrigenToSelect;
-			txt = STRING_r_blendersito_OrigenToSelect;
-		},
-        MENU_ITEM {
-            command = EBlendersitoOrigenToCursor;
-            txt = STRING_r_blendersito_OrigenToCursor;
-        }	
+		//MENU_ITEM {
+		//	command = EBlendersitoOrigenToGeometry;
+		//	txt = STRING_r_blendersito_OrigenToGeometry;
+		//},  
+        MENU_ITEM
+        {
+            command = ESetOriginTo3DCursor;
+            txt = STRING_r_SetOriginTo3DCursor;
+        }
     };
 }
 
