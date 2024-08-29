@@ -12,7 +12,7 @@
 enum TBlendersitoMenuCommands
 {    	    	
     ETestNada,
-        
+
     ETopView,
     EBlendersitoFrontView,
     EBlendersitoRightView,
@@ -135,6 +135,11 @@ enum TBlendersitoMenuCommands
     ETimelineSetStartFrame,
 
     EAnimationMenu,
+
+    EInsertKeyframeLocation,
+    EInsertKeyframeRotation,
+    EInsertKeyframeScale,
+
     EInsertKeyframe,
     ERemoveKeyframes,
     EClearKeyframes

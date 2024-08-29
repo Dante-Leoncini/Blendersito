@@ -253,8 +253,16 @@ RESOURCE MENU_PANE r_render_menu {
 RESOURCE MENU_PANE r_animation_menu {
     items = { 		
         MENU_ITEM {
-            command = EInsertKeyframe;
-            txt = STRING_r_InsertKeyframe;
+            command = EInsertKeyframeLocation;
+            txt = STRING_r_InsertKeyframeLocation;
+        },		
+        MENU_ITEM {
+            command = EInsertKeyframeRotation;
+            txt = STRING_r_InsertKeyframeRotation;
+        },		
+        MENU_ITEM {
+            command = EInsertKeyframeScale;
+            txt = STRING_r_InsertKeyframeScale;
         },	
         MENU_ITEM {
             command = ERemoveKeyframes;

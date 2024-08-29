@@ -153,6 +153,11 @@ rls_string STRING_r_Hide_Timeline    "Hide Timeline"
 
 rls_string STRING_r_Animation        "Animation"
 rls_string STRING_r_InsertKeyframe   "Insert keyframe"
+
+rls_string STRING_r_InsertKeyframeLocation  "Insert keyframe Location"
+rls_string STRING_r_InsertKeyframeRotation  "Insert keyframe Rotation"
+rls_string STRING_r_InsertKeyframeScale     "Insert keyframe Scale"
+
 rls_string STRING_r_RemoveKeyframes  "Remove keyframes"
 rls_string STRING_r_ClearKeyframes   "Clear keyframes"
 

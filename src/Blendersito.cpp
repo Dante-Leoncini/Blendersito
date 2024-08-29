@@ -1153,7 +1153,7 @@ void CBlendersito::RenderObject( TInt objId ){
 
 
 void CBlendersito::InsertKeyframe(TInt propertySelect){
-	ShowOptionsDialogL();
+	//ShowOptionsDialogL();
     // Crear una lista de opciones
     //CDesCArrayFlat* options = new (ELeave) CDesCArrayFlat(3);
     /*CleanupStack::PushL(options);
@@ -1367,6 +1367,16 @@ void CBlendersito::ReloadAnimation(){
 						Objects[Animations[a].Id].posX = valueX;
 						Objects[Animations[a].Id].posY = valueY;
 						Objects[Animations[a].Id].posZ = valueZ;
+						break;
+					case AnimRotation:
+						Objects[Animations[a].Id].rotX = valueX;
+						Objects[Animations[a].Id].rotY = valueY;
+						Objects[Animations[a].Id].rotZ = valueZ;
+						break;
+					case AnimScale:
+						Objects[Animations[a].Id].scaleX = valueX;
+						Objects[Animations[a].Id].scaleY = valueY;
+						Objects[Animations[a].Id].scaleZ = valueZ;
 						break;
 					// Otros casos según las propiedades
 					default:

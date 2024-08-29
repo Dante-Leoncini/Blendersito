@@ -685,6 +685,15 @@ void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
         case EInsertKeyframe:
             iAppContainer->iBlendersito->InsertKeyframe(AnimPosition);
             break; 
+        case EInsertKeyframeLocation:
+            iAppContainer->iBlendersito->InsertKeyframe(AnimPosition);
+            break; 
+        case EInsertKeyframeRotation:
+            iAppContainer->iBlendersito->InsertKeyframe(AnimRotation);
+            break; 
+        case EInsertKeyframeScale:
+            iAppContainer->iBlendersito->InsertKeyframe(AnimScale);
+            break; 
         case ERemoveKeyframes:
             iAppContainer->iBlendersito->RemoveKeyframes();
             break; 
