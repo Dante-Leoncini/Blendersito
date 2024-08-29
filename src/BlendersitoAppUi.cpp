@@ -101,32 +101,70 @@ void CBlendersitoAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
                 aMenuPane->SetItemDimmed(EViewportObject, ETrue);
                 aMenuPane->SetItemDimmed(EUvMappingMenu, ETrue);
             }
-            aMenuPane->SetItemDimmed(EBlendersitoOrigenSetOrigen, ETrue);
+            aMenuPane->SetItemDimmed(ESetOrigenMenu, ETrue);
             aMenuPane->SetItemDimmed(EBlendersitoSeleccionar, EFalse);
             aMenuPane->SetItemDimmed(EViewportAdd, ETrue);            
         } 
         else {
-            aMenuPane->SetItemDimmed(EBlendersitoOrigenSetOrigen, EFalse);
+            aMenuPane->SetItemDimmed(ESetOrigenMenu, EFalse);
             aMenuPane->SetItemDimmed(EBlendersitoSeleccionar, ETrue);
             aMenuPane->SetItemDimmed(EViewportAdd, EFalse);
 
             //si hay objetos            
-	        if (BL.Objects.Count() > 0){
-                aMenuPane->SetItemDimmed(EViewportObject, EFalse);          
+	        if (BL.Objects.Count() > 0){   
+                aMenuPane->SetItemDimmed(EViewportObject, EFalse);   
                 Object& obj = BL.Objects[BL.SelectActivo];
-                //si es una malla 3d
-                if (obj.type == mesh && obj.seleccionado){
-                    aMenuPane->SetItemDimmed(EMaterial, EFalse);
-                    aMenuPane->SetItemDimmed(EBlendersitoModificadores, EFalse);
+                //si esta seleccionada
+                if (obj.seleccionado){ 
+                    aMenuPane->SetItemDimmed(ETransformMenu, EFalse);
+                    aMenuPane->SetItemDimmed(ESnapMenu, EFalse);  
+                    //si es una malla 3d
+                    if (obj.type == mesh){
+                        aMenuPane->SetItemDimmed(ECameraMenu, ETrue); 
+                        aMenuPane->SetItemDimmed(EMaterial, EFalse);
+                        aMenuPane->SetItemDimmed(EBlendersitoModificadores, EFalse);
+                        aMenuPane->SetItemDimmed(EUvMappingMenu, EFalse);
+                        aMenuPane->SetItemDimmed(ESetOrigenMenu, EFalse);    
+                    }
+                    //si es una camara
+                    else if (obj.type == camera){
+                        aMenuPane->SetItemDimmed(ECameraMenu, EFalse); 
+                        aMenuPane->SetItemDimmed(EMaterial, ETrue);
+                        aMenuPane->SetItemDimmed(EBlendersitoModificadores, ETrue); 
+                        aMenuPane->SetItemDimmed(EUvMappingMenu, ETrue);
+                        aMenuPane->SetItemDimmed(ESetOrigenMenu, ETrue);
+                    }
+                    //si es otra cosa
+                    else {
+                        aMenuPane->SetItemDimmed(ECameraMenu, ETrue); 
+                        aMenuPane->SetItemDimmed(EMaterial, ETrue);
+                        aMenuPane->SetItemDimmed(EBlendersitoModificadores, ETrue); 
+                        aMenuPane->SetItemDimmed(EUvMappingMenu, ETrue);
+                        aMenuPane->SetItemDimmed(ESetOrigenMenu, ETrue);     
+                    }                    
                 }
+                //si nada esta seleccionado
                 else {
+                    aMenuPane->SetItemDimmed(ECameraMenu, ETrue); 
                     aMenuPane->SetItemDimmed(EMaterial, ETrue);
-                    aMenuPane->SetItemDimmed(EBlendersitoModificadores, ETrue);                    
+                    aMenuPane->SetItemDimmed(EBlendersitoModificadores, ETrue);  
+                    aMenuPane->SetItemDimmed(EUvMappingMenu, ETrue);  
+                    aMenuPane->SetItemDimmed(ESetOrigenMenu, ETrue);  
+                    aMenuPane->SetItemDimmed(ETransformMenu, ETrue);  
+                    aMenuPane->SetItemDimmed(ESnapMenu, ETrue);  
+                    aMenuPane->SetItemDimmed(EViewportObject, ETrue);                                         
                 }
             }
             else {
+                aMenuPane->SetItemDimmed(ECameraMenu, ETrue); 
+                aMenuPane->SetItemDimmed(EBlendersitoModificadores, ETrue);  
                 aMenuPane->SetItemDimmed(EMaterial, ETrue);
                 aMenuPane->SetItemDimmed(EViewportObject, ETrue);
+                aMenuPane->SetItemDimmed(EUvMappingMenu, ETrue);
+                aMenuPane->SetItemDimmed(ESetOrigenMenu, ETrue);  
+                aMenuPane->SetItemDimmed(ETransformMenu, ETrue);  
+                aMenuPane->SetItemDimmed(ESnapMenu, ETrue);   
+                aMenuPane->SetItemDimmed(EViewportObject, ETrue);                   
             }
         }
     }
@@ -234,7 +272,22 @@ TKeyResponse CBlendersitoAppUi::HandleKeyEventL(const TKeyEvent& aKeyEvent, TEve
         }*/
 
         if (aType == EEventKeyDown) {
-			switch(scan){                    
+			switch(scan){    
+                /*case EKeyIncVolume: // Volumen arriba
+                    iAppContainer->iBlendersito->SetPosicion();
+                    return EKeyWasConsumed;
+                case EKeyDecVolume: // Volumen abajo
+                    iAppContainer->iBlendersito->SetPosicion();
+                    return EKeyWasConsumed;
+                case(162): //volumen arriba
+                    iAppContainer->iBlendersito->SetPosicion();
+                    return EKeyWasNotConsumed;
+                case(163): //volumen abajo
+                    iAppContainer->iBlendersito->SetPosicion();
+                    return EKeyWasNotConsumed;*/
+                case EStdKeyEscape: // Código estándar para la tecla ESC
+                    iAppContainer->iBlendersito->Cancelar(); // Llama a tu función Cancelar
+                    return EKeyWasConsumed;                
                 /*case(14): //izquierda
                     //iAppContainer->iBlendersito->Rotar(1);
                     iAppContainer->iBlendersito->Tab();
@@ -251,6 +304,9 @@ TKeyResponse CBlendersitoAppUi::HandleKeyEventL(const TKeyEvent& aKeyEvent, TEve
                     //iAppContainer->iBlendersito->NextPos(8,1);
                     iAppContainer->iBlendersito->Tab();
                     return EKeyWasConsumed;*/     
+                case(5): //Space
+                    iAppContainer->iBlendersito->ToggleValue(iAppContainer->iBlendersito->PlayAnimation);
+                    return EKeyWasConsumed;
                 case(18): //left Shift
                 case(19): //rigth Shift
                     iAppContainer->iBlendersito->iShiftPressed = ETrue;
@@ -336,9 +392,6 @@ TKeyResponse CBlendersitoAppUi::HandleKeyEventL(const TKeyEvent& aKeyEvent, TEve
                 case(2): //Tab
                     iAppContainer->iBlendersito->PressTab();
                     return EKeyWasNotConsumed;
-                case EStdKeyEscape: // Código estándar para la tecla ESC
-                    iAppContainer->iBlendersito->Cancelar(); // Llama a tu función Cancelar
-                    return EKeyWasConsumed;
                 /*case(14): //izquierda
                     iAppContainer->iBlendersito->Tab();
                     return EKeyWasNotConsumed;
@@ -398,7 +451,8 @@ enum{
 enum{
 	top,
 	front,
-	right
+	right,
+    cameraView
 };
 
 enum{
@@ -490,10 +544,10 @@ void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
         case EViewportBackgroudColor:
             iAppContainer->iBlendersito->SetViewportBackgroudColor();
             break;    
-        case EViewportCursorToSelect:
+        case ECursorToSelect:
             iAppContainer->iBlendersito->CursorToSelect();
             break;
-        case EViewportSelectToCursor:
+        case ESelectToCursor:
             iAppContainer->iBlendersito->SelectToCursor();
             break;     
         case ECursorToWorldOrigin:    
@@ -558,6 +612,9 @@ void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
             break;  
         case EFlipNormals:
             iAppContainer->iBlendersito->FlipNormals();
+            break;
+        case ESetActiveObjectAsCamera:
+            iAppContainer->iBlendersito->SetActiveObjectAsCamera();
             break;  
         case ERenderUI:
             iAppContainer->iBlendersito->SaveCanvasToImage(false, true);
@@ -616,6 +673,9 @@ void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
         case EBlendersitoPerspectiva:
             iAppContainer->iBlendersito->SetPerspectiva();
             break;
+        case ECameraView:
+            iAppContainer->iBlendersito->SetViewpoint(cameraView);
+            break;
         case ETopView:
             iAppContainer->iBlendersito->SetViewpoint(top);
             break;
@@ -649,7 +709,7 @@ void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
         case EBlendersitoSetTipoFace:
             iAppContainer->iBlendersito->SetTipoSelect(faceSelect);
             break; 
-        case EBlendersitoOrigenToGeometry:
+        case ESetOrigenToGeometry:
             iAppContainer->iBlendersito->SetOrigen(0);
             break; 
         case ESetOriginTo3DCursor:

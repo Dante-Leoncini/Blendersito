@@ -75,7 +75,13 @@ RESOURCE MENU_PANE r_blendersito_exit
 RESOURCE MENU_PANE r_blendersito_menu
 {
     items =
-        { 		
+        { 			
+			MENU_ITEM
+			{
+				command = ECameraMenu;
+				cascade = r_camera_menu;
+				txt = STRING_r_Camera;
+			},	
 			MENU_ITEM
 			{
 				command = ETransformMenu;
@@ -88,6 +94,12 @@ RESOURCE MENU_PANE r_blendersito_menu
 				cascade = r_blendersito_seleccionar_menu;
 				txt = STRING_r_blendersito_Seleccionar;
 			},	
+            MENU_ITEM
+            {
+                command = ESnapMenu;
+                cascade = r_viewport_snap_menu;
+                txt = STRING_r_Snap;
+            },  
 			MENU_ITEM
 			{
 				command = EUvMappingMenu;
@@ -109,7 +121,7 @@ RESOURCE MENU_PANE r_blendersito_menu
 	        },		
 			MENU_ITEM
 			{
-				command = EBlendersitoOrigenSetOrigen; 
+				command = ESetOrigenMenu; 
 				cascade = r_blendersito_editarOrigen_menu; 
 				txt = STRING_r_blendersito_SetOrigen;
 			},	
@@ -156,6 +168,22 @@ RESOURCE MENU_PANE r_blendersito_menu
                 txt = STRING_r_Render;
             }
         };
+}
+
+//----------------------------------------------------
+//
+//    r_camera_menu
+//
+//----------------------------------------------------
+//
+
+RESOURCE MENU_PANE r_camera_menu {
+    items = { 		        
+		MENU_ITEM {
+			command = ESetActiveObjectAsCamera;
+			txt = STRING_r_SetActiveObjectAsCamera;
+		}
+    };
 }
 
 //----------------------------------------------------
@@ -415,6 +443,10 @@ RESOURCE MENU_PANE r_blendersito_vista3D_menu{
             txt = STRING_r_blendersito_ViewWireframe;
         },
         MENU_ITEM {
+            command = ECameraView;
+            txt = STRING_r_Camera;
+        },
+        MENU_ITEM {
             command = ETopView;
             txt = STRING_r_topView;
         },
@@ -611,23 +643,7 @@ RESOURCE MENU_PANE r_viewport_object_menu{
 		{
 			command = EBlendersitoInfoObject;
 			txt = STRING_r_blendersito_InfoObject;
-        },   
-        MENU_ITEM
-        {
-            command = EViewportCursorToSelect; //EViewportObjectSnap;
-            //cascade = r_viewport_object_snap_menu;
-            txt = STRING_r_cursor_to_selected; //STRING_r_Snap;
-        },   
-        MENU_ITEM
-        {
-            command = EViewportSelectToCursor;
-            txt = STRING_r_selected_to_cursor;
-        },  
-        MENU_ITEM
-        {
-            command = ECursorToWorldOrigin;
-            txt = STRING_r_CursorToWorldOrigin;
-        },     
+        },    
 		MENU_ITEM
 		{
 			command = EDuplicatedObject;
@@ -658,16 +674,26 @@ RESOURCE MENU_PANE r_viewport_object_menu{
 
 //----------------------------------------------------
 //
-//    r_viewport_object_snap_menu
+//    r_viewport_snap_menu
 //
 //----------------------------------------------------
 //
-RESOURCE MENU_PANE r_viewport_object_snap_menu{
+RESOURCE MENU_PANE r_viewport_snap_menu{
 	items = {
 		MENU_ITEM
 		{
-			command = EViewportCursorToSelect;
+			command = ECursorToSelect;
 			txt = STRING_r_cursor_to_selected;
+        }, 
+        MENU_ITEM
+        {
+            command = ESelectToCursor;
+            txt = STRING_r_selected_to_cursor;
+        },  
+        MENU_ITEM
+        {
+            command = ECursorToWorldOrigin;
+            txt = STRING_r_CursorToWorldOrigin;
         }
     };
 }
@@ -704,7 +730,7 @@ RESOURCE MENU_PANE r_blendersito_seleccionar_menu{
 RESOURCE MENU_PANE r_blendersito_editarOrigen_menu{
 	items = {
 		//MENU_ITEM {
-		//	command = EBlendersitoOrigenToGeometry;
+		//	command = ESetOrigenToGeometry;
 		//	txt = STRING_r_blendersito_OrigenToGeometry;
 		//},  
         MENU_ITEM

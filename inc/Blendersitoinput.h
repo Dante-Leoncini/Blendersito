@@ -17,7 +17,7 @@
 // MACROS
 
 // Number of inputs (used to create the lookup table)
-#define MAX_NUM_INPUTS   5
+#define MAX_NUM_INPUTS   7
 
 /**
  * Defined joystick values that can be queried from this class.

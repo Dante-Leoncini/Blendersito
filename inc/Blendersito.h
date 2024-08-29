@@ -125,6 +125,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void SeleccionarAnterior();
         void SeleccionarProximo();
         void SetViewportBackgroudColor();
+        void CheckCameraState();
         
         void dibujarUI();
         void guardarEstado();
@@ -181,6 +182,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void SetUvSprite(GLshort x, GLshort y, GLshort ancho, GLshort alto);
         void SetSpriteSize(GLshort ancho, GLshort alto);
         void DrawnRectangle();
+        void SetActiveObjectAsCamera();
         void SetTextureRepeat();
         void IconSelect(TBool activo);
         void UiMoveTo(GLshort x, GLshort y);
@@ -306,6 +308,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         TBool iCtrlPressed;
         RArray<Object> Objects;
         TInt SelectActivo;
+        TInt CameraActive;
 
 		/**
 		 * Application states:

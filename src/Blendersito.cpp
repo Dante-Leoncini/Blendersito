@@ -472,6 +472,7 @@ void CBlendersito::ConstructL( void ){
 	iAltPressed = false;
 	iCtrlPressed = false;
 	SelectActivo = 0;
+	SelectActivo = -1;
 
 	flechasEstados = new FlechaEstado[4];
 	for (TInt i = 0; i < 4; i++) {
@@ -1122,6 +1123,10 @@ void CBlendersito::RenderObject( TInt objId ){
 		glDisable( GL_BLEND );
 		glVertexPointer( 3, GL_SHORT, 0, CameraVertices );
 		glDrawElements( GL_LINES, CameraEdgesSize, GL_UNSIGNED_SHORT, CameraEdges );
+		if (CameraActive == objId){		
+    		//glDisable( GL_CULL_FACE  );	
+			glDrawElements( GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, CameraFaceActive );	
+		}
 	}
 	else if (obj.type == light){				
 		glEnable( GL_TEXTURE_2D ); 
@@ -2439,7 +2444,7 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 		return;
 	}
 	//revisa las 4 direcciones
-	for(int f=0; f < 4; f++){
+	for(TInt f=0; f < 4; f++){
 		if (iInputHandler->IsInputPressed( flechasEstados[f].cual )){
 			flechasEstados[f].activo = true;
 			if ( flechasEstados[f].estado == TeclaSuelta || flechasEstados[f].estado == TeclaSoltada){
@@ -2477,6 +2482,28 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 			SeleccionarTodo();
 			ShiftCount = 40;
 		}
+		/*else if (iInputHandler->IsInputPressed( EVolumenUp ) ){
+			CurrentFrame++;
+			if (CurrentFrame > EndFrame){
+				CurrentFrame = StartFrame;
+			}
+			if (!PlayAnimation){
+				ReloadAnimation();
+			}
+	    	redibujar = true;
+			ShiftCount = 40;
+		}
+		else if( iInputHandler->IsInputPressed( EVolumenDown ) ){
+			CurrentFrame--;
+			if (CurrentFrame < StartFrame){
+				StartFrame = EndFrame;
+			}
+			if (!PlayAnimation){
+				ReloadAnimation();
+			}
+	    	redibujar = true;
+			ShiftCount = 40;
+		}*/
 		return;
 	}
 	if ( iShiftPressed && estado != editNavegacion){
@@ -2535,6 +2562,9 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 		}
 		else if (estado == timelineMove){
 			CurrentFrame--;
+			if (CurrentFrame < StartFrame){
+				StartFrame = EndFrame;
+			}
 			if (!PlayAnimation){
 				ReloadAnimation();
 			}
@@ -3563,6 +3593,15 @@ void CBlendersito::BorrarObjeto(TInt indice){
 		}
 	}
 
+	//si es la camara activa. borra el indice
+	if (CameraActive == indice){
+		CameraActive = -1;		
+	}
+	//si era mas grande. resta uno para que el indice apunte a la camara correcta
+	else if (CameraActive > indice){
+		CameraActive--;
+	}
+	
 	Objects.Remove(indice);
 	SelectCount--;
 	SelectActivo = 0;
@@ -3693,6 +3732,7 @@ void CBlendersito::AddObject( TInt tipo ){
 	obj.Id = -0;
 	Objects.Append(obj);
 	Collection.Append(Objects.Count()-1);
+	SelectActivo = Objects.Count()-1;
 	if (tipo == light){
 		Light tempLight;
 		tempLight.type = pointLight;
@@ -3725,8 +3765,13 @@ void CBlendersito::AddObject( TInt tipo ){
 		Lights.Append(tempLight);
 		obj.Id = Lights.Count()-1;
 	}
+	//tipo camara
+	else if (tipo == camera){
+		if (CameraActive < 0){
+			CameraActive = SelectActivo;		
+		}		
+	}
 	DeseleccionarTodo();
-	SelectActivo = Objects.Count()-1;
 	Objects[SelectActivo].seleccionado = true;
 	SelectCount = 1;
     redibujar = true;
@@ -4752,7 +4797,8 @@ void CBlendersito::SetPerspectiva(TBool redibuja ){
 enum{
 	top,
 	front,
-	right
+	right,
+    cameraView
 };
 
 enum{
@@ -4862,6 +4908,31 @@ void CBlendersito::AddModificador(TInt opcion){
 	/*redibujar = true;*/
 }
 
+//mira si no hay camara activa
+//si no hay una camara activa. busca una camara para asignarla
+//si no hay camaras... quedara en -1
+void CBlendersito::CheckCameraState(){
+	if (CameraActive < 0){
+		for(TInt i=0; i < Objects.Count(); i++){
+			if (Objects[i].type == camera){
+				CameraActive = i;
+				return;
+			}		
+		}
+	}	
+}
+
+void CBlendersito::SetActiveObjectAsCamera(){
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[SelectActivo];
+	if (!obj.seleccionado){return;}	
+	//si es una camara. ahora va a ser la camara activa
+	if (obj.type == camera){
+		CameraActive = SelectActivo;		
+	}	
+	redibujar = true;
+}
+
 void CBlendersito::SetViewpoint(TInt opcion){
 	switch (opcion) {
 		case top:
@@ -4875,6 +4946,16 @@ void CBlendersito::SetViewpoint(TInt opcion){
 		case right:
 			rotX = 90.0;
 			rotY = 0.0;		
+			break;
+		case cameraView:
+			CheckCameraState();
+			if (CameraActive < 0){
+				_LIT(KFormatString, "There are no cameras!");
+				HBufC* noteBuf = HBufC::NewLC(50);
+				noteBuf->Des().Format(KFormatString);
+				MensajeError(noteBuf);  
+				CleanupStack::PopAndDestroy(noteBuf);
+			}
 			break;
 	}
 	redibujar = true;
@@ -5986,6 +6067,7 @@ void CBlendersito::OldImportOBJ(){
 		HBufC* noteBuf = HBufC::NewLC(24);
 		noteBuf->Des().Format(KFormatString);
 		MensajeError(noteBuf);  
+		CleanupStack::PopAndDestroy(noteBuf);
     }
 }
 

@@ -44,6 +44,10 @@ static const GLshort CameraVertices[CameraVertexSize] = {
     3500, 3100, 0,
 };
 
+static const GLshort CameraFaceActive[3]={
+    5,6,7
+};
+
 static const GLushort CameraEdges[CameraEdgesSize]={
     //cono
 	0, 1,

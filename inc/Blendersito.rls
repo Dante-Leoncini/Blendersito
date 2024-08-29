@@ -102,6 +102,8 @@ rls_string STRING_r_Duplicate       "Duplicate"
 
 rls_string STRING_r_ESelectInvert   "Select Invert"
 
+rls_string STRING_r_SetActiveObjectAsCamera "Set Active Object as Camera"
+
 rls_string STRING_r_blendersito_Seleccionar      "Menu de Seleccion"
 rls_string STRING_r_blendersito_SeleccionVertice "Seleccionar Vertices"
 rls_string STRING_r_blendersito_SeleccionBordes  "Seleccionar Bordes"

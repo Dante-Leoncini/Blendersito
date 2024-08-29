@@ -59,4 +59,4 @@ TARGETPATH 	  \private\10003a3f\apps
 TARGETPATH 	  \private\10003a3f\import\apps
 #endif
 END
-CAPABILITY ReadUserData WriteUserData
+CAPABILITY ReadUserData WriteUserData ReadDeviceData

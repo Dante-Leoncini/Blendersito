@@ -13,6 +13,7 @@ enum TBlendersitoMenuCommands
 {    	    	
     ETestNada,
 
+    ECameraView,
     ETopView,
     EBlendersitoFrontView,
     EBlendersitoRightView,
@@ -115,17 +116,19 @@ enum TBlendersitoMenuCommands
     ECylinderProjection,
 
     EDuplicatedObject,
-    EDuplicatedLinked,               
+    EDuplicatedLinked,  
 
-    EViewportObjectSnap,
-    EViewportCursorToSelect,
-    EViewportSelectToCursor,
+    ECameraMenu,  
+    ESetActiveObjectAsCamera,           
 
-    
-    EBlendersitoOrigenSetOrigen,
-    EBlendersitoOrigenToGeometry,
-    ESetOriginTo3DCursor,
+    ESnapMenu,
     ECursorToWorldOrigin,
+    ECursorToSelect,
+    ESelectToCursor,
+
+    ESetOrigenMenu,
+    ESetOrigenToGeometry,
+    ESetOriginTo3DCursor,
 
     ETimelineMenu,
     ETimelinePlayStop,
