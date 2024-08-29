@@ -3629,8 +3629,8 @@ void CBlendersito::SelectToCursor(){
 				for(TInt i=0; i < pMesh.vertexGroups[vg].indices.Count(); i++){
 					TInt primerVertice = pMesh.vertexGroups[vg].indices[i]*3;
 					pMesh.vertex[primerVertice] = NewPosX;
-					pMesh.vertex[primerVertice+1] = NewPosY;	
-					pMesh.vertex[primerVertice+2] = NewPosZ;
+					pMesh.vertex[primerVertice+1] = NewPosZ;	
+					pMesh.vertex[primerVertice+2] = NewPosY;
 				}
 			}
 			pMesh.UpdateVertexUI(vg);
@@ -3651,8 +3651,8 @@ void CBlendersito::SetOriginTo3DCursor(){
 
 	for(TInt i=0; i < pMesh.vertexSize; i++){
 		pMesh.vertex[i*3] -= NewPosX;
-		pMesh.vertex[i*3+1] -= NewPosY;	
-		pMesh.vertex[i*3+2] -= NewPosZ;
+		pMesh.vertex[i*3+1] -= NewPosZ;	
+		pMesh.vertex[i*3+2] -= NewPosY;
 	}
 	obj.posX = obj.posX + Cursor3DposX;
 	obj.posY = obj.posY + Cursor3DposY;
@@ -4853,17 +4853,19 @@ void CBlendersito::AddModificador(TInt opcion){
 }
 
 void CBlendersito::SetViewpoint(TInt opcion){
-	if (opcion == top){
-		rotX = -180.0;
-		rotY = 90.0;
-	}
-	else if (opcion == front){
-		rotX = -180.0;
-		rotY = 0.0;	
-	}
-	else if (opcion == right){
-		rotX = 90.0;
-		rotY = 0.0;		
+	switch (opcion) {
+		case top:
+			rotX = -180.0;
+			rotY = 90.0;
+			break;
+		case front:
+			rotX = -180.0;
+			rotY = 0.0;	
+			break;
+		case right:
+			rotX = 90.0;
+			rotY = 0.0;		
+			break;
 	}
 	redibujar = true;
 }

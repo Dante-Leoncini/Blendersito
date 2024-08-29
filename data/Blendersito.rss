@@ -407,8 +407,8 @@ RESOURCE MENU_PANE r_blendersito_vista3D_menu{
             txt = STRING_r_blendersito_ViewWireframe;
         },
         MENU_ITEM {
-            command = EBlendersitoTopView;
-            txt = STRING_r_blendersito_topView;
+            command = ETopView;
+            txt = STRING_r_topView;
         },
         MENU_ITEM {
             command = EBlendersitoFrontView;

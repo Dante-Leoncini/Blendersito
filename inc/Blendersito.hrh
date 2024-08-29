@@ -10,8 +10,10 @@
 	
 // DATA TYPES
 enum TBlendersitoMenuCommands
-{    	    	    
-    EBlendersitoTopView,
+{    	    	
+    ETestNada,
+        
+    ETopView,
     EBlendersitoFrontView,
     EBlendersitoRightView,
     EBlendersitoPerspectiva,

@@ -616,7 +616,7 @@ void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
         case EBlendersitoPerspectiva:
             iAppContainer->iBlendersito->SetPerspectiva();
             break;
-        case EBlendersitoTopView:
+        case ETopView:
             iAppContainer->iBlendersito->SetViewpoint(top);
             break;
         case EBlendersitoFrontView:

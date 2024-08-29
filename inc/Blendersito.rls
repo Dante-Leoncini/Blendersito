@@ -33,7 +33,7 @@ rls_string STRING_r_Empty     "Empty"
 rls_string STRING_r_UVMapping    "UV Mapping"
 rls_string STRING_r_CylinderProjection    "Cylinder Projection"
 
-rls_string STRING_r_blendersito_topView        "Top View"
+rls_string STRING_r_topView                    "Top View"
 rls_string STRING_r_blendersito_frontView      "Front View"
 rls_string STRING_r_blendersito_rightView      "Right View"
 rls_string STRING_r_blendersito_perspectiva    "Cambiar Perspectiva"
