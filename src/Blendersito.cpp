@@ -3606,9 +3606,36 @@ void CBlendersito::CursorToSelect(){
 }
 
 void CBlendersito::SelectToCursor(){
-	Objects[SelectActivo].posX = Cursor3DposX;
-	Objects[SelectActivo].posY = Cursor3DposY;
-	Objects[SelectActivo].posZ = Cursor3DposZ;
+	if (Objects.Count() < 1){return;}	
+	if (InteractionMode == ObjectMode){	
+		for(TInt i=0; i < Objects.Count(); i++){	
+			Object& obj = Objects[i];	
+			if (obj.seleccionado){
+				obj.posX = Cursor3DposX;
+				obj.posY = Cursor3DposY;
+				obj.posZ = Cursor3DposZ;
+			};
+		}
+	}
+	else if (InteractionMode == EditMode){
+		Object& obj = Objects[SelectActivo];
+		Mesh& pMesh = Meshes[obj.Id];	
+		GLshort NewPosX = (GLshort)((Cursor3DposX -obj.posX) * 65000 / obj.scaleX);
+		GLshort NewPosY = (GLshort)((Cursor3DposZ -obj.posY) * 65000 / obj.scaleY);
+		GLshort NewPosZ = (GLshort)((Cursor3DposY -obj.posZ) * 65000 / obj.scaleZ);
+
+		for(TInt vg=0; vg < pMesh.vertexGroups.Count(); vg++){
+			if (pMesh.vertexGroups[vg].seleccionado){
+				for(TInt i=0; i < pMesh.vertexGroups[vg].indices.Count(); i++){
+					TInt primerVertice = pMesh.vertexGroups[vg].indices[i]*3;
+					pMesh.vertex[primerVertice] = NewPosX;
+					pMesh.vertex[primerVertice+1] = NewPosY;	
+					pMesh.vertex[primerVertice+2] = NewPosZ;
+				}
+			}
+			pMesh.UpdateVertexUI(vg);
+		}
+	}
 	redibujar = true;
 }
 
