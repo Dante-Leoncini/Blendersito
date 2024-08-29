@@ -495,7 +495,13 @@ void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
             break;
         case EViewportSelectToCursor:
             iAppContainer->iBlendersito->SelectToCursor();
-            break;            
+            break;     
+        case ESetOriginTo3DCursor:    
+            iAppContainer->iBlendersito->SetOriginTo3DCursor();
+            break;   
+        case ECursorToWorldOrigin:    
+            iAppContainer->iBlendersito->CursorToWorldOrigin();
+            break;        
         case ECamera:            
             iAppContainer->iBlendersito->AddObject(camera);
             break;   

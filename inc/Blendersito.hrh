@@ -124,6 +124,9 @@ enum TBlendersitoMenuCommands
     EViewportCursorToSelect,
     EViewportSelectToCursor,
 
+    ESetOriginTo3DCursor,
+    ECursorToWorldOrigin,
+
     ETimelineMenu,
     ETimelinePlayStop,
     ETimelineShowTimeline,

@@ -3621,8 +3621,8 @@ void CBlendersito::SelectToCursor(){
 		Object& obj = Objects[SelectActivo];
 		Mesh& pMesh = Meshes[obj.Id];	
 		GLshort NewPosX = (GLshort)((Cursor3DposX -obj.posX) * 65000 / obj.scaleX);
-		GLshort NewPosY = (GLshort)((Cursor3DposZ -obj.posY) * 65000 / obj.scaleY);
-		GLshort NewPosZ = (GLshort)((Cursor3DposY -obj.posZ) * 65000 / obj.scaleZ);
+		GLshort NewPosY = (GLshort)((Cursor3DposY -obj.posY) * 65000 / obj.scaleY);
+		GLshort NewPosZ = (GLshort)((Cursor3DposZ -obj.posZ) * 65000 / obj.scaleZ);
 
 		for(TInt vg=0; vg < pMesh.vertexGroups.Count(); vg++){
 			if (pMesh.vertexGroups[vg].seleccionado){
@@ -3636,6 +3636,35 @@ void CBlendersito::SelectToCursor(){
 			pMesh.UpdateVertexUI(vg);
 		}
 	}
+	redibujar = true;
+}
+
+void CBlendersito::SetOriginTo3DCursor(){
+	if (Objects.Count() < 1){return;}	
+	Object& obj = Objects[SelectActivo];
+	if (obj.type != mesh){return;};
+	
+	Mesh& pMesh = Meshes[obj.Id];	
+	GLshort NewPosX = (GLshort)((Cursor3DposX -obj.posX) * 65000 / obj.scaleX);
+	GLshort NewPosY = (GLshort)((Cursor3DposY -obj.posY) * 65000 / obj.scaleY);
+	GLshort NewPosZ = (GLshort)((Cursor3DposZ -obj.posZ) * 65000 / obj.scaleZ);
+
+	for(TInt i=0; i < pMesh.vertexSize; i++){
+		pMesh.vertex[i*3] -= NewPosX;
+		pMesh.vertex[i*3+1] -= NewPosY;	
+		pMesh.vertex[i*3+2] -= NewPosZ;
+	}
+	obj.posX = obj.posX + Cursor3DposX;
+	obj.posY = obj.posY + Cursor3DposZ;
+	obj.posZ = obj.posZ + Cursor3DposY;
+	pMesh.UpdateVertexUI();
+	redibujar = true;
+}
+
+void CBlendersito::CursorToWorldOrigin(){
+	Cursor3DposX = 0;
+	Cursor3DposZ = 0;
+	Cursor3DposY = 0;
 	redibujar = true;
 }
 

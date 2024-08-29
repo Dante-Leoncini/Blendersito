@@ -132,6 +132,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void SeleccionarTodo();
         void SetEje( TInt eje );     
         void AddMesh( TInt modelo );
+        void CursorToWorldOrigin();
         void NewMaterial(TBool reemplazar);
         void AddObject( TInt tipo );
         void SetTexture(); //int textureID 
@@ -228,6 +229,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void SetStartFrame();
         void SetEndFrame();
         void SetParent();
+        void SetOriginTo3DCursor();
         void ClearParent();
         void ObtenerUbicacionInstalacionL(TDes& aUbicacion);
         void SetTipoSelect(TInt tipo);

@@ -614,6 +614,16 @@ RESOURCE MENU_PANE r_viewport_object_menu{
         {
             command = EViewportSelectToCursor;
             txt = STRING_r_selected_to_cursor;
+        },  
+        MENU_ITEM
+        {
+            command = ECursorToWorldOrigin;
+            txt = STRING_r_CursorToWorldOrigin;
+        },          
+        MENU_ITEM
+        {
+            command = ESetOriginTo3DCursor;
+            txt = STRING_r_SetOriginTo3DCursor;
         },
 		MENU_ITEM
 		{
