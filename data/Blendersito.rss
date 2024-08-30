@@ -182,7 +182,11 @@ RESOURCE MENU_PANE r_camera_menu {
 		MENU_ITEM {
 			command = ESetActiveObjectAsCamera;
 			txt = STRING_r_SetActiveObjectAsCamera;
-		}
+		},	        
+		MENU_ITEM {
+			command = ESetCameraToView;
+			txt = STRING_r_ECameraToViewOn;
+		}        
     };
 }
 
@@ -785,6 +789,9 @@ RESOURCE TBUF256 r_widescreen_off{buf = STRING_r_blendersito_widescreen_off;}
 
 RESOURCE TBUF256 r_lights_on{buf = STRING_r_blendersito_lights_on;}
 RESOURCE TBUF256 r_lights_off{buf = STRING_r_blendersito_lights_off;}
+
+RESOURCE TBUF256 r_cameratoview_on{buf = STRING_r_ECameraToViewOn;}
+RESOURCE TBUF256 r_cameratoview_off{buf = STRING_r_ECameraToViewOff;}
 
 RESOURCE TBUF256 r_lamp_on{buf = STRING_r_blendersito_lamp_on;}
 RESOURCE TBUF256 r_lamp_off{buf = STRING_r_blendersito_lamp_off;}

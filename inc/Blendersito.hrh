@@ -119,7 +119,8 @@ enum TBlendersitoMenuCommands
     EDuplicatedLinked,  
 
     ECameraMenu,  
-    ESetActiveObjectAsCamera,           
+    ESetActiveObjectAsCamera,     
+    ESetCameraToView,      
 
     ESnapMenu,
     ECursorToWorldOrigin,

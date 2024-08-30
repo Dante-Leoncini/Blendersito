@@ -143,6 +143,12 @@ GLfloat PivotX = 0;
 GLfloat PivotY = 0;
 GLfloat PivotZ = 0;
 
+GLfloat LastRotX = 0;
+GLfloat LastRotY = 0;	
+GLfloat LastPivotX = 0;
+GLfloat LastPivotY = 0;
+GLfloat LastPivotZ = 0;
+
 //vista 3d
 GLshort mouseX = 0;
 GLshort mouseY = 0;
@@ -167,6 +173,7 @@ TInt StartFrame = 1;
 TInt EndFrame = 10;
 TInt CurrentFrame = 1;
 TBool redibujar = true; //solo redibuja si este valor esta en true
+TBool ViewFromCameraActive = false;
 
 //interpolacion
 enum {lineal, closest};
@@ -471,6 +478,7 @@ void CBlendersito::ConstructL( void ){
 	iShiftPressed = false;
 	iAltPressed = false;
 	iCtrlPressed = false;
+	CameraToView = false;
 	SelectActivo = 0;
 	SelectActivo = -1;
 
@@ -1479,7 +1487,14 @@ void CBlendersito::AppCycle( TInt iFrame, GLfloat aTimeSecs, GLfloat aDeltaTimeS
     glLoadIdentity();
     glEnable( GL_DEPTH_TEST );	
 
-	glTranslatef( posX, posZ, -cameraDistance+posY);
+	if (ViewFromCameraActive){
+		RecalcViewPos();
+		//glTranslatef( posX, posZ, posY);
+		glTranslatef( posX, posZ, -cameraDistance+posY);
+	}
+	else {
+		glTranslatef( posX, posZ, -cameraDistance+posY);
+	}
 	glRotatef(rotY, 1, 0, 0); //angulo, X Y Z
 	glRotatef(rotX, 0, 1, 0); //angulo, X Y Z
 	// Use some magic numbers to scale the head model to fit the screen.
@@ -2395,8 +2410,8 @@ void CBlendersito::CalcScaleVectors(){
 }
 
 void CBlendersito::SetScale(TInt valor){
-	Mesh& pMesh = Meshes[Objects[SelectActivo].Id];
 	if (InteractionMode == EditMode){
+		Mesh& pMesh = Meshes[Objects[SelectActivo].Id];
 		for(int i=0; i < VectoresTInt.Count(); i++){		
 			//aplica el vector
 			TInt indiceVector = VectoresTInt[i].indice;
@@ -2530,7 +2545,20 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 		//rotX += fixedMul( 0.1, aDeltaTimeSecs );
 		if (estado == editNavegacion){ //InteractionMode == navegacion || InteractionMode == EditMode){
 			if (navegacionMode == Orbit){
-				rotX-= 0.5;		
+				if (ViewFromCameraActive && CameraToView){
+					Object& obj = Objects[CameraActive];
+					// Convertir el angulo de rotX a radianes
+					GLfloat radRotX = obj.rotX * PI / 180.0;
+
+					obj.posX+= 30 * cos(radRotX);
+					obj.posY-= 30 * sin(radRotX);
+				}
+				else {
+					if (ViewFromCameraActive){
+						RestaurarViewport();
+					}
+					rotX-= 0.5;
+				}
 			}
 			else if (navegacionMode == Fly){
 				// Convertir el angulo de rotX a radianes
@@ -2581,7 +2609,20 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 		//rotX -= fixedMul( 1, aDeltaTimeSecs );
 		if (estado == editNavegacion){ //InteractionMode == ObjectMode || InteractionMode == EditMode){					
 			if (navegacionMode == Orbit){
-				rotX+= 0.5;			
+				if (ViewFromCameraActive && CameraToView){
+					Object& obj = Objects[CameraActive];
+					// Convertir el angulo de rotX a radianes
+					GLfloat radRotX = obj.rotX * PI / 180.0;
+
+					obj.posX-= 30 * cos(radRotX);
+					obj.posY+= 30 * sin(radRotX);
+				}
+				else {
+					if (ViewFromCameraActive){
+						RestaurarViewport();
+					}
+					rotX+= 0.5;	
+				}		
 			}
 			else if (navegacionMode == Fly){
 				// Convertir el angulo de rotX a radianes
@@ -2628,11 +2669,27 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 
 		if (estado == editNavegacion){ //InteractionMode == ObjectMode || InteractionMode == EditMode){			
 			if (navegacionMode == Orbit){
-				rotY-= 0.5;		
+				if (ViewFromCameraActive && CameraToView){
+					Object& obj = Objects[CameraActive];
+					// Convertir el angulo de rotX a radianes
+					GLfloat radRotX = obj.rotX * PI / 180.0;
+					GLfloat radRotY = obj.rotY * PI / 180.0;
+					//GLfloat radRotZ = obj.rotZ * PI / 180.0;
+
+					obj.posX+= 30 * sin(radRotX);
+					//obj.posY-= 30 * cos(radRotX);
+					obj.posZ+= 30 * cos(radRotY);
+				}
+				else {
+					if (ViewFromCameraActive){
+						RestaurarViewport();
+					}
+					rotY-= 0.5;	
+				}			
 			}
 			else if (navegacionMode == Fly){
 				// Convertir el angulo de rotX a radianes
-				float radRotX = rotX * PI / 180.0;
+				GLfloat radRotX = rotX * PI / 180.0;
 
 				PivotY+= 30 * cos(radRotX);
 				PivotX-= 30 * sin(radRotX);
@@ -2661,11 +2718,27 @@ void CBlendersito::InputUsuario(GLfixed aDeltaTimeSecs){
 
 		if (estado == editNavegacion){ //InteractionMode == ObjectMode || InteractionMode == EditMode){					
 			if (navegacionMode == Orbit){
-				rotY+= 0.5;		
+				if (ViewFromCameraActive && CameraToView){
+					Object& obj = Objects[CameraActive];
+					// Convertir el angulo de rotX a radianes
+					GLfloat radRotX = obj.rotX * PI / 180.0;
+					GLfloat radRotY = obj.rotY * PI / 180.0;
+					//GLfloat radRotZ = obj.rotZ * PI / 180.0;
+
+					obj.posX-= 30 * sin(radRotX);
+					//obj.posY-= 30 * cos(radRotX);
+					obj.posZ-= 30 * cos(radRotY);
+				}
+				else {
+					if (ViewFromCameraActive){
+						RestaurarViewport();
+					}
+					rotY+= 0.5;	
+				}		
 			}
 			else if (navegacionMode == Fly){
 				// Convertir el angulo de rotX a radianes
-				float radRotX = rotX * PI / 180.0;
+				GLfloat radRotX = rotX * PI / 180.0;
 
 				PivotY-= 30 * cos(radRotX);
 				PivotX+= 30 * sin(radRotX);
@@ -3595,13 +3668,14 @@ void CBlendersito::BorrarObjeto(TInt indice){
 
 	//si es la camara activa. borra el indice
 	if (CameraActive == indice){
-		CameraActive = -1;		
+		CameraActive = -1;	
+		ViewFromCameraActive = false;	
 	}
 	//si era mas grande. resta uno para que el indice apunte a la camara correcta
 	else if (CameraActive > indice){
 		CameraActive--;
 	}
-	
+
 	Objects.Remove(indice);
 	SelectCount--;
 	SelectActivo = 0;
@@ -4938,14 +5012,20 @@ void CBlendersito::SetViewpoint(TInt opcion){
 		case top:
 			rotX = -180.0;
 			rotY = 90.0;
+			ViewFromCameraActive = false;	
+			CameraToView = false;
 			break;
 		case front:
 			rotX = -180.0;
 			rotY = 0.0;	
+			ViewFromCameraActive = false;	
+			CameraToView = false;
 			break;
 		case right:
 			rotX = 90.0;
 			rotY = 0.0;		
+			ViewFromCameraActive = false;	
+			CameraToView = false;
 			break;
 		case cameraView:
 			CheckCameraState();
@@ -4956,9 +5036,53 @@ void CBlendersito::SetViewpoint(TInt opcion){
 				MensajeError(noteBuf);  
 				CleanupStack::PopAndDestroy(noteBuf);
 			}
+			else if (Objects.Count() > CameraActive && !ViewFromCameraActive){	
+				LastRotX = rotX;
+				LastRotY = rotY;	
+				LastPivotX = PivotX;
+				LastPivotY = PivotY;
+				LastPivotZ = PivotZ;
+				RecalcViewPos();
+				ViewFromCameraActive = true;
+			}
 			break;
 	}
 	redibujar = true;
+}
+
+
+void CBlendersito::RestaurarViewport(){
+	ViewFromCameraActive = false;
+	rotX = LastRotX;
+	rotY = LastRotY;	
+	PivotX = LastPivotX;
+	PivotY = LastPivotY;
+	PivotZ = LastPivotZ;
+}
+
+void CBlendersito::SetCameraToView(){	
+	CameraToView = !CameraToView;
+}
+
+void CBlendersito::RecalcViewPos(){		
+	Object& obj = Objects[CameraActive];
+	rotX = -obj.rotZ+90;
+	rotY = -obj.rotY;	
+	PivotX = -obj.posX;
+	PivotY = -obj.posY;
+	PivotZ = -obj.posZ;
+
+	//en caso de que este emparentado
+	/*TInt ParentID = obj.Parent;
+	while (ParentID  > -1) {		
+		Object& parentObj = Objects[ParentID];		
+		rotX = -parentObj.rotZ;
+		rotY = -parentObj.rotY;	
+		//PivotX = -parentObj.posX;
+		//PivotY = -parentObj.posY;
+		//PivotZ = -parentObj.posZ;	
+		ParentID = parentObj.Parent;		
+	}*/
 }
 
 void CBlendersito::InfoObject(TInt opciones){
@@ -5127,6 +5251,32 @@ TInt CBlendersito::ShowOptionsDialogL() {
     return index;*/
 }
 
+//recalcula la geometria de la camaras
+void CBlendersito::SetCameraGeometria( TUint aWidth, TUint aHeight ){
+	//ancho
+	CameraVertices[5]  = CameraVertices[8]  =  aWidth*5;
+	CameraVertices[11] = CameraVertices[14] = -aWidth*5;
+	//alto
+	CameraVertices[4] = CameraVertices[13] =  aHeight*5;
+	CameraVertices[7] = CameraVertices[10] = -aHeight*5;
+	//triangulo alto
+	CameraVertices[16] = CameraVertices[19] = aHeight*5+260;
+	CameraVertices[22] = CameraVertices[16] + 1400;	
+}
+
+/*static GLshort CameraVertices[CameraVertexSize] = {   
+
+    0, 0, 0, //origen
+    3500,    1440, 1920,
+    3500,    -1440, 1920,
+    3500,    -1440, -1920,
+    3500,    1440, -1920,
+    //tiangulo
+    15,    1700, 1280,
+    18,    1700, -1280,
+    21,    3100, 0,
+};*/
+
 // -----------------------------------------------------------------------------
 // CBlendersito::SetScreenSize
 // Reacts to the dynamic screen size change during execution of this program.
@@ -5135,6 +5285,7 @@ TInt CBlendersito::ShowOptionsDialogL() {
 void CBlendersito::SetScreenSize( TUint aWidth, TUint aHeight, TBool widescreen = false ){
     iScreenWidth  = aWidth;
     iScreenHeight = aHeight;
+	SetCameraGeometria(aWidth, aHeight);
 	iScreenHeightSplit = (GLfloat)aHeight/2;
     
     // Notify the texture manager of screen size change
@@ -5165,6 +5316,7 @@ void CBlendersito::SetScreenSize( TUint aWidth, TUint aHeight, TBool widescreen 
 void CBlendersito::SetScreenSize( TUint aWidth, TUint aHeight ){
     iScreenWidth  = aWidth;
     iScreenHeight = aHeight;
+	SetCameraGeometria(aWidth, aHeight);
 	iScreenHeightSplit = (GLfloat)aHeight/2;
     
     // Notify the texture manager of screen size change

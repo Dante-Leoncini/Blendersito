@@ -32,7 +32,7 @@ static const GLushort LineaEdge[2] = {
 static const TInt CameraVertexSize = 8 * 3;
 static const TInt CameraEdgesSize = 11 * 2;
 
-static const GLshort CameraVertices[CameraVertexSize] = {    
+static GLshort CameraVertices[CameraVertexSize] = {    
     0, 0, 0, //origen
     3500, 1440, 1920,
     3500, -1440, 1920,

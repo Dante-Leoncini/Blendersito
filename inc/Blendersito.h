@@ -183,6 +183,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void SetSpriteSize(GLshort ancho, GLshort alto);
         void DrawnRectangle();
         void SetActiveObjectAsCamera();
+        void RestaurarViewport();
         void SetTextureRepeat();
         void IconSelect(TBool activo);
         void UiMoveTo(GLshort x, GLshort y);
@@ -204,6 +205,8 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void TecladoNumerico(TInt numero);
         void InsertarValor();
         void ImportOBJ();
+        void RecalcViewPos();
+        void SetCameraToView();
         void DeseleccionarTodo();
         void OldImportOBJ();
         TBool LeerOBJ(RFs* fsSession, RFile* rFile, TFileName* file, TInt64* startPos, 
@@ -218,6 +221,8 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         void EventKeyDown(TInt scan);
         void VerOpciones();
         void InvertirSeleccion();
+
+        void SetCameraGeometria( TUint aWidth, TUint aHeight );
 
         void calculateReflectionUVs(Mesh& pMesh);
         void createRotationMatrix(GLfloat pitch, GLfloat yaw, GLfloat* matrix);
@@ -306,6 +311,7 @@ class CBlendersito : public CFiniteStateMachine, public MTextureLoadingListener
         TBool iShiftPressed; 
         TBool iAltPressed;
         TBool iCtrlPressed;
+        TBool CameraToView;
         RArray<Object> Objects;
         TInt SelectActivo;
         TInt CameraActive;

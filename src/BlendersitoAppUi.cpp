@@ -168,6 +168,14 @@ void CBlendersitoAppUi::DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPa
             }
         }
     }
+    else if ( aResourceId == R_CAMERA_MENU ){
+        if (BL.CameraToView){  
+            aMenuPane->SetItemTextL( ESetCameraToView, R_CAMERATOVIEW_OFF );
+        }
+        else {
+            aMenuPane->SetItemTextL( ESetCameraToView, R_CAMERATOVIEW_ON  );
+        } 
+    }    
     else if ( aResourceId == R_TRANSFORM_MENU ){
         //si hay objetos            
         if (BL.Objects.Count() > 0){        
@@ -675,6 +683,9 @@ void CBlendersitoAppUi::HandleCommandL(TInt aCommand){
             break;
         case ECameraView:
             iAppContainer->iBlendersito->SetViewpoint(cameraView);
+            break;
+        case ESetCameraToView:
+            iAppContainer->iBlendersito->SetCameraToView();
             break;
         case ETopView:
             iAppContainer->iBlendersito->SetViewpoint(top);
